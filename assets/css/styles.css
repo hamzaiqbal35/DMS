@@ -1,0 +1,253 @@
+/* Ensure full height layout */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* Main wrapper that includes header, content, and footer */
+.page-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Main content pushes footer to bottom when short */
+.main-content {
+    flex: 1;
+}
+
+/* Footer always at bottom and never overlaps */
+footer {
+    position: relative;
+    z-index: 100;
+}
+.auto-hide-footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #212529;
+    color: white;
+    text-align: center;
+    padding: 12px 0;
+    z-index: 999;
+    transition: transform 0.3s ease;
+}
+
+.footer-hidden {
+    transform: translateY(100%);
+}
+/* Make the header sticky */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1050; /* High z-index to ensure it's on top */
+}
+
+/* Prevent content from hiding behind navbar */
+.main-content, .container-fluid {
+    padding-top: 0px; /* Adjust based on your navbar height */
+}
+.navbar {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+/* Navbar Logo Styling */
+.logo-img {
+    height: 40px;  /* Set a reasonable height */
+    width: auto;   /* Maintain aspect ratio */
+    max-width: 150px; /* Prevent excessive width */
+}
+
+/* Fix Alignment */
+.navbar-brand {
+    display: flex;
+    align-items: center; /* Aligns logo with text */
+    gap: 8px; /* Adds spacing between logo and text */
+}
+
+.navbar-brand span {
+    font-size: 18px; /* Adjust text size */
+    font-weight: bold;
+    color: #333; /* Adjust color for better visibility */
+}
+
+/* Center Align Date & Time */
+#currentTime {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* Dark Mode Toggle */
+#darkModeToggle {
+    border-radius: 50%;
+    padding: 5px 10px;
+}
+
+/* User Dropdown */
+#userDropdown {
+    font-weight: bold;
+}
+/* Sidebar */
+#sidebar {
+    width: 250px;
+    height: 100vh;
+    position: fixed;
+    top: 67px;
+    left: 0;
+    background: #212529;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+    z-index: 1030;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Sidebar Links */
+#sidebar .nav-link {
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+#sidebar .nav-link:hover {
+    background-color: #343a40;
+    padding-left: 18px;
+}
+
+#sidebar .collapse .nav-link {
+    padding-left: 2rem;
+    font-size: 0.95rem;
+}
+
+/* Sidebar Footer (User Info) */
+.sidebar-footer {
+    background-color: #1b1f23;
+    padding: 10px 0;
+    border-top: 1px solid #444;
+    font-size: 0.9rem;
+    position: sticky;
+    bottom: 72px;
+}
+
+/* Content Wrapper */
+.content {
+    margin-left: 0px;
+    padding: 1.5rem;
+    margin-top: 70px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+
+    .content {
+        margin-left: 0;
+    }
+}
+
+/* Collapse Icon Animation */
+.rotate-icon {
+    transform: rotate(180deg);
+    transition: transform 0.3s ease;
+}
+/* Dark Mode Styles */
+body.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+}
+/* Remove horizontal scrollbar*/ 
+body {
+    overflow-x: hidden;
+}
+.main-content {
+    margin-left: 250px; /* Adjust based on sidebar */
+    padding: 20px;
+}
+
+.dashboard-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* Stat Cards */
+.stat-card {
+    background: linear-gradient(to right, #007bff, #00d4ff);
+    color: white;
+    text-align: center;
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.stat-card h2 {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+/* Charts */
+.chart-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+/* ---------------- USER MANAGEMENT PAGE ---------------- */
+
+.user-management .btn {
+    position: relative;
+    z-index: 2;
+}
+
+.user-management .card {
+    border: none;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.user-management .table {
+    background: white;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.user-management .table th {
+    background-color: #343a40;
+    color: #fff;
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+.user-management .table td {
+    vertical-align: middle;
+}
+
+/* Add User Modal Animations */
+.modal.fade .modal-dialog {
+    transform: scale(0.95);
+    transition: transform 0.3s ease-in-out;
+}
+
+.modal.fade.show .modal-dialog {
+    transform: scale(1);
+}
+
+/* Dark mode overrides */
+body.dark-mode .table {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+}
+
+body.dark-mode .modal-content {
+    background-color: #2c2c2c;
+    color: white;
+}
+
+body.dark-mode .table th {
+    background-color: #333;
+}
+

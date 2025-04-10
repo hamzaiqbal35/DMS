@@ -1,0 +1,24 @@
+/* === Modal & Button Animations === */
+@keyframes fadeInModal {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeInModal 0.3s ease-in-out;
+}
+
+.btn-animate {
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-animate:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}

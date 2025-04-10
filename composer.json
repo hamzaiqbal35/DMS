@@ -1,0 +1,11 @@
+{
+    "name": "hamza/dms",
+    "type": "no",
+    "authors": [
+        {
+            "name": "Hamza Iqbal",
+            "email": "hamzaiqbalrajpoot35@gmail.com"
+        }
+    ],
+    "require": {}
+}
