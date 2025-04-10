@@ -28,7 +28,6 @@ try {
         throw new Exception("Invalid request method.");
     }
 
-
     $full_name = sanitize_input($_POST['full_name'] ?? '');
     $email = sanitize_input($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
