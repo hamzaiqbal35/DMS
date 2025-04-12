@@ -158,7 +158,7 @@ footer {
 }
 /* Dark Mode Styles */
 body.dark-mode {
-    background-color: #121212;
+    background-color: #333333;
     color: #ffffff;
 }
 /* Remove horizontal scrollbar*/ 
