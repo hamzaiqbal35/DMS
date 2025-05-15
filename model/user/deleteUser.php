@@ -1,42 +1,44 @@
 <?php
-// Include database connection
-include_once "../../inc/config/database.php";
-include_once "../../inc/helpers.php";
+require_once '../../inc/config/database.php';
+require_once '../../inc/helpers.php';
 
-// Check if user is logged in and has proper role (admin)
+header('Content-Type: application/json');
 session_start();
 
-if (!isset($_SESSION['role_id']) || $_SESSION['role_id'] !== 1) {
-    die("Access denied. Admins only.");
-}
-
-// Check if user_id is provided and is a valid integer
-if (isset($_GET['user_id']) && filter_var($_GET['user_id'], FILTER_VALIDATE_INT)) {
-    $user_id = sanitize_input($_GET['user_id']); // Sanitize user_id
-
-    // SQL query to check if the user exists
-    $checkQuery = "SELECT id FROM users WHERE id = ?";
-    $stmt = $pdo->prepare($checkQuery);
-    $stmt->execute([$user_id]);
-
-    if ($stmt->rowCount() > 0) {
-        // Proceed to delete user
-        $deleteQuery = "DELETE FROM users WHERE id = ?";
-        $deleteStmt = $pdo->prepare($deleteQuery);
-
-        if ($deleteStmt->execute([$user_id])) {
-            $_SESSION['message'] = "User deleted successfully!";
-        } else {
-            $_SESSION['message'] = "Error deleting user. Please try again.";
-        }
-    } else {
-        $_SESSION['message'] = "User not found.";
+try {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        throw new Exception("Invalid request method.");
     }
-} else {
-    $_SESSION['message'] = "Invalid user ID.";
-}
 
-// Redirect to manage users page after deletion
-header("Location: ../views/manageUsers.php");
-exit();
-?>
+    // Sanitize input
+    $user_id = sanitize_input($_POST['id'] ?? '');
+
+    if (empty($user_id)) {
+        throw new Exception("User ID is required.");
+    }
+
+    // Optionally: Prevent Admin from deleting themselves
+    if ($_SESSION['user_id'] == $user_id) {
+        throw new Exception("You cannot delete your own account.");
+    }
+
+    // Delete user from database
+    $stmt = $pdo->prepare("DELETE FROM users WHERE user_id = ?");
+    $deleted = $stmt->execute([$user_id]);
+
+    if ($deleted) {
+        echo json_encode([
+            "status" => "success",
+            "message" => "User deleted successfully."
+        ]);
+    } else {
+        throw new Exception("User deletion failed. Please try again.");
+    }
+
+} catch (Exception $e) {
+    error_log("Delete User Error: " . $e->getMessage());
+    echo json_encode([
+        "status" => "error",
+        "message" => $e->getMessage()
+    ]);
+}

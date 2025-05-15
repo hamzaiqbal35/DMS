@@ -41,7 +41,9 @@ $email = $_SESSION['email'] ?? 'Unknown User';
             </a>
             <div class="collapse" id="inventoryMenu">
                 <a class="nav-link" href="<?= $base_url ?>views/manageInventory.php">Manage Inventory</a>
-                <a class="nav-link" href="#">Stock Alerts</a>
+                <a class="nav-link" href="<?= $base_url ?>views/manageStockalerts.php">Stock Alerts</a>
+                <a class="nav-link" href="<?= $base_url ?>views/manageMedia.php">Catalog</a>
+                <a class="nav-link" href="<?= $base_url ?>views/manageCategories.php">Category</a>
             </div>
         </li>
 
@@ -51,10 +53,17 @@ $email = $_SESSION['email'] ?? 'Unknown User';
             </a>
         </li>
 
+        <!-- Purchases Dropdown -->
         <li class="nav-item">
-            <a class="nav-link" href="<?= $base_url ?>views/managePurchases.php">
-                <i class="fas fa-truck-loading me-2"></i> Purchases
+            <a class="nav-link" data-bs-toggle="collapse" href="#purchasesMenu" role="button">
+                <i class="fas fa-file-invoice-dollar me-2"></i> Purchases <i class="fas fa-chevron-down float-end"></i>
             </a>
+            <div class="collapse" id="purchasesMenu">
+                <a class="nav-link" href="<?= $base_url ?>views/managePurchases.php">Manage Purchases</a>
+                <a class="nav-link" href="<?= $base_url ?>views/purchaseReports.php">Purchase Reports</a>
+                <a class="nav-link" href="<?= $base_url ?>views/purchaseInvoices.php">Attached Invoices</a>
+                <a class="nav-link" href="<?= $base_url ?>views/purchaseAnalytics.php">Analytics</a>
+            </div>
         </li>
 
         <?php if ($role_id == 1): ?>

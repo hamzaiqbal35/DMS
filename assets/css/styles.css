@@ -156,19 +156,17 @@ footer {
     transform: rotate(180deg);
     transition: transform 0.3s ease;
 }
-/* Dark Mode Styles */
-body.dark-mode {
-    background-color: #333333;
-    color: #ffffff;
-}
 /* Remove horizontal scrollbar*/ 
 body {
     overflow-x: hidden;
 }
+/* Adjust for fixed header height */
 .main-content {
-    margin-left: 250px; /* Adjust based on sidebar */
+    margin-left: 250px; /* To account for sidebar */
+    margin-top: 70px;   /* Adjust based on your navbar height */
     padding: 20px;
 }
+
 
 .dashboard-title {
     font-size: 24px;
@@ -239,7 +237,7 @@ body {
 /* Dark mode overrides */
 body.dark-mode .table {
     background-color: #1e1e1e;
-    color: #e0e0e0;
+    color: #ffffff;
 }
 
 body.dark-mode .modal-content {
@@ -250,4 +248,3 @@ body.dark-mode .modal-content {
 body.dark-mode .table th {
     background-color: #333;
 }
-

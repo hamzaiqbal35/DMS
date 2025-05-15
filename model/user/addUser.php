@@ -47,8 +47,6 @@ try {
         exit;
     }
     
-    // Special handling: Check if email exists but IGNORE this check if it causes issues
-    // This is just to provide feedback but won't block user creation
     $emailExists = checkEmailExists($pdo, $email);
     
     // Generate a unique username outside transaction
@@ -57,7 +55,7 @@ try {
     // Hash password
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
     
-    // Create user directly - no transaction needed since we've already found a unique username
+    // Create user directly 
     $insert = $pdo->prepare("INSERT INTO users (username, full_name, email, password, role_id) VALUES (?, ?, ?, ?, ?)");
     $result = $insert->execute([$username, $full_name, $email, $hashed_password, $role_id]);
     

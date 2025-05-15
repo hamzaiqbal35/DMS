@@ -67,11 +67,6 @@ function generate_csrf_token() {
         <!-- Current Date & Time -->
         <span id="currentTime" class="fw-semibold text-secondary mx-auto"></span>
 
-        <!-- Dark Mode Toggle -->
-        <button id="darkModeToggle" class="btn btn-outline-dark ms-2">
-            <i class="fas fa-moon"></i>
-        </button>
-
         <!-- User Profile Dropdown -->
         <div class="dropdown ms-3">
             <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" 

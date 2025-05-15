@@ -10,27 +10,6 @@ document.addEventListener("DOMContentLoaded", function() {
         setInterval(updateTime, 1000);
     }
 
-    // Dark Mode Toggle
-    const toggleBtn = document.getElementById("darkModeToggle");
-    const body = document.body;
-
-    if (toggleBtn) {
-        toggleBtn.addEventListener("click", function () {
-            body.classList.toggle("dark-mode");
-
-            // Save preference
-            const theme = body.classList.contains("dark-mode") ? "dark" : "light";
-            localStorage.setItem("theme", theme);
-        });
-
-        // Load preference
-        const savedTheme = localStorage.getItem("theme");
-        if (savedTheme === "dark") {
-            body.classList.add("dark-mode");
-        } else {
-            body.classList.remove("dark-mode");
-        }
-    }
 });
 
 $(document).ready(function () {
@@ -40,3 +19,4 @@ $(document).ready(function () {
         $(this).prev().find('.fa-chevron-down').removeClass('rotate-icon');
     });
 });
+

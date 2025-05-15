@@ -68,16 +68,12 @@ CREATE TABLE IF NOT EXISTS vendors (
 -- Inventory categories
 CREATE TABLE IF NOT EXISTS categories (
     category_id INT PRIMARY KEY AUTO_INCREMENT,
-    category_name VARCHAR(100) NOT NULL UNIQUE
+    category_name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT DEFAULT NULL,
+    status ENUM('active', 'inactive') DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
-
--- Insert default categories
-INSERT INTO categories (category_name) VALUES 
-('Steel Beams'), 
-('Steel Plates'), 
-('Steel Tubes'), 
-('Steel Bars'), 
-('Steel Sheets');
 
 -- Inventory items table
 CREATE TABLE IF NOT EXISTS inventory (
@@ -96,30 +92,49 @@ CREATE TABLE IF NOT EXISTS inventory (
     FOREIGN KEY (category_id) REFERENCES categories(category_id)
 );
 
--- Purchases table
+-- Media Table for inventory items 
+CREATE TABLE media (
+    media_id INT PRIMARY KEY AUTO_INCREMENT,
+    item_id INT NOT NULL,
+    file_path VARCHAR(255) NOT NULL,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (item_id) REFERENCES inventory(item_id)
+);
+
+-- Purchases Table
 CREATE TABLE IF NOT EXISTS purchases (
     purchase_id INT PRIMARY KEY AUTO_INCREMENT,
     purchase_number VARCHAR(50) NOT NULL UNIQUE,
     vendor_id INT NOT NULL,
     purchase_date DATE NOT NULL,
-    total_amount DECIMAL(12,2) NOT NULL,
+    total_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
     payment_status ENUM('pending', 'partial', 'paid') DEFAULT 'pending',
+    delivery_status ENUM('pending', 'in_transit', 'delivered', 'delayed') DEFAULT 'pending',
+    expected_delivery DATE DEFAULT NULL,
+    invoice_file VARCHAR(255) DEFAULT NULL,
     notes TEXT,
     created_by INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
     FOREIGN KEY (vendor_id) REFERENCES vendors(vendor_id),
     FOREIGN KEY (created_by) REFERENCES users(user_id)
 );
 
--- Purchase details table
+-- Add index for reporting & filtering
+CREATE INDEX idx_vendor_date ON purchases(vendor_id, purchase_date);
+
+-- Purchase Details Table
 CREATE TABLE IF NOT EXISTS purchase_details (
     purchase_detail_id INT PRIMARY KEY AUTO_INCREMENT,
     purchase_id INT NOT NULL,
     item_id INT NOT NULL,
     quantity DECIMAL(10,2) NOT NULL,
     unit_price DECIMAL(10,2) NOT NULL,
+    discount DECIMAL(10,2) DEFAULT 0,
+    tax DECIMAL(10,2) DEFAULT 0,
     total_price DECIMAL(12,2) NOT NULL,
+    
     FOREIGN KEY (purchase_id) REFERENCES purchases(purchase_id) ON DELETE CASCADE,
     FOREIGN KEY (item_id) REFERENCES inventory(item_id)
 );
