@@ -1,6 +1,10 @@
 $(document).ready(function () {
     fetchPurchases();
     loadVendors();
+    loadItems(); // inventory item dropdown
+
+    // Store selected purchase items
+    let purchaseItems = [];
 
     // Fetch all purchase records
     function fetchPurchases() {
@@ -43,25 +47,7 @@ $(document).ready(function () {
         });
     }
 
-    // Badge color helpers
-    function statusBadge(status) {
-        return {
-            paid: 'success',
-            partial: 'warning',
-            pending: 'secondary'
-        }[status] || 'secondary';
-    }
-
-    function deliveryBadge(status) {
-        return {
-            delivered: 'success',
-            in_transit: 'primary',
-            pending: 'secondary',
-            delayed: 'danger'
-        }[status] || 'secondary';
-    }
-
-    // Load vendors into dropdown
+    // Load vendors
     function loadVendors() {
         $.ajax({
             url: '../model/vendor/showVendorIDs.php',
@@ -79,11 +65,105 @@ $(document).ready(function () {
         });
     }
 
-    // Handle Add/Update form submission
+    // Load inventory items for dropdown
+    function loadItems() {
+        $.ajax({
+            url: '../model/inventory/showItemNames.php',
+            method: 'GET',
+            dataType: 'json',
+            success: function (res) {
+                let options = '<option value="">Select Item</option>';
+                if (res.status === 'success') {
+                    res.data.forEach(i => {
+                        options += `<option value="${i.item_id}" data-name="${i.item_name}">${i.item_name}</option>`;
+                    });
+                }
+                $('#item_id').html(options);
+            }
+        });
+    }
+
+    // Add item to purchaseItems list
+    $('#addItemToPurchase').click(function () {
+        const item_id = $('#item_id').val();
+        const item_name = $('#item_id option:selected').text();
+        const quantity = parseFloat($('#item_quantity').val()) || 0;
+        const unit_price = parseFloat($('#item_price').val()) || 0;
+        const discount = parseFloat($('#item_discount').val()) || 0;
+        const tax = parseFloat($('#item_tax').val()) || 0;
+
+        if (!item_id || quantity <= 0 || unit_price <= 0) {
+            alert("Please fill valid item, quantity, and unit price.");
+            return;
+        }
+
+        const total_price = (quantity * unit_price) - discount + tax;
+
+        purchaseItems.push({
+            item_id,
+            quantity,
+            unit_price,
+            discount,
+            tax,
+            total_price
+        });
+
+        renderItems();
+        $('#item_id, #item_quantity, #item_price, #item_discount, #item_tax').val('');
+    });
+
+    function renderItems() {
+        const container = $('#purchaseItemsContainer');
+        container.empty();
+        if (purchaseItems.length === 0) {
+            container.html('<tr><td colspan="6" class="text-center">No items added.</td></tr>');
+            return;
+        }
+
+        purchaseItems.forEach((item, index) => {
+            container.append(`
+                <tr>
+                    <td>${$('#item_id option[value="' + item.item_id + '"]').text()}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.unit_price}</td>
+                    <td>${item.discount}</td>
+                    <td>${item.tax}</td>
+                    <td>${item.total_price.toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger removeItemBtn" data-index="${index}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `);
+        });
+    }
+
+    // Remove item
+    $(document).on('click', '.removeItemBtn', function () {
+        const index = $(this).data('index');
+        purchaseItems.splice(index, 1);
+        renderItems();
+    });
+
+    // Handle form submit
     $('#purchaseForm').on('submit', function (e) {
         e.preventDefault();
 
-        const formData = new FormData(this);
+        const form = this;
+        const formData = new FormData(form);
+
+        if (purchaseItems.length === 0) {
+            showMessage('Add at least one item.', 'error');
+            return;
+        }
+
+        purchaseItems.forEach((item, i) => {
+            for (const key in item) {
+                formData.append(`items[${i}][${key}]`, item[key]);
+            }
+        });
+
         const url = $('#purchase_id').val()
             ? '../model/purchase/updatePurchase.php'
             : '../model/purchase/insertPurchase.php';
@@ -99,88 +179,44 @@ $(document).ready(function () {
                 showMessage(res.message, res.status);
                 if (res.status === 'success') {
                     $('#addPurchaseModal').modal('hide');
-                    $('#purchaseForm')[0].reset();
+                    form.reset();
+                    purchaseItems = [];
+                    renderItems();
                     $('#purchase_id').val('');
                     fetchPurchases();
                 }
             },
             error: function () {
-                showMessage('An error occurred. Please try again.', 'error');
+                showMessage('An error occurred while saving.', 'error');
             }
         });
     });
 
-    // Load purchase into modal for editing
-    $(document).on('click', '.editPurchaseBtn', function () {
-        const purchase_id = $(this).data('id');
-
-        $.ajax({
-            url: '../model/purchase/getPurchaseDetails.php',
-            method: 'GET',
-            data: { purchase_id },
-            dataType: 'json',
-            success: function (res) {
-                if (res.status === 'success') {
-                    const p = res.data;
-                    $('#purchase_id').val(p.purchase_id);
-                    $('#purchase_number').val(p.purchase_number);
-                    $('#vendor_id').val(p.vendor_id);
-                    $('#purchase_date').val(p.purchase_date);
-                    $('#expected_delivery').val(p.expected_delivery);
-                    $('#total_amount').val(p.total_amount);
-                    $('#payment_status').val(p.payment_status);
-                    $('#delivery_status').val(p.delivery_status);
-                    $('#notes').val(p.notes);
-                    $('#addPurchaseModal').modal('show');
-                } else {
-                    showMessage(res.message, 'error');
-                }
-            },
-            error: function () {
-                showMessage('Failed to load purchase details.', 'error');
-            }
-        });
-    });
-
-    // Handle Delete
-    $(document).on('click', '.deletePurchaseBtn', function () {
-        const id = $(this).data('id');
-        $('#delete_purchase_id').val(id);
-        $('#deletePurchaseModal').modal('show');
-    });
-
-    $('#confirmDeletePurchase').click(function () {
-        const id = $('#delete_purchase_id').val();
-
-        $.ajax({
-            url: '../model/purchase/deletePurchase.php',
-            method: 'POST',
-            data: { purchase_id: id },
-            dataType: 'json',
-            success: function (res) {
-                showMessage(res.message, res.status);
-                if (res.status === 'success') {
-                    $('#deletePurchaseModal').modal('hide');
-                    fetchPurchases();
-                }
-            },
-            error: function () {
-                showMessage('Failed to delete purchase.', 'error');
-            }
-        });
-    });
-
-    // Flash message function
+    // Flash message
     function showMessage(message, type = 'success') {
-        const alertBox = $('#purchaseMessage');
-        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        const box = $('#purchaseMessage');
+        const alert = type === 'success' ? 'alert-success' : 'alert-danger';
 
-        alertBox.removeClass('d-none alert-success alert-danger')
-                .addClass(alertClass)
-                .html(message);
+        box.removeClass('d-none alert-success alert-danger')
+            .addClass(alert)
+            .html(message);
 
         setTimeout(() => {
-            alertBox.addClass('d-none').html('');
+            box.addClass('d-none').html('');
         }, 4000);
+    }
+
+    // Badge helpers
+    function statusBadge(status) {
+        return { paid: 'success', partial: 'warning', pending: 'secondary' }[status] || 'secondary';
+    }
+
+    function deliveryBadge(status) {
+        return {
+            delivered: 'success',
+            in_transit: 'primary',
+            pending: 'secondary',
+            delayed: 'danger'
+        }[status] || 'secondary';
     }
 });

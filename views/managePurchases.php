@@ -435,51 +435,99 @@ include_once '../inc/navigation.php';
                             <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Add Purchase</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body row g-3">
-                            <div class="col-md-6">
-                                <label><i class="fas fa-hashtag me-1"></i> Purchase Number</label>
-                                <input type="text" name="purchase_number" id="purchase_number" class="form-control" required>
+                        <div class="modal-body">
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label><i class="fas fa-hashtag me-1"></i> Purchase Number</label>
+                                    <input type="text" name="purchase_number" id="purchase_number" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label><i class="fas fa-building me-1"></i> Vendor</label>
+                                    <select name="vendor_id" id="vendor_id" class="form-select" required></select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label><i class="fas fa-calendar me-1"></i> Purchase Date</label>
+                                    <input type="date" name="purchase_date" id="purchase_date" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label><i class="fas fa-truck me-1"></i> Expected Delivery</label>
+                                    <input type="date" name="expected_delivery" id="expected_delivery" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label><i class="fas fa-dollar-sign me-1"></i> Total Amount</label>
+                                    <input type="number" step="0.01" name="total_amount" id="total_amount" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label><i class="fas fa-money-bill-wave me-1"></i> Payment Status</label>
+                                    <select name="payment_status" id="payment_status" class="form-select" required>
+                                        <option value="pending">Pending</option>
+                                        <option value="partial">Partial</option>
+                                        <option value="paid">Paid</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label><i class="fas fa-shipping-fast me-1"></i> Delivery Status</label>
+                                    <select name="delivery_status" id="delivery_status" class="form-select" required>
+                                        <option value="pending">Pending</option>
+                                        <option value="in_transit">In Transit</option>
+                                        <option value="delivered">Delivered</option>
+                                        <option value="delayed">Delayed</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label><i class="fas fa-file-invoice me-1"></i> Attach Invoice</label>
+                                    <input type="file" name="invoice_file" id="invoice_file" class="form-control">
+                                </div>
+                                <div class="col-12">
+                                    <label><i class="fas fa-sticky-note me-1"></i> Notes</label>
+                                    <textarea name="notes" id="notes" class="form-control" rows="3"></textarea>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label><i class="fas fa-building me-1"></i> Vendor</label>
-                                <select name="vendor_id" id="vendor_id" class="form-select" required></select>
+
+                            <h5 class="mt-4 mb-3"><i class="fas fa-list me-2"></i>Purchase Items</h5>
+                            
+                            <!-- Item Entry Section -->
+                            <div class="row g-2 mb-3 border p-2 rounded">
+                                <div class="col-md-3">
+                                    <select id="item_id" class="form-select">
+                                        <option value="">Select Item</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="number" id="item_quantity" class="form-control" placeholder="Qty" min="1">
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="number" id="item_price" class="form-control" placeholder="Price" min="0">
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="number" id="item_discount" class="form-control" placeholder="Discount" min="0" value="0">
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="number" id="item_tax" class="form-control" placeholder="Tax" min="0" value="0">
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" id="addItemToPurchase" class="btn btn-primary w-100"><i class="fas fa-plus"></i></button>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label><i class="fas fa-calendar me-1"></i> Purchase Date</label>
-                                <input type="date" name="purchase_date" id="purchase_date" class="form-control" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label><i class="fas fa-truck me-1"></i> Expected Delivery</label>
-                                <input type="date" name="expected_delivery" id="expected_delivery" class="form-control">
-                            </div>
-                            <div class="col-md-6">
-                                <label><i class="fas fa-dollar-sign me-1"></i> Total Amount</label>
-                                <input type="number" step="0.01" name="total_amount" id="total_amount" class="form-control" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label><i class="fas fa-money-bill-wave me-1"></i> Payment Status</label>
-                                <select name="payment_status" id="payment_status" class="form-select" required>
-                                    <option value="pending">Pending</option>
-                                    <option value="partial">Partial</option>
-                                    <option value="paid">Paid</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label><i class="fas fa-shipping-fast me-1"></i> Delivery Status</label>
-                                <select name="delivery_status" id="delivery_status" class="form-select" required>
-                                    <option value="pending">Pending</option>
-                                    <option value="in_transit">In Transit</option>
-                                    <option value="delivered">Delivered</option>
-                                    <option value="delayed">Delayed</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label><i class="fas fa-file-invoice me-1"></i> Attach Invoice</label>
-                                <input type="file" name="invoice_file" id="invoice_file" class="form-control">
-                            </div>
-                            <div class="col-12">
-                                <label><i class="fas fa-sticky-note me-1"></i> Notes</label>
-                                <textarea name="notes" id="notes" class="form-control" rows="3"></textarea>
+
+                            <!-- Purchase Items Table -->
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Qty</th>
+                                            <th>Price</th>
+                                            <th>Discount</th>
+                                            <th>Tax</th>
+                                            <th>Total</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="purchaseItemsContainer">
+                                        <tr><td colspan="7" class="text-center">No items added.</td></tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -492,7 +540,6 @@ include_once '../inc/navigation.php';
                 </form>
             </div>
         </div>
-        
 
         <!-- Edit Purchase Modal -->
         <div class="modal fade" id="editPurchaseModal" tabindex="-1" aria-labelledby="editPurchaseLabel" aria-hidden="true">
@@ -504,52 +551,100 @@ include_once '../inc/navigation.php';
                             <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Purchase</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body row g-3">
-                            <div class="col-md-6">
-                                <label><i class="fas fa-hashtag me-1"></i> Purchase Number</label>
-                                <input type="text" name="purchase_number" id="edit_purchase_number" class="form-control" required>
+                        <div class="modal-body">
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label><i class="fas fa-hashtag me-1"></i> Purchase Number</label>
+                                    <input type="text" name="purchase_number" id="edit_purchase_number" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label><i class="fas fa-building me-1"></i> Vendor</label>
+                                    <select name="vendor_id" id="edit_vendor_id" class="form-select" required></select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label><i class="fas fa-calendar me-1"></i> Purchase Date</label>
+                                    <input type="date" name="purchase_date" id="edit_purchase_date" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label><i class="fas fa-truck me-1"></i> Expected Delivery</label>
+                                    <input type="date" name="expected_delivery" id="edit_expected_delivery" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label><i class="fas fa-dollar-sign me-1"></i> Total Amount</label>
+                                    <input type="number" step="0.01" name="total_amount" id="edit_total_amount" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label><i class="fas fa-money-bill-wave me-1"></i> Payment Status</label>
+                                    <select name="payment_status" id="edit_payment_status" class="form-select" required>
+                                        <option value="pending">Pending</option>
+                                        <option value="partial">Partial</option>
+                                        <option value="paid">Paid</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label><i class="fas fa-shipping-fast me-1"></i> Delivery Status</label>
+                                    <select name="delivery_status" id="edit_delivery_status" class="form-select" required>
+                                        <option value="pending">Pending</option>
+                                        <option value="in_transit">In Transit</option>
+                                        <option value="delivered">Delivered</option>
+                                        <option value="delayed">Delayed</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label><i class="fas fa-file-invoice me-1"></i> Attach Invoice</label>
+                                    <input type="file" name="invoice_file" id="edit_invoice_file" class="form-control">
+                                    <small class="text-muted">Leave empty to keep current file</small>
+                                </div>
+                                <div class="col-12">
+                                    <label><i class="fas fa-sticky-note me-1"></i> Notes</label>
+                                    <textarea name="notes" id="edit_notes" class="form-control" rows="3"></textarea>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label><i class="fas fa-building me-1"></i> Vendor</label>
-                                <select name="vendor_id" id="edit_vendor_id" class="form-select" required></select>
+
+                            <h5 class="mt-4 mb-3"><i class="fas fa-list me-2"></i>Purchase Items</h5>
+                            
+                            <!-- Item Entry Section for Edit Modal -->
+                            <div class="row g-2 mb-3 border p-2 rounded">
+                                <div class="col-md-3">
+                                    <select id="edit_item_id" class="form-select">
+                                        <option value="">Select Item</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="number" id="edit_item_quantity" class="form-control" placeholder="Qty" min="1">
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="number" id="edit_item_price" class="form-control" placeholder="Price" min="0">
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="number" id="edit_item_discount" class="form-control" placeholder="Discount" min="0" value="0">
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="number" id="edit_item_tax" class="form-control" placeholder="Tax" min="0" value="0">
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" id="addEditItemToPurchase" class="btn btn-primary w-100"><i class="fas fa-plus"></i></button>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label><i class="fas fa-calendar me-1"></i> Purchase Date</label>
-                                <input type="date" name="purchase_date" id="edit_purchase_date" class="form-control" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label><i class="fas fa-truck me-1"></i> Expected Delivery</label>
-                                <input type="date" name="expected_delivery" id="edit_expected_delivery" class="form-control">
-                            </div>
-                            <div class="col-md-6">
-                                <label><i class="fas fa-dollar-sign me-1"></i> Total Amount</label>
-                                <input type="number" step="0.01" name="total_amount" id="edit_total_amount" class="form-control" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label><i class="fas fa-money-bill-wave me-1"></i> Payment Status</label>
-                                <select name="payment_status" id="edit_payment_status" class="form-select" required>
-                                    <option value="pending">Pending</option>
-                                    <option value="partial">Partial</option>
-                                    <option value="paid">Paid</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label><i class="fas fa-shipping-fast me-1"></i> Delivery Status</label>
-                                <select name="delivery_status" id="edit_delivery_status" class="form-select" required>
-                                    <option value="pending">Pending</option>
-                                    <option value="in_transit">In Transit</option>
-                                    <option value="delivered">Delivered</option>
-                                    <option value="delayed">Delayed</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label><i class="fas fa-file-invoice me-1"></i> Attach Invoice</label>
-                                <input type="file" name="invoice_file" id="edit_invoice_file" class="form-control">
-                                <small class="text-muted">Leave empty to keep current file</small>
-                            </div>
-                            <div class="col-12">
-                                <label><i class="fas fa-sticky-note me-1"></i> Notes</label>
-                                <textarea name="notes" id="edit_notes" class="form-control" rows="3"></textarea>
+
+                            <!-- Purchase Items Table for Edit Modal -->
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Qty</th>
+                                            <th>Price</th>
+                                            <th>Discount</th>
+                                            <th>Tax</th>
+                                            <th>Total</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="editPurchaseItemsContainer">
+                                        <tr><td colspan="7" class="text-center">No items added.</td></tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                         <div class="modal-footer">
