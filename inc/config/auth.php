@@ -1,49 +1,33 @@
 <?php
-// Ensure session is started only once
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+if (session_status() === PHP_SESSION_NONE) session_start();
 
-// Generate CSRF token if it doesn't exist
+require_once __DIR__ . '/../helpers.php';
+
+// If CSRF doesn't exist yet, create it
 if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-// Correct paths to database.php and helpers.php
-require_once __DIR__ . '/database.php';
-require_once __DIR__ . '/../helpers.php';
-
-// Function to check if a user is logged in
-function is_logged_in() {
-    return isset($_SESSION['user_id']);
-}
-
-// Function to check user role
-function has_role($role) {
-    return isset($_SESSION['role']) && $_SESSION['role'] === $role;
-}
-
-// Redirect user if not logged in
-function require_login() {
-    if (!is_logged_in()) {
+// Secure view access via JWT
+function require_jwt_auth() {
+    if (!isset($_SESSION['jwt_token'])) {
         header("Location: /DMS/views/login.php");
         exit();
     }
-}
 
-// Redirect user if they don't have the required role
-function require_role($role) {
-    if (!has_role($role)) {
-        header("Location: /DMS/views/unauthorized.php");
+    $decoded = decode_jwt($_SESSION['jwt_token']);
+
+    if (!$decoded || empty($decoded->data->user_id)) {
+        session_unset();
+        session_destroy();
+        header("Location: /DMS/views/login.php");
         exit();
     }
-}
 
-// Logout function
-function logout() {
-    session_unset();
-    session_destroy();
-    header("Location: /DMS/views/login.php");
-    exit();
+    // Optional: You can define $_SESSION values from the decoded JWT for further use
+    $_SESSION['user_id'] = $decoded->data->user_id;
+    $_SESSION['username'] = $decoded->data->username;
+    $_SESSION['email'] = $decoded->data->email;
+    $_SESSION['role_id'] = $decoded->data->role_id;
 }
 ?>
