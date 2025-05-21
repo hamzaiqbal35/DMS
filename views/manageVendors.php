@@ -2,9 +2,10 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-include_once '../inc/config/auth.php';
-include_once '../inc/header.php';
-include_once '../inc/navigation.php';
+require_once "../inc/config/auth.php"; // Ensure user authentication
+require_jwt_auth(); // Enforce JWT authentication
+require_once "../inc/header.php"; // Include header
+require_once "../inc/navigation.php"; // Include sidebar navigation
 ?>
 
 <!DOCTYPE html>
@@ -515,7 +516,6 @@ include_once '../inc/navigation.php';
 
         <!-- Scripts -->
         <script src="../assets/js/jquery.min.js"></script>
-        <script src="../assets/js/bootstrap.bundle.min.js"></script>
         <script src="../assets/js/scripts.js"></script>
         <script src="../assets/js/animations.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js" integrity="sha512-VEd+nq25CkR676O+pLBnDW09R7VQX9Mdiij052gVCp5yVH3jGtH70Ho/UUv4mJDsEdTvqRCFZg0NKGiojGnUCw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>

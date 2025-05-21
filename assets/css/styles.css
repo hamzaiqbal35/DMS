@@ -1,20 +1,258 @@
-/* Ensure full height layout */
+/* Base Layout */
 html, body {
     height: 100%;
     margin: 0;
     padding: 0;
+    overflow-x: hidden; /* Remove horizontal scrollbar */
 }
 
-/* Main wrapper that includes header, content, and footer */
+/* Main wrapper structure */
 .page-wrapper {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
 }
 
-/* Main content pushes footer to bottom when short */
 .main-content {
     flex: 1;
+    margin-left: 250px;
+    margin-top: 70px;
+    padding: 20px;
+}
+
+/* Header/Navbar */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.navbar-brand span {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.logo-img {
+    height: 40px;
+    width: auto;
+    max-width: 150px;
+}
+
+#currentTime {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+#userDropdown {
+    font-weight: bold;
+}
+
+/* Sidebar */
+#sidebar {
+    width: 250px;
+    height: 90vh;
+    position: fixed;
+    top: 67px;
+    left: 0;
+    background: #212529;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: all 0.3s ease;
+    z-index: 1030;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+    scrollbar-width: thin;
+    scrollbar-color: #6c757d transparent;
+}
+
+/* Sidebar scrollbar styling */
+#sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+#sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#sidebar::-webkit-scrollbar-thumb {
+    background-color: #6c757d;
+    border-radius: 10px;
+}
+
+/* Sidebar Links */
+#sidebar .nav-link {
+    color: #fff;
+    transition: all 0.3s ease;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    border-left: 4px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+#sidebar .nav-link:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    z-index: -1;
+}
+
+#sidebar .nav-link:hover {
+    background-color: #343a40;
+    padding-left: 18px;
+    color: #17a2b8;
+    border-left-color: #17a2b8;
+}
+
+#sidebar .nav-link:hover:before {
+    left: 0;
+}
+
+/* Active link styling */
+#sidebar .nav-link.active {
+    background-color: #2c3136;
+    color: #17a2b8;
+    border-left-color: #17a2b8;
+    font-weight: 600;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Sidebar Parent menu with active child */
+#sidebar .nav-link.parent-active {
+    background-color: #2c3136;
+    color: #17a2b8;
+    border-left-color: #17a2b8;
+    position: relative;
+}
+
+#sidebar .nav-link.parent-active:after {
+    content: '';
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    margin-top: -3px;
+    width: 6px;
+    height: 6px;
+    background: #17a2b8;
+    border-radius: 50%;
+    box-shadow: 0 0 4px rgba(23, 162, 184, 0.6);
+}
+
+#sidebar .nav-link.parent-active .fa-chevron-down {
+    margin-right: 12px;
+}
+
+#sidebar .nav-link.parent-active:hover {
+    background-color: #343a40;
+}
+
+/* Sidebar Dropdown/Collapse */
+#sidebar .collapse {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 0 0 4px 4px;
+    overflow: hidden;
+}
+
+#sidebar .collapse .nav-link {
+    padding-left: 2rem;
+    font-size: 0.95rem;
+    border-left: 4px solid transparent;
+}
+
+#sidebar .collapse .nav-link:hover {
+    padding-left: 2.3rem;
+}
+
+#sidebar .collapse .nav-link.active {
+    background-color: #212529;
+    border-left-color: #17a2b8;
+}
+
+/* Sidebar Dropdown Styles */
+#sidebar .nav-link[data-bs-toggle="collapse"] {
+    position: relative;
+}
+
+#sidebar .nav-link[data-bs-toggle="collapse"] .fa-chevron-down {
+    transition: transform 0.3s ease;
+    margin-left: auto;
+}
+
+#sidebar .nav-link[data-bs-toggle="collapse"][aria-expanded="true"] .fa-chevron-down {
+    transform: rotate(180deg);
+}
+
+#sidebar .nav-link.menu-expanded {
+    background-color: #2c3136;
+    color: #fff;
+    font-weight: 600;
+}
+
+/* Icon styling in sidebar */
+#sidebar .fas, #sidebar .fa-solid {
+    width: 20px;
+    margin-right: 10px;
+    text-align: center;
+    color: #17a2b8;
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+    background: linear-gradient(to right, #1b1f23, #2c3136);
+    padding: 12px 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.9rem;
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #adb5bd;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-footer small {
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.sidebar-footer .fas {
+    margin-right: 8px;
+    color: #17a2b8;
+}
+
+.sidebar-footer.footer-hidden {
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Content Area */
+.content {
+    margin-left: 0px;
+    padding: 1.5rem;
+    margin-top: 70px;
 }
 
 /* Footer always at bottom and never overlaps */
@@ -37,137 +275,8 @@ footer {
 .footer-hidden {
     transform: translateY(100%);
 }
-/* Make the header sticky */
-.navbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1050; /* High z-index to ensure it's on top */
-}
 
-/* Prevent content from hiding behind navbar */
-.main-content, .container-fluid {
-    padding-top: 0px; /* Adjust based on your navbar height */
-}
-.navbar {
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-/* Navbar Logo Styling */
-.logo-img {
-    height: 40px;  /* Set a reasonable height */
-    width: auto;   /* Maintain aspect ratio */
-    max-width: 150px; /* Prevent excessive width */
-}
-
-/* Fix Alignment */
-.navbar-brand {
-    display: flex;
-    align-items: center; /* Aligns logo with text */
-    gap: 8px; /* Adds spacing between logo and text */
-}
-
-.navbar-brand span {
-    font-size: 18px; /* Adjust text size */
-    font-weight: bold;
-    color: #333; /* Adjust color for better visibility */
-}
-
-/* Center Align Date & Time */
-#currentTime {
-    font-size: 1rem;
-    font-weight: 600;
-}
-
-/* Dark Mode Toggle */
-#darkModeToggle {
-    border-radius: 50%;
-    padding: 5px 10px;
-}
-
-/* User Dropdown */
-#userDropdown {
-    font-weight: bold;
-}
-/* Sidebar */
-#sidebar {
-    width: 250px;
-    height: 100vh;
-    position: fixed;
-    top: 67px;
-    left: 0;
-    background: #212529;
-    overflow-y: auto;
-    transition: all 0.3s ease;
-    z-index: 1030;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-/* Sidebar Links */
-#sidebar .nav-link {
-    color: #fff;
-    transition: all 0.3s ease;
-}
-
-#sidebar .nav-link:hover {
-    background-color: #343a40;
-    padding-left: 18px;
-}
-
-#sidebar .collapse .nav-link {
-    padding-left: 2rem;
-    font-size: 0.95rem;
-}
-
-/* Sidebar Footer (User Info) */
-.sidebar-footer {
-    background-color: #1b1f23;
-    padding: 10px 0;
-    border-top: 1px solid #444;
-    font-size: 0.9rem;
-    position: sticky;
-    bottom: 72px;
-}
-
-/* Content Wrapper */
-.content {
-    margin-left: 0px;
-    padding: 1.5rem;
-    margin-top: 70px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    #sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-    }
-
-    .content {
-        margin-left: 0;
-    }
-}
-
-/* Collapse Icon Animation */
-.rotate-icon {
-    transform: rotate(180deg);
-    transition: transform 0.3s ease;
-}
-/* Remove horizontal scrollbar*/ 
-body {
-    overflow-x: hidden;
-}
-/* Adjust for fixed header height */
-.main-content {
-    margin-left: 250px; /* To account for sidebar */
-    margin-top: 70px;   /* Adjust based on your navbar height */
-    padding: 20px;
-}
-
-
+/* Dashboard Components */
 .dashboard-title {
     font-size: 24px;
     font-weight: bold;
@@ -195,34 +304,6 @@ body {
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
-/* ---------------- USER MANAGEMENT PAGE ---------------- */
-
-.user-management .btn {
-    position: relative;
-    z-index: 2;
-}
-
-.user-management .card {
-    border: none;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.user-management .table {
-    background: white;
-    border-radius: 6px;
-    overflow: hidden;
-}
-
-.user-management .table th {
-    background-color: #343a40;
-    color: #fff;
-    text-transform: uppercase;
-    font-size: 14px;
-}
-
-.user-management .table td {
-    vertical-align: middle;
-}
 
 /* Add User Modal Animations */
 .modal.fade .modal-dialog {
@@ -234,17 +315,15 @@ body {
     transform: scale(1);
 }
 
-/* Dark mode overrides */
-body.dark-mode .table {
-    background-color: #1e1e1e;
-    color: #ffffff;
-}
+/* Responsive */
+@media (max-width: 768px) {
+    #sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
 
-body.dark-mode .modal-content {
-    background-color: #2c2c2c;
-    color: white;
-}
-
-body.dark-mode .table th {
-    background-color: #333;
+    .content {
+        margin-left: 0;
+    }
 }

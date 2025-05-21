@@ -42,7 +42,7 @@ function generate_csrf_token() {
     <title>Allied Steel Works - Dashboard</title>
 
     <!-- Bootstrap CSS -->
-    <link href="<?= $base_url ?>assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- FontAwesome (For Icons) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
@@ -52,7 +52,10 @@ function generate_csrf_token() {
     <link rel="stylesheet" href="<?= $base_url ?>assets/css/animations.css">
 
     <!-- jQuery -->
-    <script src="<?= $base_url ?>assets/js/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
 
@@ -96,10 +99,7 @@ function generate_csrf_token() {
 <script src="<?= $base_url ?>assets/js/scripts.js"></script>
 <script src="<?= $base_url ?>assets/js/user-management.js"></script>
 <script src="<?= $base_url ?>assets/js/charts.js"></script>
-<script src="<?= $base_url ?>assets/vendor/chart.js/chart.min.js"></script>
-
-<!-- Bootstrap JS -->
-<script src="<?= $base_url ?>assets/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </body>
 </html>
