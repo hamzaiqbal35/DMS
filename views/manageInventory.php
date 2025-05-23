@@ -244,6 +244,49 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
             </div>
         </div>
 
+        <!-- Reduce Stock Modal -->
+        <div class="modal fade" id="reduceStockModal" tabindex="-1" aria-labelledby="reduceStockLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <form id="reduceStockForm">
+                    <div class="modal-content">
+                        <div class="modal-header bg-warning text-dark">
+                            <h5 class="modal-title"><i class="fas fa-minus-circle me-2"></i>Reduce Stock from: <span id="reduce_stock_item_name"></span></h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" name="item_id" id="reduce_stock_item_id">
+                            <div class="mb-3">
+                                <label for="reduceStockQuantity" class="form-label"><i class="fas fa-minus me-1"></i> Quantity to Reduce</label>
+                                <input type="number" name="quantity" id="reduceStockQuantity" class="form-control" min="0.01" step="0.01" required>
+                                <small class="text-muted">Current stock: <span id="current_stock_display"></span></small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="reason" class="form-label"><i class="fas fa-info-circle me-1"></i> Reason for Reduction</label>
+                                <select name="reason" id="reason" class="form-select" required>
+                                    <option value="">Select a reason</option>
+                                    <option value="damaged">Damaged/Defective</option>
+                                    <option value="expired">Expired</option>
+                                    <option value="lost">Lost/Missing</option>
+                                    <option value="adjustment">Stock Adjustment</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="mb-3" id="otherReasonDiv" style="display: none;">
+                                <label for="other_reason" class="form-label">Specify Other Reason</label>
+                                <input type="text" name="other_reason" id="other_reason" class="form-control">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save me-1"></i> Reduce Stock
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Delete Confirmation Modal -->
         <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">

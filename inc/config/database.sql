@@ -101,6 +101,17 @@ CREATE TABLE media (
     FOREIGN KEY (item_id) REFERENCES inventory(item_id)
 );
 
+-- Stock Logs Table
+CREATE TABLE IF NOT EXISTS stock_logs (
+    log_id INT PRIMARY KEY AUTO_INCREMENT,
+    item_id INT NOT NULL,
+    quantity DECIMAL(10,2) NOT NULL,
+    type ENUM('addition', 'reduction') NOT NULL,
+    reason VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (item_id) REFERENCES inventory(item_id)
+);
+
 -- Purchases Table
 CREATE TABLE IF NOT EXISTS purchases (
     purchase_id INT PRIMARY KEY AUTO_INCREMENT,

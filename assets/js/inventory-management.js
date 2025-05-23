@@ -79,6 +79,14 @@ $(document).ready(function () {
                                                     <i class="fas fa-plus-circle me-2"></i> Add Stock
                                                 </a>
                                             </li>
+                                            <li>
+                                                <a class="dropdown-item reduceStock" href="#" 
+                                                    data-id="${item.item_id}" 
+                                                    data-name="${item.item_name}"
+                                                    data-current-stock="${item.current_stock}">
+                                                    <i class="fas fa-minus-circle me-2"></i> Reduce Stock
+                                                </a>
+                                            </li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li>
                                                 <a class="dropdown-item text-danger deleteItem" href="#" data-id="${item.item_id}">
@@ -221,18 +229,75 @@ $(document).ready(function () {
         $('#addStockModal').modal('show');
     });
 
-    $('#addStockForm').submit(function (e) {
+    // Reduce stock
+    $(document).on('click', '.reduceStock', function () {
+        const itemId = $(this).data('id');
+        const itemName = $(this).data('name');
+        const currentStock = $(this).data('current-stock');
+
+        $('#reduce_stock_item_id').val(itemId);
+        $('#reduce_stock_item_name').text(itemName);
+        $('#reduceStockQuantity').val('');
+        $('#reduceStockQuantity').attr('max', currentStock);
+        $('#current_stock_display').text(currentStock);
+        $('#reason').val('');
+        $('#otherReasonDiv').hide();
+        $('#other_reason').val('');
+        $('#reduceStockModal').modal('show');
+    });
+
+    // Handle reason dropdown change
+    $('#reason').on('change', function() {
+        if ($(this).val() === 'other') {
+            $('#otherReasonDiv').show();
+            $('#other_reason').prop('required', true);
+        } else {
+            $('#otherReasonDiv').hide();
+            $('#other_reason').prop('required', false);
+        }
+    });
+
+    // Validate reduce stock quantity
+    $('#reduceStockQuantity').on('input', function() {
+        const quantity = parseFloat($(this).val());
+        const currentStock = parseFloat($(this).attr('max'));
+        
+        if (quantity > currentStock) {
+            $(this).addClass('is-invalid');
+            showMessage('Cannot reduce more than current stock', 'error');
+        } else {
+            $(this).removeClass('is-invalid');
+        }
+    });
+
+    $('#reduceStockForm').submit(function (e) {
         e.preventDefault();
+        const quantity = parseFloat($('#reduceStockQuantity').val());
+        const currentStock = parseFloat($('#reduceStockQuantity').attr('max'));
+        const reason = $('#reason').val();
+
+        if (quantity > currentStock) {
+            showMessage('Cannot reduce more than current stock', 'error');
+            return;
+        }
+
+        if (reason === 'other' && !$('#other_reason').val().trim()) {
+            showMessage('Please specify the other reason', 'error');
+            return;
+        }
+
+        const formData = $(this).serialize();
+        
         $.ajax({
-            url: '../model/inventory/addStockToItem.php',
+            url: '../model/inventory/reduceStockFromItem.php',
             method: 'POST',
-            data: $(this).serialize(),
+            data: formData,
             dataType: 'json',
             success: function (response) {
                 showMessage(response.message, response.status);
                 if (response.status === 'success') {
-                    $('#addStockForm')[0].reset();
-                    $('#addStockModal').modal('hide');
+                    $('#reduceStockForm')[0].reset();
+                    $('#reduceStockModal').modal('hide');
                     fetchItems();
                 }
             }
