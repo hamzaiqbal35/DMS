@@ -68,21 +68,30 @@ $(document).ready(function () {
 
     // 🔹 Delete Customer
     $(document).on('click', '.deleteCustomer', function () {
-        const customerId = $(this).data('id');
-        if (confirm('Are you sure you want to delete this customer?')) {
-            $.ajax({
-                url: '../model/customer/deleteCustomer.php',
-                method: 'POST',
-                data: { customer_id: customerId },
-                success: function (response) {
-                    showMessage('Customer deleted successfully!', 'success');
+        const id = $(this).data('id');
+        $('#delete_customer_id').val(id);
+        $('#deleteCustomerModal').modal('show');
+    });
+    
+    // Confirm Delete
+    $('#confirmDeleteBtn').on('click', function() {
+        const id = $('#delete_customer_id').val();
+        $.ajax({
+            url: '../model/customer/deleteCustomer.php',
+            method: 'POST',
+            data: { customer_id: id },
+            dataType: 'json',
+            success: function (response) {
+                showMessage(response.message, response.status);
+                if (response.status === 'success') {
+                    $('#deleteCustomerModal').modal('hide');
                     fetchCustomers();
-                },
-                error: function () {
-                    showMessage('Failed to delete customer.', 'danger');
                 }
-            });
-        }
+            },
+            error: function () {
+                showMessage('Failed to delete customer.', 'danger');
+            }
+        });
     });
 });
 
@@ -98,11 +107,9 @@ function fetchCustomers() {
 
             if (response.status === 'success') {
                 if (response.data.length === 0) {
-                    // Show empty state if no customers
                     $('#emptyState').removeClass('d-none');
                     tbody.append(`<tr><td colspan="10" class="text-center">No customers found</td></tr>`);
                 } else {
-                    // Hide empty state and show customers
                     $('#emptyState').addClass('d-none');
                     
                     $.each(response.data, function (i, customer) {
@@ -118,21 +125,34 @@ function fetchCustomers() {
                                 <td>${customer.state || ''}</td>
                                 <td>${customer.zip_code || ''}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-warning editCustomer" 
-                                        data-id="${customer.customer_id}"
-                                        data-name="${customer.customer_name}"
-                                        data-contact="${customer.contact_person || ''}"
-                                        data-phone="${customer.phone}"
-                                        data-email="${customer.email || ''}"
-                                        data-address="${customer.address}"
-                                        data-city="${customer.city}"
-                                        data-state="${customer.state || ''}"
-                                        data-zip="${customer.zip_code || ''}">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger deleteCustomer" data-id="${customer.customer_id}">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item editCustomer" href="#" 
+                                                    data-id="${customer.customer_id}"
+                                                    data-name="${customer.customer_name}"
+                                                    data-contact="${customer.contact_person || ''}"
+                                                    data-phone="${customer.phone}"
+                                                    data-email="${customer.email || ''}"
+                                                    data-address="${customer.address}"
+                                                    data-city="${customer.city}"
+                                                    data-state="${customer.state || ''}"
+                                                    data-zip="${customer.zip_code || ''}">
+                                                    <i class="fas fa-edit me-2"></i> Edit
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item text-danger deleteCustomer" href="#" 
+                                                    data-id="${customer.customer_id}">
+                                                    <i class="fas fa-trash-alt me-2"></i> Delete
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </td>
                             </tr>
                         `);
@@ -143,7 +163,6 @@ function fetchCustomers() {
                 tbody.append(`<tr><td colspan="10" class="text-center">${response.message}</td></tr>`);
             }
             
-            // Apply current search filter after reloading
             const currentSearch = $('#searchInput').val().toLowerCase();
             if (currentSearch) {
                 filterCustomers(currentSearch);

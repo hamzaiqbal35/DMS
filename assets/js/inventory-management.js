@@ -53,26 +53,40 @@ $(document).ready(function () {
                                 <td>${item.minimum_stock}</td>
                                 <td><span class="badge bg-${item.status === 'active' ? 'success' : 'secondary'}">${item.status}</span></td>
                                 <td>
-                                    <button class="btn btn-sm btn-warning editItem"
-                                        data-id="${item.item_id}"
-                                        data-number="${item.item_number}"
-                                        data-name="${item.item_name}"
-                                        data-category="${item.category_id}"
-                                        data-unit="${item.unit_of_measure}"
-                                        data-price="${item.unit_price}"
-                                        data-min="${item.minimum_stock}"
-                                        data-desc="${item.description || ''}"
-                                        data-status="${item.status}">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-info addStock" 
-                                        data-id="${item.item_id}" 
-                                        data-name="${item.item_name}">
-                                        <i class="fas fa-plus-circle"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger deleteItem" data-id="${item.item_id}">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item editItem" href="#" 
+                                                    data-id="${item.item_id}"
+                                                    data-number="${item.item_number}"
+                                                    data-name="${item.item_name}"
+                                                    data-category="${item.category_id}"
+                                                    data-unit="${item.unit_of_measure}"
+                                                    data-price="${item.unit_price}"
+                                                    data-min="${item.minimum_stock}"
+                                                    data-desc="${item.description || ''}"
+                                                    data-status="${item.status}">
+                                                    <i class="fas fa-edit me-2"></i> Edit
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item addStock" href="#" 
+                                                    data-id="${item.item_id}" 
+                                                    data-name="${item.item_name}">
+                                                    <i class="fas fa-plus-circle me-2"></i> Add Stock
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item text-danger deleteItem" href="#" data-id="${item.item_id}">
+                                                    <i class="fas fa-trash-alt me-2"></i> Delete
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </td>
                             </tr>
                         `);
@@ -172,20 +186,28 @@ $(document).ready(function () {
     // Delete Item
     $(document).on('click', '.deleteItem', function () {
         const id = $(this).data('id');
-        if (confirm("Are you sure you want to delete this item?")) {
-            $.ajax({
-                url: '../model/inventory/deleteItem.php',
-                method: 'POST',
-                data: { item_id: id },
-                dataType: 'json',
-                success: function (response) {
-                    showMessage(response.message, response.status);
-                    if (response.status === 'success') {
-                        fetchItems();
-                    }
+        const name = $(this).closest('tr').find('td:eq(2)').text();
+        $('#delete_item_id').val(id);
+        $('#delete_item_name').text(name);
+        $('#deleteConfirmModal').modal('show');
+    });
+
+    // Confirm Delete
+    $('#confirmDelete').on('click', function() {
+        const id = $('#delete_item_id').val();
+        $.ajax({
+            url: '../model/inventory/deleteItem.php',
+            method: 'POST',
+            data: { item_id: id },
+            dataType: 'json',
+            success: function (response) {
+                showMessage(response.message, response.status);
+                if (response.status === 'success') {
+                    $('#deleteConfirmModal').modal('hide');
+                    fetchItems();
                 }
-            });
-        }
+            }
+        });
     });
 
     // Add stock

@@ -12,7 +12,7 @@ $(document).ready(function () {
                 const tbody = $('#userTable tbody');
                 tbody.empty();
 
-                if (response.status === 'success') {
+                if (response.status === 'success' && response.data && response.data.length > 0) {
                     $.each(response.data, function (i, user) {
                         tbody.append(`
                             <tr>
@@ -22,15 +22,49 @@ $(document).ready(function () {
                                 <td>${user.role}</td>
                                 <td>${user.created_at}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-warning editUser" data-id="${user.id}" data-name="${user.full_name}" data-email="${user.email}" data-role="${user.role_id}"><i class="fas fa-edit"></i></button>
-                                    <button class="btn btn-sm btn-danger deleteUser" data-id="${user.id}"><i class="fas fa-trash"></i></button>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item editUser" href="#" 
+                                                    data-id="${user.id}" 
+                                                    data-name="${user.full_name}" 
+                                                    data-email="${user.email}" 
+                                                    data-role="${user.role_id}">
+                                                    <i class="fas fa-edit me-2"></i> Edit
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item text-danger deleteUser" href="#" 
+                                                    data-id="${user.id}">
+                                                    <i class="fas fa-trash-alt me-2"></i> Delete
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </td>
                             </tr>
                         `);
                     });
+                    $('#userTable').show();
+                    $('#emptyState').addClass('d-none');
+                    
+                    const searchText = $('#searchInput').val();
+                    if (searchText) {
+                        $('#searchInput').trigger('keyup');
+                    }
                 } else {
-                    tbody.append(`<tr><td colspan="6" class="text-center">${response.message}</td></tr>`);
+                    $('#userTable').hide();
+                    $('#emptyState').removeClass('d-none');
+                    $('#emptyState').find('h5').text('No Users Found');
+                    $('#emptyState').find('p').text('Start by adding your first user or try a different search term.');
                 }
+            },
+            error: function() {
+                showMessage('Error fetching users. Please try again.', 'error');
             }
         });
     }
@@ -84,21 +118,27 @@ $(document).ready(function () {
 
     // Delete User
     $(document).on('click', '.deleteUser', function () {
-        if (confirm("Are you sure you want to delete this user?")) {
-            const userId = $(this).data('id');
-            $.ajax({
-                url: '../model/user/deleteUser.php',
-                method: 'POST',
-                data: { id: userId },
-                dataType: 'json',
-                success: function (response) {
-                    showMessage(response.message, response.status);
-                    if (response.status === 'success') {
-                        fetchUsers();
-                    }
+        const userId = $(this).data('id');
+        $('#delete_user_id').val(userId);
+        $('#deleteUserModal').modal('show');
+    });
+
+    // Confirm Delete
+    $('#confirmDeleteBtn').on('click', function() {
+        const userId = $('#delete_user_id').val();
+        $.ajax({
+            url: '../model/user/deleteUser.php',
+            method: 'POST',
+            data: { id: userId },
+            dataType: 'json',
+            success: function (response) {
+                showMessage(response.message, response.status);
+                if (response.status === 'success') {
+                    $('#deleteUserModal').modal('hide');
+                    fetchUsers();
                 }
-            });
-        }
+            }
+        });
     });
 
     // Flash message utility
@@ -182,8 +222,29 @@ function fetchUsers() {
                             <td>${user.role}</td>
                             <td>${user.created_at}</td>
                             <td>
-                                <button class="btn btn-sm btn-warning editUser" data-id="${user.id}" data-name="${user.full_name}" data-email="${user.email}" data-role="${user.role_id}"><i class="fas fa-edit"></i></button>
-                                <button class="btn btn-sm btn-danger deleteUser" data-id="${user.id}"><i class="fas fa-trash"></i></button>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item editUser" href="#" 
+                                                data-id="${user.id}" 
+                                                data-name="${user.full_name}" 
+                                                data-email="${user.email}" 
+                                                data-role="${user.role_id}">
+                                                <i class="fas fa-edit me-2"></i> Edit
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item text-danger deleteUser" href="#" 
+                                                data-id="${user.id}">
+                                                <i class="fas fa-trash-alt me-2"></i> Delete
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
                             </td>
                         </tr>
                     `);
@@ -191,13 +252,11 @@ function fetchUsers() {
                 $('#userTable').show();
                 $('#emptyState').addClass('d-none');
                 
-                // Apply current search filter if exists
                 const searchText = $('#searchInput').val();
                 if (searchText) {
                     $('#searchInput').trigger('keyup');
                 }
             } else {
-                // No users found or error
                 $('#userTable').hide();
                 $('#emptyState').removeClass('d-none');
                 $('#emptyState').find('h5').text('No Users Found');

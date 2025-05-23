@@ -52,21 +52,34 @@ $(document).ready(function () {
                         <td>${vendor.state || ''}</td>
                         <td>${vendor.zip_code || ''}</td>
                         <td>
-                            <button class="btn btn-sm btn-warning editVendor" 
-                                data-id="${vendor.vendor_id}"
-                                data-name="${vendor.vendor_name}"
-                                data-contact="${vendor.contact_person || ''}"
-                                data-phone="${vendor.phone}"
-                                data-email="${vendor.email || ''}"
-                                data-address="${vendor.address}"
-                                data-city="${vendor.city}"
-                                data-state="${vendor.state || ''}"
-                                data-zip="${vendor.zip_code || ''}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-sm btn-danger deleteVendor" data-id="${vendor.vendor_id}">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item editVendor" href="#" 
+                                            data-id="${vendor.vendor_id}"
+                                            data-name="${vendor.vendor_name}"
+                                            data-contact="${vendor.contact_person || ''}"
+                                            data-phone="${vendor.phone}"
+                                            data-email="${vendor.email || ''}"
+                                            data-address="${vendor.address}"
+                                            data-city="${vendor.city}"
+                                            data-state="${vendor.state || ''}"
+                                            data-zip="${vendor.zip_code || ''}">
+                                            <i class="fas fa-edit me-2"></i> Edit
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger deleteVendor" href="#" 
+                                            data-id="${vendor.vendor_id}">
+                                            <i class="fas fa-trash-alt me-2"></i> Delete
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </td>
                     </tr>
                 `);

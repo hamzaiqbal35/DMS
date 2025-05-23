@@ -86,20 +86,26 @@ $(document).ready(function () {
     // Delete image
     $(document).on('click', '.deleteMedia', function () {
         const id = $(this).data('id');
-        if (confirm('Are you sure you want to delete this image?')) {
-            $.ajax({
-                url: '../model/inventory/deleteMedia.php',
-                method: 'POST',
-                data: { media_id: id },
-                dataType: 'json',
-                success: function (response) {
-                    showMediaMessage(response.message, response.status);
-                    if (response.status === 'success') {
-                        fetchMediaGallery();
-                    }
+        $('#delete_media_id').val(id);
+        $('#deleteMediaModal').modal('show');
+    });
+
+    // Confirm Delete
+    $('#confirmDeleteBtn').on('click', function() {
+        const id = $('#delete_media_id').val();
+        $.ajax({
+            url: '../model/inventory/deleteMedia.php',
+            method: 'POST',
+            data: { media_id: id },
+            dataType: 'json',
+            success: function (response) {
+                showMediaMessage(response.message, response.status);
+                if (response.status === 'success') {
+                    $('#deleteMediaModal').modal('hide');
+                    fetchMediaGallery();
                 }
-            });
-        }
+            }
+        });
     });
 
     // View product details
@@ -152,3 +158,10 @@ $(document).ready(function () {
     }
 });
 
+$(document).ready(function() {
+    $('#item_id').select2({
+        dropdownParent: $('#uploadModal'),
+        width: '100%',
+        dropdownCssClass: 'select-custom-height'
+    });
+});
