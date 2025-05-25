@@ -1144,3 +1144,207 @@ label {
     width: 50px;
     text-align: center;
 }
+
+/* Purchase Management Specific Styles */
+.btn-add-purchase {
+    background: linear-gradient(45deg, var(--success-color), #2ec4b6);
+    border: none;
+    color: var(--dark-color);
+    font-weight: 600;
+    padding: 0.625rem 1.25rem;
+    border-radius: 2rem;
+    box-shadow: 0 4px 6px rgba(76, 201, 240, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-add-purchase:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(76, 201, 240, 0.4);
+    color: var(--dark-color);
+}
+
+/* Purchase Table Styles */
+#purchaseTable th {
+    background-color: var(--dark-color);
+    color: white;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    padding: 0.75rem;
+}
+
+#purchaseTable td {
+    vertical-align: middle;
+    padding: 0.75rem;
+}
+
+#purchaseTable tbody tr:hover {
+    background-color: rgba(67, 97, 238, 0.05);
+}
+
+/* Purchase Status Badges */
+.badge {
+    padding: 0.5em 0.75em;
+    font-weight: 500;
+    border-radius: 0.25rem;
+}
+
+.badge.bg-warning {
+    background-color: #f9c74f !important;
+    color: var(--dark-color);
+}
+
+.badge.bg-info {
+    background-color: #4cc9f0 !important;
+    color: var(--dark-color);
+}
+
+.badge.bg-success {
+    background-color: #2ec4b6 !important;
+    color: var(--dark-color);
+}
+
+/* Purchase Filter Styles */
+.filter-container {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 1.5rem;
+}
+
+.filter-container .form-control,
+.filter-container .form-select {
+    border-radius: 0.5rem;
+    border: 1px solid #dee2e6;
+    padding: 0.5rem 1rem;
+}
+
+.filter-container .form-control:focus,
+.filter-container .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+}
+
+/* Purchase Modal Styles */
+#addPurchaseModal .modal-header,
+#editPurchaseModal .modal-header {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+#addPurchaseModal .modal-header .btn-close,
+#editPurchaseModal .modal-header .btn-close {
+    color: white;
+    opacity: 0.8;
+}
+
+#addPurchaseModal .modal-header .btn-close:hover,
+#editPurchaseModal .modal-header .btn-close:hover {
+    opacity: 1;
+}
+
+/* Purchase Form Styles */
+#addPurchaseForm .form-label,
+#editPurchaseForm .form-label {
+    font-weight: 500;
+    color: var(--dark-color);
+    margin-bottom: 0.5rem;
+}
+
+#addPurchaseForm .form-control,
+#editPurchaseForm .form-control,
+#addPurchaseForm .form-select,
+#editPurchaseForm .form-select {
+    border-radius: 0.5rem;
+    border: 1px solid #dee2e6;
+    padding: 0.5rem 1rem;
+}
+
+#addPurchaseForm .form-control:focus,
+#editPurchaseForm .form-control:focus,
+#addPurchaseForm .form-select:focus,
+#editPurchaseForm .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+}
+
+/* Purchase Message Styles */
+#purchaseMessage {
+    margin-bottom: 1rem;
+}
+
+#purchaseMessage .alert {
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 0;
+}
+
+#purchaseMessage .alert-success {
+    background-color: rgba(46, 196, 182, 0.1);
+    border-color: #2ec4b6;
+    color: #2ec4b6;
+}
+
+#purchaseMessage .alert-error {
+    background-color: rgba(239, 35, 60, 0.1);
+    border-color: var(--warning-color);
+    color: var(--warning-color);
+}
+
+/* Purchase Empty State */
+#emptyState {
+    text-align: center;
+    padding: 3rem 0;
+}
+
+#emptyState i {
+    font-size: 3rem;
+    color: #d1d5db;
+    margin-bottom: 1rem;
+}
+
+#emptyState h5 {
+    color: var(--dark-color);
+    margin-bottom: 0.5rem;
+}
+
+#emptyState p {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+}
+
+/* Purchase Action Dropdown */
+.dropdown-toggle {
+    padding: 0.25rem 0.5rem;
+    background: transparent;
+    border: none;
+    color: #6c757d;
+    transition: all 0.2s ease;
+}
+
+.dropdown-toggle:hover {
+    color: var(--primary-color);
+    background: rgba(67, 97, 238, 0.1);
+}
+
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+}
+
+.dropdown-item {
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(67, 97, 238, 0.1);
+}
+
+.dropdown-item.text-danger:hover {
+    background-color: rgba(239, 35, 60, 0.1);
+}

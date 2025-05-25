@@ -1,128 +1,190 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 require_once '../../inc/config/database.php';
-require_once '../../inc/helpers.php';
 
 header('Content-Type: application/json');
 
+// Validate incoming request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['status' => 'error', 'message' => 'Invalid request method.']);
-    exit;
-}
-
-// Validate core purchase data
-$vendor_id         = intval($_POST['vendor_id'] ?? 0);
-$purchase_date     = trim($_POST['purchase_date'] ?? '');
-$payment_status    = trim($_POST['payment_status'] ?? 'pending');
-$delivery_status   = trim($_POST['delivery_status'] ?? 'pending');
-$expected_delivery = trim($_POST['expected_delivery'] ?? null);
-$notes             = trim($_POST['notes'] ?? '');
-$created_by        = $_SESSION['user_id'] ?? 0;
-
-$items = $_POST['items'] ?? [];
-
-if (
-    $vendor_id <= 0 || empty($purchase_date) || 
-    !in_array($payment_status, ['pending', 'partial', 'paid']) ||
-    !in_array($delivery_status, ['pending', 'in_transit', 'delivered', 'delayed']) ||
-    empty($items) || $created_by <= 0
-) {
-    echo json_encode(['status' => 'error', 'message' => 'Validation failed: All required fields must be provided.']);
+    echo json_encode(['status' => 'error', 'message' => 'Invalid request method']);
     exit;
 }
 
 try {
-    $pdo->beginTransaction();
+    $db->beginTransaction();
 
-    // Generate unique purchase number
-    $purchase_number = 'PUR-' . time();
+    // Step 1: Collect Purchase Data
+    $purchaseNumber = $_POST['purchase_number'];
+    $vendorId = $_POST['vendor_id'];
+    $purchaseDate = $_POST['purchase_date'];
+    $expectedDelivery = $_POST['expected_delivery'];
+    $notes = $_POST['notes'] ?? '';
+    $createdBy = $_POST['created_by'];
+    $materials = json_decode($_POST['materials'], true); // Expects array of materials
 
-    // Calculate total cost from item details
-    $total_amount = 0;
-    foreach ($items as $item) {
-        $quantity   = floatval($item['quantity'] ?? 0);
-        $unit_price = floatval($item['unit_price'] ?? 0);
-        $discount   = floatval($item['discount'] ?? 0);
-        $tax        = floatval($item['tax'] ?? 0);
-
-        if ($quantity <= 0 || $unit_price < 0) {
-            throw new Exception("Invalid item quantity or unit price.");
-        }
-
-        $item_total = ($quantity * $unit_price) - $discount + $tax;
-        $total_amount += $item_total;
+    if (!$purchaseNumber || !$vendorId || !$purchaseDate || !$createdBy || empty($materials)) {
+        throw new Exception("Missing required fields");
     }
 
-    // Insert into purchases
-    $stmt = $pdo->prepare("
-        INSERT INTO purchases (
-            purchase_number, vendor_id, purchase_date, total_amount, 
-            payment_status, delivery_status, expected_delivery, 
-            invoice_file, notes, created_by
-        ) VALUES (
-            :purchase_number, :vendor_id, :purchase_date, :total_amount, 
-            :payment_status, :delivery_status, :expected_delivery, 
-            :invoice_file, :notes, :created_by
-        )
-    ");
-
-    $invoice_file = null; // Handle invoice file later if needed
+    // Step 2: Insert into purchases
+    $insertPurchaseSQL = "
+        INSERT INTO purchases (purchase_number, vendor_id, purchase_date, expected_delivery, notes, created_by)
+        VALUES (:purchase_number, :vendor_id, :purchase_date, :expected_delivery, :notes, :created_by)
+    ";
+    $stmt = $db->prepare($insertPurchaseSQL);
     $stmt->execute([
-        'purchase_number'    => $purchase_number,
-        'vendor_id'          => $vendor_id,
-        'purchase_date'      => $purchase_date,
-        'total_amount'       => $total_amount,
-        'payment_status'     => $payment_status,
-        'delivery_status'    => $delivery_status,
-        'expected_delivery'  => $expected_delivery ?: null,
-        'invoice_file'       => $invoice_file,
-        'notes'              => $notes,
-        'created_by'         => $created_by
+        ':purchase_number'   => $purchaseNumber,
+        ':vendor_id'         => $vendorId,
+        ':purchase_date'     => $purchaseDate,
+        ':expected_delivery' => $expectedDelivery,
+        ':notes'             => $notes,
+        ':created_by'        => $createdBy
     ]);
 
-    $purchase_id = $pdo->lastInsertId();
+    $purchaseId = $db->lastInsertId();
 
-    // Insert into purchase_details
-    $detailStmt = $pdo->prepare("
-        INSERT INTO purchase_details (
-            purchase_id, item_id, quantity, unit_price, discount, tax, total_price
-        ) VALUES (
-            :purchase_id, :item_id, :quantity, :unit_price, :discount, :tax, :total_price
-        )
-    ");
+    $totalAmount = 0;
 
-    foreach ($items as $item) {
-        $item_id    = intval($item['item_id']);
-        $quantity   = floatval($item['quantity']);
-        $unit_price = floatval($item['unit_price']);
-        $discount   = floatval($item['discount'] ?? 0);
-        $tax        = floatval($item['tax'] ?? 0);
+    // Step 3: Insert purchase_details
+    $insertDetailSQL = "
+        INSERT INTO purchase_details (purchase_id, material_id, quantity, unit_price, discount, tax, total_price)
+        VALUES (:purchase_id, :material_id, :quantity, :unit_price, :discount, :tax, :total_price)
+    ";
+    $stmtDetail = $db->prepare($insertDetailSQL);
 
-        $total_price = ($quantity * $unit_price) - $discount + $tax;
+    foreach ($materials as $material) {
+        $materialId = $material['material_id'];
+        $quantity = $material['quantity'];
+        $unitPrice = $material['unit_price'];
+        $discount = $material['discount'] ?? 0;
+        $tax = $material['tax'] ?? 0;
 
-        $detailStmt->execute([
-            'purchase_id' => $purchase_id,
-            'item_id'     => $item_id,
-            'quantity'    => $quantity,
-            'unit_price'  => $unit_price,
-            'discount'    => $discount,
-            'tax'         => $tax,
-            'total_price' => $total_price
+        $gross = $quantity * $unitPrice;
+        $discountAmount = ($gross * $discount) / 100;
+        $taxAmount = ($gross * $tax) / 100;
+        $netTotal = $gross - $discountAmount + $taxAmount;
+
+        $stmtDetail->execute([
+            ':purchase_id'  => $purchaseId,
+            ':material_id'  => $materialId,
+            ':quantity'     => $quantity,
+            ':unit_price'   => $unitPrice,
+            ':discount'     => $discount,
+            ':tax'          => $tax,
+            ':total_price'  => $netTotal
         ]);
+
+        $totalAmount += $netTotal;
     }
 
-    $pdo->commit();
-
-    echo json_encode([
-        'status' => 'success',
-        'message' => 'Purchase recorded successfully.',
-        'purchase_id' => $purchase_id
+    // Step 4: Update total in purchases
+    $updateTotalSQL = "UPDATE purchases SET total_amount = :total_amount WHERE purchase_id = :purchase_id";
+    $stmt = $db->prepare($updateTotalSQL);
+    $stmt->execute([
+        ':total_amount' => $totalAmount,
+        ':purchase_id'  => $purchaseId
     ]);
+
+    $db->commit();
+
+    echo json_encode(['status' => 'success', 'message' => 'Purchase added successfully']);
 } catch (Exception $e) {
-    $pdo->rollBack();
-    error_log("Purchase Insertion Error: " . $e->getMessage(), 3, '../../error_log.log');
-    echo json_encode(['status' => 'error', 'message' => 'Failed to insert purchase.']);
+    $db->rollBack();
+    error_log("Insert Purchase Error: " . $e->getMessage(), 3, '../../logs/error_log.log');
+    echo json_encode(['status' => 'error', 'message' => 'Failed to insert purchase', 'details' => $e->getMessage()]);
 }
+?>
+<?php
+require_once '../../inc/config/database.php';
+
+header('Content-Type: application/json');
+
+// Validate incoming request
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode(['status' => 'error', 'message' => 'Invalid request method']);
+    exit;
+}
+
+try {
+    $db->beginTransaction();
+
+    // Step 1: Collect Purchase Data
+    $purchaseNumber = $_POST['purchase_number'];
+    $vendorId = $_POST['vendor_id'];
+    $purchaseDate = $_POST['purchase_date'];
+    $expectedDelivery = $_POST['expected_delivery'];
+    $notes = $_POST['notes'] ?? '';
+    $createdBy = $_POST['created_by'];
+    $materials = json_decode($_POST['materials'], true); // Expects array of materials
+
+    if (!$purchaseNumber || !$vendorId || !$purchaseDate || !$createdBy || empty($materials)) {
+        throw new Exception("Missing required fields");
+    }
+
+    // Step 2: Insert into purchases
+    $insertPurchaseSQL = "
+        INSERT INTO purchases (purchase_number, vendor_id, purchase_date, expected_delivery, notes, created_by)
+        VALUES (:purchase_number, :vendor_id, :purchase_date, :expected_delivery, :notes, :created_by)
+    ";
+    $stmt = $db->prepare($insertPurchaseSQL);
+    $stmt->execute([
+        ':purchase_number'   => $purchaseNumber,
+        ':vendor_id'         => $vendorId,
+        ':purchase_date'     => $purchaseDate,
+        ':expected_delivery' => $expectedDelivery,
+        ':notes'             => $notes,
+        ':created_by'        => $createdBy
+    ]);
+
+    $purchaseId = $db->lastInsertId();
+
+    $totalAmount = 0;
+
+    // Step 3: Insert purchase_details
+    $insertDetailSQL = "
+        INSERT INTO purchase_details (purchase_id, material_id, quantity, unit_price, discount, tax, total_price)
+        VALUES (:purchase_id, :material_id, :quantity, :unit_price, :discount, :tax, :total_price)
+    ";
+    $stmtDetail = $db->prepare($insertDetailSQL);
+
+    foreach ($materials as $material) {
+        $materialId = $material['material_id'];
+        $quantity = $material['quantity'];
+        $unitPrice = $material['unit_price'];
+        $discount = $material['discount'] ?? 0;
+        $tax = $material['tax'] ?? 0;
+
+        $gross = $quantity * $unitPrice;
+        $discountAmount = ($gross * $discount) / 100;
+        $taxAmount = ($gross * $tax) / 100;
+        $netTotal = $gross - $discountAmount + $taxAmount;
+
+        $stmtDetail->execute([
+            ':purchase_id'  => $purchaseId,
+            ':material_id'  => $materialId,
+            ':quantity'     => $quantity,
+            ':unit_price'   => $unitPrice,
+            ':discount'     => $discount,
+            ':tax'          => $tax,
+            ':total_price'  => $netTotal
+        ]);
+
+        $totalAmount += $netTotal;
+    }
+
+    // Step 4: Update total in purchases
+    $updateTotalSQL = "UPDATE purchases SET total_amount = :total_amount WHERE purchase_id = :purchase_id";
+    $stmt = $db->prepare($updateTotalSQL);
+    $stmt->execute([
+        ':total_amount' => $totalAmount,
+        ':purchase_id'  => $purchaseId
+    ]);
+
+    $db->commit();
+
+    echo json_encode(['status' => 'success', 'message' => 'Purchase added successfully']);
+} catch (Exception $e) {
+    $db->rollBack();
+    error_log("Insert Purchase Error: " . $e->getMessage(), 3, '../../logs/error_log.log');
+    echo json_encode(['status' => 'error', 'message' => 'Failed to insert purchase', 'details' => $e->getMessage()]);
+}
+?>

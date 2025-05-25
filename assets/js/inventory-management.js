@@ -152,6 +152,8 @@ $(document).ready(function () {
                 if (response.status === 'success') {
                     $('#addItemForm')[0].reset();
                     $('#addItemModal').modal('hide');
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
                     fetchItems();
                 }
             }
@@ -185,6 +187,8 @@ $(document).ready(function () {
                 if (response.status === 'success') {
                     $('#editItemForm')[0].reset();
                     $('#editItemModal').modal('hide');
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
                     fetchItems();
                 }
             }
@@ -223,10 +227,72 @@ $(document).ready(function () {
         const itemId = $(this).data('id');
         const itemName = $(this).data('name');
 
+        console.log('Add Stock clicked:', { itemId, itemName });
+
         $('#stock_item_id').val(itemId);
         $('#stock_item_name').text(itemName);
         $('#stockQuantity').val('');
         $('#addStockModal').modal('show');
+    });
+
+    // Add stock form submission
+    $('#addStockForm').submit(function (e) {
+        e.preventDefault();
+        console.log('Form submitted');
+
+        const quantity = parseFloat($('#stockQuantity').val());
+        const itemId = $('#stock_item_id').val();
+        
+        console.log('Form values:', { itemId, quantity });
+
+        if (!itemId) {
+            showMessage('Invalid item selected', 'error');
+            return;
+        }
+        
+        if (quantity <= 0) {
+            showMessage('Quantity must be greater than 0', 'error');
+            return;
+        }
+
+        // Show loading state
+        const submitBtn = $(this).find('button[type="submit"]');
+        const originalText = submitBtn.html();
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Adding...');
+
+        // Create FormData object
+        const formData = new FormData();
+        formData.append('item_id', itemId);
+        formData.append('quantity', quantity);
+
+        $.ajax({
+            url: '../model/inventory/addStockToItem.php',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function (response) {
+                console.log('Server response:', response);
+                if (response.status === 'success') {
+                    showMessage(response.message, 'success');
+                    $('#addStockForm')[0].reset();
+                    $('#addStockModal').modal('hide');
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
+                    fetchItems();
+                } else {
+                    showMessage(response.message || 'Failed to add stock', 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Ajax error:', {xhr, status, error});
+                showMessage('Error connecting to server: ' + error, 'error');
+            },
+            complete: function() {
+                submitBtn.prop('disabled', false).html(originalText);
+            }
+        });
     });
 
     // Reduce stock

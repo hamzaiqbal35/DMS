@@ -23,6 +23,8 @@ $(document).ready(function () {
                 $('#addCustomerForm')[0].reset();
                 showMessage('Customer added successfully!', 'success');
                 fetchCustomers();
+                $('.modal-backdrop').remove();
+                $('body').removeClass('modal-open');
             },
             error: function () {
                 showMessage('Failed to add customer.', 'danger');
@@ -60,6 +62,8 @@ $(document).ready(function () {
                     $('#editCustomerModal').modal('hide');
                     $('#editCustomerForm')[0].reset();
                     fetchCustomers(); // Make sure this function exists and repopulates table
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
                 }
             }
         });
@@ -86,6 +90,8 @@ $(document).ready(function () {
                 if (response.status === 'success') {
                     $('#deleteCustomerModal').modal('hide');
                     fetchCustomers();
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
                 }
             },
             error: function () {

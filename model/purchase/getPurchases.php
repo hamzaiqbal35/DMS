@@ -1,6 +1,5 @@
 <?php
 require_once '../../inc/config/database.php';
-
 header('Content-Type: application/json');
 
 try {
@@ -10,18 +9,25 @@ try {
             p.purchase_number,
             v.vendor_name,
             p.purchase_date,
-            p.expected_delivery,
             p.total_amount,
-            u.username AS created_by,
+            p.payment_status,
+            p.delivery_status,
+            p.expected_delivery,
+            u.full_name AS created_by,
             p.created_at
-        FROM purchases p
-        INNER JOIN vendors v ON p.vendor_id = v.vendor_id
-        INNER JOIN users u ON p.created_by = u.user_id
-        ORDER BY p.purchase_date DESC
+        FROM 
+            purchases p
+        LEFT JOIN 
+            vendors v ON p.vendor_id = v.vendor_id
+        LEFT JOIN 
+            users u ON p.created_by = u.user_id
+        ORDER BY 
+            p.purchase_date DESC, p.purchase_id DESC
     ";
 
     $stmt = $db->prepare($query);
     $stmt->execute();
+
     $purchases = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode([
@@ -29,10 +35,10 @@ try {
         'data' => $purchases
     ]);
 } catch (Exception $e) {
-    error_log("Fetch Purchase List Error: " . $e->getMessage(), 3, '../../logs/error_log.log');
+    error_log("Get Purchases Error: " . $e->getMessage(), 3, '../../logs/error_log.log');
     echo json_encode([
         'status' => 'error',
-        'message' => 'Failed to fetch purchase list',
+        'message' => 'Failed to fetch purchases.',
         'details' => $e->getMessage()
     ]);
 }

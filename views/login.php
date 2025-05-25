@@ -34,10 +34,10 @@ $roles = [
             <div id="alertBox" class="alert d-none"></div>
             <form id="loginForm">
                 <div class="mb-3">
-                    <input type="email" class="form-control" id="email" name="email" required placeholder="Email Address">
+                    <input type="email" class="form-control" id="email" name="email" required placeholder="Email Address" autocomplete="email">
                 </div>
                 <div class="mb-3 password-container">
-                    <input type="password" class="form-control" id="password" name="password" required placeholder="Password">
+                    <input type="password" class="form-control" id="password" name="password" required placeholder="Password" autocomplete="current-password">
                     <span class="password-toggle" id="togglePassword">
                         <i class="fa-solid fa-eye"></i>
                     </span>

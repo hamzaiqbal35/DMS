@@ -1,34 +1,34 @@
 <?php
 require_once '../../inc/config/database.php';
-
 header('Content-Type: application/json');
 
 try {
-    $stmt = $pdo->prepare("
-        SELECT purchase_id, purchase_number 
-        FROM purchases 
-        ORDER BY created_at DESC
-    ");
+    $query = "
+        SELECT 
+            p.purchase_id,
+            v.vendor_name,
+            p.purchase_date
+        FROM 
+            purchases p
+        LEFT JOIN 
+            vendors v ON p.vendor_id = v.vendor_id
+        ORDER BY 
+            p.purchase_id DESC
+    ";
+
+    $stmt = $db->prepare($query);
     $stmt->execute();
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $purchases = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    if ($purchases) {
-        echo json_encode([
-            'status' => 'success',
-            'data' => $purchases
-        ]);
-    } else {
-        echo json_encode([
-            'status' => 'empty',
-            'message' => 'No purchases found.'
-        ]);
-    }
-
-} catch (PDOException $e) {
-    error_log("showPurchaseIDs.php Error: " . $e->getMessage(), 3, '../../error_log.log');
+    echo json_encode([
+        'status' => 'success',
+        'data' => $results
+    ]);
+} catch (Exception $e) {
+    error_log("Show Purchase IDs Error: " . $e->getMessage(), 3, '../../logs/error_log.log');
     echo json_encode([
         'status' => 'error',
-        'message' => 'Failed to fetch purchase IDs.'
+        'message' => 'Failed to fetch purchase IDs.',
+        'details' => $e->getMessage()
     ]);
 }

@@ -75,6 +75,8 @@ $(document).ready(function () {
                     $('#uploadModal').modal('hide');
                     $('#uploadForm')[0].reset();
                     fetchMediaGallery();
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
                 }
             },
             error: function (xhr) {
@@ -103,6 +105,8 @@ $(document).ready(function () {
                 if (response.status === 'success') {
                     $('#deleteMediaModal').modal('hide');
                     fetchMediaGallery();
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
                 }
             }
         });
@@ -140,6 +144,8 @@ $(document).ready(function () {
                         </div>
                     `);
                     $('#itemDetailModal').modal('show');
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
                 } else {
                     showMediaMessage("Failed to load item details.", 'danger');
                 }

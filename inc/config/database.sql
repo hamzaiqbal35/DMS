@@ -112,6 +112,18 @@ CREATE TABLE IF NOT EXISTS stock_logs (
     FOREIGN KEY (item_id) REFERENCES inventory(item_id)
 );
 
+-- Raw Materials Table (for products purchased from vendors)
+CREATE TABLE IF NOT EXISTS raw_materials (
+    material_id INT PRIMARY KEY AUTO_INCREMENT,
+    material_code VARCHAR(50) NOT NULL UNIQUE,
+    material_name VARCHAR(150) NOT NULL,
+    description TEXT,
+    unit_of_measure VARCHAR(20) NOT NULL,
+    status ENUM('active', 'inactive') DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 -- Purchases Table
 CREATE TABLE IF NOT EXISTS purchases (
     purchase_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -139,7 +151,7 @@ CREATE INDEX idx_vendor_date ON purchases(vendor_id, purchase_date);
 CREATE TABLE IF NOT EXISTS purchase_details (
     purchase_detail_id INT PRIMARY KEY AUTO_INCREMENT,
     purchase_id INT NOT NULL,
-    item_id INT NOT NULL,
+    material_id INT NOT NULL,
     quantity DECIMAL(10,2) NOT NULL,
     unit_price DECIMAL(10,2) NOT NULL,
     discount DECIMAL(10,2) DEFAULT 0,
@@ -147,7 +159,7 @@ CREATE TABLE IF NOT EXISTS purchase_details (
     total_price DECIMAL(12,2) NOT NULL,
     
     FOREIGN KEY (purchase_id) REFERENCES purchases(purchase_id) ON DELETE CASCADE,
-    FOREIGN KEY (item_id) REFERENCES inventory(item_id)
+    FOREIGN KEY (material_id) REFERENCES raw_materials(material_id)
 );
 
 -- Sales table
@@ -186,6 +198,7 @@ CREATE TABLE IF NOT EXISTS password_resets (
     expires_at DATETIME NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+
 
 -- Triggers for inventory management
 DELIMITER //

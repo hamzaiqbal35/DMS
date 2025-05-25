@@ -23,17 +23,47 @@ try {
         throw new Exception("Item not found.");
     }
 
-    // Perform deletion
-    $deleteStmt = $pdo->prepare("DELETE FROM inventory WHERE item_id = ?");
-    $success = $deleteStmt->execute([$item_id]);
+    // Start transaction
+    $pdo->beginTransaction();
 
-    if ($success) {
-        echo json_encode([
-            "status" => "success",
-            "message" => "Item deleted successfully."
-        ]);
-    } else {
-        throw new Exception("Item deletion failed.");
+    try {
+        // First, get all media files associated with this item
+        $mediaStmt = $pdo->prepare("SELECT media_id, file_path FROM media WHERE item_id = ?");
+        $mediaStmt->execute([$item_id]);
+        $mediaFiles = $mediaStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Delete media records from database
+        $deleteMediaStmt = $pdo->prepare("DELETE FROM media WHERE item_id = ?");
+        $deleteMediaStmt->execute([$item_id]);
+
+        // Delete physical media files
+        foreach ($mediaFiles as $media) {
+            $file_path = "../../" . $media['file_path'];
+            if (file_exists($file_path)) {
+                unlink($file_path);
+            }
+        }
+
+        // Delete associated stock logs
+        $deleteStockLogsStmt = $pdo->prepare("DELETE FROM stock_logs WHERE item_id = ?");
+        $deleteStockLogsStmt->execute([$item_id]);
+
+        // Now delete the inventory item
+        $deleteStmt = $pdo->prepare("DELETE FROM inventory WHERE item_id = ?");
+        $success = $deleteStmt->execute([$item_id]);
+
+        if ($success) {
+            $pdo->commit();
+            echo json_encode([
+                "status" => "success",
+                "message" => "Item and associated records deleted successfully."
+            ]);
+        } else {
+            throw new Exception("Item deletion failed.");
+        }
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        throw $e;
     }
 
 } catch (Exception $e) {

@@ -100,6 +100,8 @@ $(document).ready(function () {
                 if (response.status === 'success') {
                     $('#addVendorForm')[0].reset();
                     $('#addVendorModal').modal('hide');
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
                     fetchVendors();
                 }
             }
@@ -133,6 +135,8 @@ $(document).ready(function () {
                 showMessage(response.message, response.status);
                 if (response.status === 'success') {
                     $('#editVendorModal').modal('hide');
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
                     $('#editVendorForm')[0].reset();
                     fetchVendors();
                 }
@@ -186,6 +190,8 @@ $(document).ready(function () {
                 showMessage(response.message, response.status);
                 if (response.status === 'success') {
                     $('#deleteVendorModal').modal('hide');
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
                     fetchVendors();
                 }
             }

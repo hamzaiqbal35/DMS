@@ -24,7 +24,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                         <div class="col-md-4">
                             <div class="search-container">
                                 <i class="fas fa-search search-icon"></i>
-                                <input type="text" id="searchInput" class="form-control" placeholder="Search Product Name or Item Number ...">
+                                <input type="text" id="searchInput" class="form-control" placeholder="    Search Product Name or Item Number ...">
                             </div>
                         </div>
                         <div class="col-md-3">

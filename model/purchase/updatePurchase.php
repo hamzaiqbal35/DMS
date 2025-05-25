@@ -1,117 +1,94 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 require_once '../../inc/config/database.php';
-require_once '../../inc/helpers.php';
-
 header('Content-Type: application/json');
 
-// Check method
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['status' => 'error', 'message' => 'Invalid request method.']);
-    exit;
-}
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $data = json_decode(file_get_contents('php://input'), true);
 
-// Parse input
-$data = json_decode(file_get_contents("php://input"), true);
+    $purchaseId = $data['purchase_id'] ?? null;
+    $vendorId = $data['vendor_id'] ?? null;
+    $purchaseDate = $data['purchase_date'] ?? null;
+    $expectedDelivery = $data['expected_delivery'] ?? null;
+    $notes = $data['notes'] ?? '';
+    $totalAmount = $data['total_amount'] ?? 0;
+    $items = $data['items'] ?? [];
 
-$purchase_id = intval($data['purchase_id'] ?? 0);
-$purchase_number = trim($data['purchase_number'] ?? '');
-$vendor_id = intval($data['vendor_id'] ?? 0);
-$purchase_date = trim($data['purchase_date'] ?? '');
-$expected_delivery = trim($data['expected_delivery'] ?? '');
-$payment_status = strtolower(trim($data['payment_status'] ?? 'pending'));
-$delivery_status = strtolower(trim($data['delivery_status'] ?? 'pending'));
-$notes = trim($data['notes'] ?? '');
-$total_amount = floatval($data['total_amount'] ?? 0);
-$items = $data['items'] ?? [];
-
-$allowed_payment = ['pending', 'partial', 'paid'];
-$allowed_delivery = ['pending', 'in_transit', 'delivered', 'delayed'];
-
-// Validation
-if (
-    $purchase_id <= 0 || empty($purchase_number) || $vendor_id <= 0 ||
-    empty($purchase_date) || !in_array($payment_status, $allowed_payment) ||
-    !in_array($delivery_status, $allowed_delivery) || $total_amount < 0 ||
-    empty($items) || !is_array($items)
-) {
-    echo json_encode(['status' => 'error', 'message' => 'Validation failed. Please check all fields.']);
-    exit;
-}
-
-try {
-    $pdo->beginTransaction();
-
-    // Update purchases table
-    $updatePurchase = $pdo->prepare("
-        UPDATE purchases SET
-            purchase_number = :purchase_number,
-            vendor_id = :vendor_id,
-            purchase_date = :purchase_date,
-            expected_delivery = :expected_delivery,
-            total_amount = :total_amount,
-            payment_status = :payment_status,
-            delivery_status = :delivery_status,
-            notes = :notes,
-            updated_at = NOW()
-        WHERE purchase_id = :purchase_id
-    ");
-    $updatePurchase->execute([
-        'purchase_number' => $purchase_number,
-        'vendor_id' => $vendor_id,
-        'purchase_date' => $purchase_date,
-        'expected_delivery' => $expected_delivery ?: null,
-        'total_amount' => $total_amount,
-        'payment_status' => $payment_status,
-        'delivery_status' => $delivery_status,
-        'notes' => $notes,
-        'purchase_id' => $purchase_id
-    ]);
-
-    // Clear old purchase details
-    $pdo->prepare("DELETE FROM purchase_details WHERE purchase_id = ?")->execute([$purchase_id]);
-
-    // Insert new purchase details
-    $insertDetail = $pdo->prepare("
-        INSERT INTO purchase_details (
-            purchase_id, item_id, quantity, unit_price, discount, tax, total_price
-        ) VALUES (
-            :purchase_id, :item_id, :quantity, :unit_price, :discount, :tax, :total_price
-        )
-    ");
-
-    foreach ($items as $item) {
-        $item_id = intval($item['item_id'] ?? 0);
-        $quantity = floatval($item['quantity'] ?? 0);
-        $unit_price = floatval($item['unit_price'] ?? 0);
-        $discount = floatval($item['discount'] ?? 0);
-        $tax = floatval($item['tax'] ?? 0);
-        $total_price = floatval($item['total_price'] ?? 0);
-
-        if ($item_id <= 0 || $quantity <= 0 || $unit_price < 0 || $total_price < 0) {
-            $pdo->rollBack();
-            echo json_encode(['status' => 'error', 'message' => 'Invalid item data provided.']);
-            exit;
-        }
-
-        $insertDetail->execute([
-            'purchase_id' => $purchase_id,
-            'item_id' => $item_id,
-            'quantity' => $quantity,
-            'unit_price' => $unit_price,
-            'discount' => $discount,
-            'tax' => $tax,
-            'total_price' => $total_price
+    if (!$purchaseId || !$vendorId || !$purchaseDate || !$expectedDelivery || empty($items)) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Missing required fields or line items.'
         ]);
+        exit;
     }
 
-    $pdo->commit();
-    echo json_encode(['status' => 'success', 'message' => 'Purchase updated successfully.']);
-} catch (PDOException $e) {
-    $pdo->rollBack();
-    error_log("Update Purchase Error: " . $e->getMessage(), 3, '../../error_log.log');
-    echo json_encode(['status' => 'error', 'message' => 'Database error while updating purchase.']);
+    try {
+        $db->beginTransaction();
+
+        // 1. Update the purchases table
+        $updateQuery = "
+            UPDATE purchases
+            SET vendor_id = :vendor_id,
+                purchase_date = :purchase_date,
+                expected_delivery = :expected_delivery,
+                notes = :notes,
+                total_amount = :total_amount,
+                updated_at = NOW()
+            WHERE purchase_id = :purchase_id
+        ";
+        $stmt = $db->prepare($updateQuery);
+        $stmt->bindParam(':vendor_id', $vendorId, PDO::PARAM_INT);
+        $stmt->bindParam(':purchase_date', $purchaseDate);
+        $stmt->bindParam(':expected_delivery', $expectedDelivery);
+        $stmt->bindParam(':notes', $notes);
+        $stmt->bindParam(':total_amount', $totalAmount);
+        $stmt->bindParam(':purchase_id', $purchaseId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        // 2. Delete existing line items
+        $deleteQuery = "DELETE FROM purchase_items WHERE purchase_id = :purchase_id";
+        $stmtDelete = $db->prepare($deleteQuery);
+        $stmtDelete->bindParam(':purchase_id', $purchaseId, PDO::PARAM_INT);
+        $stmtDelete->execute();
+
+        // 3. Insert updated line items
+        $insertQuery = "
+            INSERT INTO purchase_items (purchase_id, material_id, quantity, unit_price, total_price)
+            VALUES (:purchase_id, :material_id, :quantity, :unit_price, :total_price)
+        ";
+        $stmtInsert = $db->prepare($insertQuery);
+
+        foreach ($items as $item) {
+            if (!isset($item['material_id'], $item['quantity'], $item['unit_price'], $item['total_price'])) {
+                throw new Exception("Invalid item format.");
+            }
+
+            $stmtInsert->execute([
+                ':purchase_id' => $purchaseId,
+                ':material_id' => $item['material_id'],
+                ':quantity' => $item['quantity'],
+                ':unit_price' => $item['unit_price'],
+                ':total_price' => $item['total_price']
+            ]);
+        }
+
+        $db->commit();
+
+        echo json_encode([
+            'status' => 'success',
+            'message' => 'Purchase updated successfully.'
+        ]);
+    } catch (Exception $e) {
+        $db->rollBack();
+        error_log("Update Purchase Error: " . $e->getMessage(), 3, '../../logs/error_log.log');
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Failed to update purchase.',
+            'details' => $e->getMessage()
+        ]);
+    }
+} else {
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Invalid request method.'
+    ]);
 }
