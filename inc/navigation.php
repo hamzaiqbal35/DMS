@@ -99,7 +99,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <?php
             $purchasesActive = in_array($current_page, [
                 'managePurchases.php', 'purchaseReports.php', 
-                'purchaseInvoices.php', 'purchaseAnalytics.php'
+                'purchaseInvoices.php', 'purchaseAnalytics.php',
+                'manageRawMaterials.php'
             ]);
             ?>
             <li class="nav-item">
@@ -136,6 +137,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
                             <a class="nav-link <?= strpos($current_page, 'purchaseAnalytics.php') !== false ? 'active' : '' ?>" 
                                href="<?= $base_url ?>views/purchaseAnalytics.php">
                                 <i class="fas fa-chart-pie"></i> Analytics
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($current_page, 'manageRawMaterials.php') !== false ? 'active' : '' ?>" 
+                               href="<?= $base_url ?>views/manageRawMaterials.php">
+                                <i class="fas fa-drum-steelpan"></i> Raw Materials
                             </a>
                         </li>
                     </ul>
@@ -196,3 +203,4 @@ $current_page = basename($_SERVER['PHP_SELF']);
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="<?= $base_url ?>assets/js/scripts.js"></script>
 <script src="<?= $base_url ?>assets/js/charts.js"></script>
+<script src="<?= $base_url ?>assets/js/animations.js"></script>

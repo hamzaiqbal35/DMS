@@ -347,9 +347,11 @@ footer {
 /* Charts */
 .chart-container {
     background: #fff;
-    padding: 20px;
+    padding: 10px;
+    margin: 20px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    height: 350px;
 }
 
 /* Cards */
@@ -1208,7 +1210,7 @@ label {
 /* Purchase Filter Styles */
 .filter-container {
     background-color: #f8f9fa;
-    padding: 1rem;
+    padding: 0rem;
     border-radius: var(--border-radius);
     margin-bottom: 1.5rem;
 }

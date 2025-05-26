@@ -5,7 +5,7 @@ $(document).ready(function () {
 
     function fetchUsers() {
         $.ajax({
-            url: '../model/user/fetchUserList.php',
+            url: '/DMS/model/user/fetchUserList.php',
             method: 'GET',
             dataType: 'json',
             success: function (response) {
@@ -93,7 +93,7 @@ $(document).ready(function () {
     $('#addUserForm').on('submit', function (e) {
         e.preventDefault();
         $.ajax({
-            url: '../model/user/addUser.php',
+            url: '/DMS/model/user/addUser.php',
             method: 'POST',
             data: $(this).serialize(),
             dataType: 'json',
@@ -125,7 +125,7 @@ $(document).ready(function () {
     $('#editUserForm').on('submit', function (e) {
         e.preventDefault();
         $.ajax({
-            url: '../model/user/updateUser.php',
+            url: '/DMS/model/user/updateUser.php',
             method: 'POST',
             data: $(this).serialize(),
             dataType: 'json',
@@ -155,7 +155,7 @@ $(document).ready(function () {
     $('#confirmDeleteBtn').on('click', function() {
         const userId = $('#delete_user_id').val();
         $.ajax({
-            url: '../model/user/deleteUser.php',
+            url: '/DMS/model/user/deleteUser.php',
             method: 'POST',
             data: { id: userId },
             dataType: 'json',

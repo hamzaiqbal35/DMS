@@ -126,7 +126,10 @@ $(document).ready(function () {
             data: $(this).serialize(),
             dataType: 'json',
             success: function (response) {
-                $('#addCategoryModal').modal('hide');
+                const modal = $('#addCategoryModal');
+                modal.modal('hide');
+                $('body').removeClass('modal-open');
+                $('.modal-backdrop').remove();
                 $('#addCategoryForm')[0].reset();
                 showMessage(response.status, response.message);
                 loadCategories();

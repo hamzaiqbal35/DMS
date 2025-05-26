@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS purchase_details (
     total_price DECIMAL(12,2) NOT NULL,
     
     FOREIGN KEY (purchase_id) REFERENCES purchases(purchase_id) ON DELETE CASCADE,
-    FOREIGN KEY (material_id) REFERENCES raw_materials(material_id)
+    FOREIGN KEY (material_id) REFERENCES raw_materials(material_id) ON DELETE CASCADE
 );
 
 -- Sales table
