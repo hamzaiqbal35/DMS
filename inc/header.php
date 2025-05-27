@@ -97,7 +97,6 @@ function generate_csrf_token() {
 
 <!-- External JS -->
 <script src="<?= $base_url ?>assets/js/scripts.js"></script>
-<script src="<?= $base_url ?>assets/js/charts.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </body>

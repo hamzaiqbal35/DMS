@@ -325,7 +325,7 @@ footer {
 
 /* Dashboard Components */
 .dashboard-title {
-    font-size: 24px;
+    font-size: 30px;
     font-weight: bold;
     margin-bottom: 20px;
 }
@@ -334,14 +334,34 @@ footer {
 .stat-card {
     background: linear-gradient(to right, #007bff, #00d4ff);
     color: white;
+    min-width: 220px;
+    max-width: 100%;
+    min-height: 150px;
+    max-height: 150px;
+    height: 150px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    box-sizing: border-box;
+}
+
+.stat-card .card-body {
+    width: 100%;
     text-align: center;
-    border-radius: 10px;
-    padding: 12px;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
 }
 
 .stat-card h2 {
-    font-size: 28px;
-    font-weight: bold;
+    font-size: 2rem;
+    margin: 0.5rem 0;
+    word-break: break-all;
 }
 
 /* Charts */
@@ -1094,6 +1114,12 @@ label {
     .reset-card,
     .register-card {
         margin: 0 20px;
+    }
+
+    .stat-card {
+        min-width: 100%;
+        height: 120px;
+        max-height: 120px;
     }
 }
 

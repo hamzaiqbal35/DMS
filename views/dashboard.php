@@ -29,8 +29,8 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                 <div class="card stat-card">
                     <div class="card-body">
                         <h5>Total Inventory</h5>
-                        <h2>1,240 Items</h2>
-                        <p>Available Stock</p>
+                        <h2 id="totalInventory">Loading...</h2>
+                        <p>Total Stock Quantity</p>
                     </div>
                 </div>
             </div>
@@ -47,7 +47,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                 <div class="card stat-card">
                     <div class="card-body">
                         <h5>Customers</h5>
-                        <h2>320</h2>
+                        <h2 id="totalCustomers">Loading...</h2>
                         <p>Active Customers</p>
                     </div>
                 </div>
@@ -111,3 +111,17 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
 </div>
 
 <?php require_once "../inc/footer.php"; ?> 
+
+    <!-- Scripts -->
+    <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/charts.js"></script>
+    <script src="../assets/js/scripts.js"></script>
+    <script src="../assets/js/animations.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js" integrity="sha512-VEd+nq25CkR676O+pLBnDW09R7VQX9Mdiij052gVCp5yVH3jGtH70Ho/UUv4mJDsEdTvqRCFZg0NKGiojGnUCw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        
+    <link href="../assets/css/bootstrap.min.css" rel="stylesheet">        
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">        
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css" integrity="sha512-3pIirOrwegjM6erE5gPSwkUzO+3cTjpnV9lexlNZqvupR64iZBnOOTiiLPb9M36zpMScbmUNIcHUqKD47M719g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="../assets/css/animations.css" rel="stylesheet">
+    <link href="../assets/css/styles.css" rel="stylesheet">

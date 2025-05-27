@@ -5,7 +5,7 @@ require_once '../../inc/helpers.php';
 header('Content-Type: application/json');
 
 try {
-    // ✅ Fetch customers in ascending order by customer_id
+    // Fetch customers in ascending order by customer_id
     $stmt = $pdo->query("SELECT * FROM customers ORDER BY customer_id ASC");
     $customers = $stmt->fetchAll();
 
