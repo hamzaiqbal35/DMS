@@ -19,6 +19,7 @@ try {
     $city           = trim($_POST['city'] ?? '');
     $state          = trim($_POST['state'] ?? '');
     $zip_code       = trim($_POST['zip_code'] ?? '');
+    $status         = trim($_POST['status'] ?? 'active');
 
     // Required fields check
     if (
@@ -43,7 +44,8 @@ try {
             address = ?,
             city = ?,
             state = ?,
-            zip_code = ?
+            zip_code = ?,
+            status = ?
         WHERE vendor_id = ?
     ");
 
@@ -56,6 +58,7 @@ try {
         $city,
         $state,
         $zip_code,
+        $status,
         $vendor_id
     ]);
 

@@ -22,6 +22,7 @@ try {
     $city            = sanitize_input($_POST['city'] ?? '');
     $state           = sanitize_input($_POST['state'] ?? '');
     $zip_code        = sanitize_input($_POST['zip_code'] ?? '');
+    $status          = sanitize_input($_POST['status'] ?? 'active');
 
     // Validate required fields
     if (empty($customer_id) || empty($customer_name) || empty($phone) || empty($address) || empty($city)) {
@@ -40,7 +41,8 @@ try {
             address = ?, 
             city = ?, 
             state = ?, 
-            zip_code = ?
+            zip_code = ?,
+            status = ?
         WHERE customer_id = ?
     ");
 
@@ -53,6 +55,7 @@ try {
         $city,
         $state,
         $zip_code,
+        $status,
         $customer_id
     ]);
 

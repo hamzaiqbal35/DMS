@@ -52,13 +52,13 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                             <div class="col-12">
                                 <label for="item_id" class="form-label"><i class="fas fa-box me-1"></i> Select Inventory Item</label>
                                 <select name="item_id" id="item_id" class="form-select" required size="5">
-                                    <option value="">-- Select Item --</option>
+                                    <option value="" disabled selected>Select inventory item...</option>
                                     <!-- Options loaded dynamically via JavaScript -->
                                 </select>
                             </div>
                             <div class="col-12">
                                 <label for="media_file" class="form-label"><i class="fas fa-file-image me-1"></i> Choose Image</label>
-                                <input type="file" name="media_file" id="media_file" class="form-control" accept="image/*" required>
+                                <input type="file" name="media_file" id="media_file" class="form-control" accept="image/*" required placeholder="Choose image file">
                             </div>
                         </div>
                         <div class="modal-footer">

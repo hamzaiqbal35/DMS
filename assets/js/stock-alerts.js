@@ -72,4 +72,21 @@ $(document).ready(function () {
             }
         });
     }
+
+    function showMessage(msg, type = 'success') {
+        // Use toastr for better looking notifications
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "timeOut": "3000"
+        };
+        
+        if (type === 'success') {
+            toastr.success(msg);
+        } else {
+            toastr.error(msg);
+        }
+    }
+    
 });

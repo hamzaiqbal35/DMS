@@ -6,7 +6,7 @@ session_start();
 
 try {
     // Fetch all vendor details
-    $stmt = $pdo->prepare("SELECT vendor_id, vendor_name, contact_person, phone, email, address, city, state, zip_code FROM vendors ORDER BY vendor_id ASC");
+    $stmt = $pdo->prepare("SELECT vendor_id, vendor_name, contact_person, phone, email, address, city, state, zip_code, status FROM vendors ORDER BY vendor_id ASC");
     $stmt->execute();
     $vendors = $stmt->fetchAll();
 

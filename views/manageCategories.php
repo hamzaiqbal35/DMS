@@ -74,15 +74,16 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                         <div class="modal-body row g-3">
                             <div class="col-12">
                                 <label><i class="fas fa-tag me-1"></i> Category Name</label>
-                                <input type="text" name="category_name" id="category_name" class="form-control" required>
+                                <input type="text" name="category_name" id="category_name" class="form-control" required placeholder="Enter category name">
                             </div>
                             <div class="col-12">
                                 <label><i class="fas fa-align-left me-1"></i> Description</label>
-                                <textarea name="description" id="description" class="form-control" rows="3"></textarea>
+                                <textarea name="description" id="description" class="form-control" rows="3" placeholder="Enter description"></textarea>
                             </div>
                             <div class="col-12">
                                 <label><i class="fas fa-toggle-on me-1"></i> Status</label>
                                 <select name="status" id="status" class="form-select" required>
+                                    <option value="" disabled selected>Select status...</option>
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
                                 </select>
@@ -112,15 +113,16 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                         <div class="modal-body row g-3">
                             <div class="col-12">
                                 <label><i class="fas fa-tag me-1"></i> Category Name</label>
-                                <input type="text" name="category_name" id="edit_category_name" class="form-control" required>
+                                <input type="text" name="category_name" id="edit_category_name" class="form-control" required placeholder="Enter category name">
                             </div>
                             <div class="col-12">
                                 <label><i class="fas fa-align-left me-1"></i> Description</label>
-                                <textarea name="description" id="edit_description" class="form-control" rows="3"></textarea>
+                                <textarea name="description" id="edit_description" class="form-control" rows="3" placeholder="Enter description"></textarea>
                             </div>
                             <div class="col-12">
                                 <label><i class="fas fa-toggle-on me-1"></i> Status</label>
                                 <select name="status" id="edit_status" class="form-select" required>
+                                    <option value="" disabled selected>Select status...</option>
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
                                 </select>

@@ -52,6 +52,11 @@ $(document).ready(function () {
                         <td>${vendor.state || ''}</td>
                         <td>${vendor.zip_code || ''}</td>
                         <td>
+                            <span class="badge ${vendor.status === 'active' ? 'bg-success' : 'bg-danger'}">
+                                ${vendor.status === 'active' ? 'Active' : 'Inactive'}
+                            </span>
+                        </td>
+                        <td>
                             <div class="dropdown">
                                 <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="fas fa-ellipsis-v"></i>
@@ -67,7 +72,8 @@ $(document).ready(function () {
                                             data-address="${vendor.address}"
                                             data-city="${vendor.city}"
                                             data-state="${vendor.state || ''}"
-                                            data-zip="${vendor.zip_code || ''}">
+                                            data-zip="${vendor.zip_code || ''}"
+                                            data-status="${vendor.status}">
                                             <i class="fas fa-edit me-2"></i> Edit
                                         </a>
                                     </li>
@@ -119,6 +125,7 @@ $(document).ready(function () {
         $('#edit_city').val($(this).data('city'));
         $('#edit_state').val($(this).data('state'));
         $('#edit_zip_code').val($(this).data('zip'));
+        $('#edit_status').val($(this).data('status'));
 
         $('#editVendorModal').modal('show');
     });

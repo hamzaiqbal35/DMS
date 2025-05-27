@@ -43,6 +43,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                                             <th width="7%">City</th>
                                             <th width="5%">State</th>
                                             <th width="5%">ZIP</th>
+                                            <th width="8%">Status</th>
                                             <th width="8%">Actions</th>
                                         </tr>
                                     </thead>
@@ -79,35 +80,43 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                         <div class="modal-body row g-3">
                             <div class="col-md-6">
                                 <label><i class="fas fa-building me-1"></i> Customer Name</label>
-                                <input type="text" name="customer_name" class="form-control" required>
+                                <input type="text" name="customer_name" class="form-control" required placeholder="Enter customer name">
                             </div>
                             <div class="col-md-6">
                                 <label><i class="fas fa-user me-1"></i> Contact Person</label>
-                                <input type="text" name="contact_person" class="form-control">
+                                <input type="text" name="contact_person" class="form-control" placeholder="Enter contact person">
                             </div>
                             <div class="col-md-6">
                                 <label><i class="fas fa-phone me-1"></i> Phone</label>
-                                <input type="text" name="phone" class="form-control" required>
+                                <input type="text" name="phone" class="form-control" required placeholder="Enter phone number">
                             </div>
                             <div class="col-md-6">
                                 <label><i class="fas fa-envelope me-1"></i> Email</label>
-                                <input type="email" name="email" class="form-control">
+                                <input type="email" name="email" class="form-control" placeholder="Enter email address">
                             </div>
                             <div class="col-12">
                                 <label><i class="fas fa-map-marker-alt me-1"></i> Address</label>
-                                <textarea name="address" class="form-control" rows="2" required></textarea>
+                                <textarea name="address" class="form-control" rows="2" required placeholder="Enter address"></textarea>
                             </div>
                             <div class="col-md-4">
                                 <label><i class="fas fa-city me-1"></i> City</label>
-                                <input type="text" name="city" class="form-control" required>
+                                <input type="text" name="city" class="form-control" required placeholder="Enter city">
                             </div>
                             <div class="col-md-4">
                                 <label><i class="fas fa-flag me-1"></i> State</label>
-                                <input type="text" name="state" class="form-control">
+                                <input type="text" name="state" class="form-control" placeholder="Enter state">
                             </div>
                             <div class="col-md-4">
                                 <label><i class="fas fa-map-pin me-1"></i> ZIP</label>
-                                <input type="text" name="zip_code" class="form-control">
+                                <input type="text" name="zip_code" class="form-control" placeholder="Enter ZIP code">
+                            </div>
+                            <div class="col-md-4">
+                            <label for="status" class="form-label"><i class="fas fa-toggle-on me-1"></i> Status</label>
+                                <select name="status" class="form-control" required>
+                                    <option value="" disabled selected>Select status...</option>
+                                    <option value="active" selected>Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -134,35 +143,43 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                         <div class="modal-body row g-3">
                             <div class="col-md-6">
                                 <label><i class="fas fa-building me-1"></i> Customer Name</label>
-                                <input type="text" name="customer_name" id="edit_customer_name" class="form-control" required>
+                                <input type="text" name="customer_name" id="edit_customer_name" class="form-control" required placeholder="Enter customer name">
                             </div>
                             <div class="col-md-6">
                                 <label><i class="fas fa-user me-1"></i> Contact Person</label>
-                                <input type="text" name="contact_person" id="edit_contact_person" class="form-control">
+                                <input type="text" name="contact_person" id="edit_contact_person" class="form-control" placeholder="Enter contact person">
                             </div>
                             <div class="col-md-6">
                                 <label><i class="fas fa-phone me-1"></i> Phone</label>
-                                <input type="text" name="phone" id="edit_phone" class="form-control" required>
+                                <input type="text" name="phone" id="edit_phone" class="form-control" required placeholder="Enter phone number">
                             </div>
                             <div class="col-md-6">
                                 <label><i class="fas fa-envelope me-1"></i> Email</label>
-                                <input type="email" name="email" id="edit_email" class="form-control">
+                                <input type="email" name="email" id="edit_email" class="form-control" placeholder="Enter email address">
                             </div>
                             <div class="col-12">
                                 <label><i class="fas fa-map-marker-alt me-1"></i> Address</label>
-                                <textarea name="address" id="edit_address" class="form-control" rows="2" required></textarea>
+                                <textarea name="address" id="edit_address" class="form-control" rows="2" required placeholder="Enter address"></textarea>
                             </div>
                             <div class="col-md-4">
                                 <label><i class="fas fa-city me-1"></i> City</label>
-                                <input type="text" name="city" id="edit_city" class="form-control" required>
+                                <input type="text" name="city" id="edit_city" class="form-control" required placeholder="Enter city">
                             </div>
                             <div class="col-md-4">
                                 <label><i class="fas fa-flag me-1"></i> State</label>
-                                <input type="text" name="state" id="edit_state" class="form-control">
+                                <input type="text" name="state" id="edit_state" class="form-control" placeholder="Enter state">
                             </div>
                             <div class="col-md-4">
                                 <label><i class="fas fa-map-pin me-1"></i> ZIP</label>
-                                <input type="text" name="zip_code" id="edit_zip_code" class="form-control">
+                                <input type="text" name="zip_code" id="edit_zip_code" class="form-control" placeholder="Enter ZIP code">
+                            </div>
+                            <div class="col-md-4">
+                            <label for="status" class="form-label"><i class="fas fa-toggle-on me-1"></i> Status</label>
+                                <select name="status" id="edit_status" class="form-control" required>
+                                    <option value="" disabled selected>Select status...</option>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
                             </div>
                         </div>
                         <div class="modal-footer">

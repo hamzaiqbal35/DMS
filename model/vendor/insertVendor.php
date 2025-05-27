@@ -19,6 +19,7 @@ try {
     $city            = sanitize_input($_POST['city'] ?? '');
     $state           = sanitize_input($_POST['state'] ?? '');
     $zip_code        = sanitize_input($_POST['zip_code'] ?? '');
+    $status          = sanitize_input($_POST['status'] ?? 'active');
 
     // Required field validation
     if (empty($vendor_name) || empty($phone) || empty($address) || empty($city)) {
@@ -28,8 +29,8 @@ try {
     // Insert into DB
     $stmt = $pdo->prepare("
         INSERT INTO vendors 
-        (vendor_name, contact_person, phone, email, address, city, state, zip_code)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        (vendor_name, contact_person, phone, email, address, city, state, zip_code, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     $result = $stmt->execute([
@@ -40,7 +41,8 @@ try {
         $address,
         $city,
         $state ?: null,
-        $zip_code ?: null
+        $zip_code ?: null,
+        $status
     ]);
 
     if ($result) {

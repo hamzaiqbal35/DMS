@@ -13,6 +13,9 @@ $(document).ready(function () {
                 tbody.empty();
 
                 if (response.status === 'success' && response.data && response.data.length > 0) {
+                    // Sort users by ID in ascending order
+                    response.data.sort((a, b) => a.id - b.id);
+                    
                     $.each(response.data, function (i, user) {
                         tbody.append(`
                             <tr>
@@ -183,10 +186,18 @@ $(document).ready(function () {
 
     // Flash message utility
     function showMessage(message, type = 'success') {
-        const msgDiv = $('#userMessage');
-        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-        msgDiv.html(`<div class="alert ${alertClass}">${message}</div>`);
-        setTimeout(() => msgDiv.html(''), 4000);
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "timeOut": "3000"
+        };
+        
+        if (type === 'success') {
+            toastr.success(message);
+        } else {
+            toastr.error(message);
+        }
     }
 
     // Search functionality
@@ -237,5 +248,19 @@ $(document).ready(function () {
         $('#userTable tbody tr').show();
         $('#userTable').show();
         $('#emptyState').addClass('d-none');
+    });
+
+    // Password visibility toggle
+    $('#togglePassword').on('click', function() {
+        const passwordInput = $('input[name="password"]');
+        const icon = $(this).find('i');
+        
+        if (passwordInput.attr('type') === 'password') {
+            passwordInput.attr('type', 'text');
+            icon.removeClass('fa-eye').addClass('fa-eye-slash');
+        } else {
+            passwordInput.attr('type', 'password');
+            icon.removeClass('fa-eye-slash').addClass('fa-eye');
+        }
     });
 });

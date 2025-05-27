@@ -110,37 +110,39 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                         <div class="modal-body row g-3">
                             <div class="col-md-6">
                                 <label for="item_number" class="form-label"><i class="fas fa-hashtag me-1"></i> Item Number</label>
-                                <input type="text" name="item_number" id="item_number" class="form-control" required>
+                                <input type="text" name="item_number" id="item_number" class="form-control" required placeholder="Enter item number">
                             </div>
                             <div class="col-md-6">
                                 <label for="item_name" class="form-label"><i class="fas fa-tag me-1"></i> Item Name</label>
-                                <input type="text" name="item_name" id="item_name" class="form-control" required>
+                                <input type="text" name="item_name" id="item_name" class="form-control" required placeholder="Enter item name">
                             </div>
                             <div class="col-md-6">
                                 <label for="category_id" class="form-label"><i class="fas fa-folder me-1"></i> Category</label>
                                 <select name="category_id" id="category_id" class="form-select" required>
+                                    <option value="" disabled selected>Select category...</option>
                                     <!-- Categories loaded via AJAX -->
                                 </select>
                             </div>
                             <div class="col-md-6">
                                 <label for="unit_of_measure" class="form-label"><i class="fas fa-ruler me-1"></i> Unit of Measure</label>
-                                <input type="text" name="unit_of_measure" id="unit_of_measure" class="form-control" required>
+                                <input type="text" name="unit_of_measure" id="unit_of_measure" class="form-control" required placeholder="Enter unit (e.g., kg, pcs)">
                             </div>
                             <div class="col-md-6">
                                 <label for="unit_price" class="form-label"><i class="fas fa-rupee-sign me-1"></i> Unit Price</label>
-                                <input type="number" step="0.01" name="unit_price" id="unit_price" class="form-control" min="0" required>
+                                <input type="number" step="0.01" name="unit_price" id="unit_price" class="form-control" min="0" required placeholder="Enter unit price">
                             </div>
                             <div class="col-md-6">
                                 <label for="minimum_stock" class="form-label"><i class="fas fa-level-down-alt me-1"></i> Minimum Stock</label>
-                                <input type="number" step="0.01" name="minimum_stock" id="minimum_stock" class="form-control" min="0" required>
+                                <input type="number" step="0.01" name="minimum_stock" id="minimum_stock" class="form-control" min="0" required placeholder="Enter minimum stock level">
                             </div>
                             <div class="col-12">
                                 <label for="description" class="form-label"><i class="fas fa-info-circle me-1"></i> Description</label>
-                                <textarea name="description" id="description" class="form-control" rows="3"></textarea>
+                                <textarea name="description" id="description" class="form-control" rows="3" placeholder="Enter description"></textarea>
                             </div>
                             <div class="col-md-6">
                                 <label for="status" class="form-label"><i class="fas fa-toggle-on me-1"></i> Status</label>
                                 <select name="status" id="status" class="form-select" required>
+                                    <option value="" disabled selected>Select status...</option>
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
                                 </select>
@@ -170,37 +172,39 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                         <div class="modal-body row g-3">
                             <div class="col-md-6">
                                 <label for="edit_item_number" class="form-label"><i class="fas fa-hashtag me-1"></i> Item Number</label>
-                                <input type="text" name="item_number" id="edit_item_number" class="form-control" required>
+                                <input type="text" name="item_number" id="edit_item_number" class="form-control" required placeholder="Enter item number">
                             </div>
                             <div class="col-md-6">
                                 <label for="edit_item_name" class="form-label"><i class="fas fa-tag me-1"></i> Item Name</label>
-                                <input type="text" name="item_name" id="edit_item_name" class="form-control" required>
+                                <input type="text" name="item_name" id="edit_item_name" class="form-control" required placeholder="Enter item name">
                             </div>
                             <div class="col-md-6">
                                 <label for="edit_category_id" class="form-label"><i class="fas fa-folder me-1"></i> Category</label>
                                 <select name="category_id" id="edit_category_id" class="form-select" required>
+                                    <option value="" disabled selected>Select category...</option>
                                     <!-- Categories loaded via AJAX -->
                                 </select>
                             </div>
                             <div class="col-md-6">
                                 <label for="edit_unit_of_measure" class="form-label"><i class="fas fa-ruler me-1"></i> Unit of Measure</label>
-                                <input type="text" name="unit_of_measure" id="edit_unit_of_measure" class="form-control" required>
+                                <input type="text" name="unit_of_measure" id="edit_unit_of_measure" class="form-control" required placeholder="Enter unit (e.g., kg, pcs)">
                             </div>
                             <div class="col-md-6">
                                 <label for="edit_unit_price" class="form-label"><i class="fas fa-dollar-sign me-1"></i> Unit Price</label>
-                                <input type="number" step="0.01" name="unit_price" id="edit_unit_price" class="form-control" min="0" required>
+                                <input type="number" step="0.01" name="unit_price" id="edit_unit_price" class="form-control" min="0" required placeholder="Enter unit price">
                             </div>
                             <div class="col-md-6">
                                 <label for="edit_minimum_stock" class="form-label"><i class="fas fa-level-down-alt me-1"></i> Minimum Stock</label>
-                                <input type="number" step="0.01" name="minimum_stock" id="edit_minimum_stock" class="form-control" min="0" required>
+                                <input type="number" step="0.01" name="minimum_stock" id="edit_minimum_stock" class="form-control" min="0" required placeholder="Enter minimum stock level">
                             </div>
                             <div class="col-12">
                                 <label for="edit_description" class="form-label"><i class="fas fa-info-circle me-1"></i> Description</label>
-                                <textarea name="description" id="edit_description" class="form-control" rows="3"></textarea>
+                                <textarea name="description" id="edit_description" class="form-control" rows="3" placeholder="Enter description"></textarea>
                             </div>
                             <div class="col-md-6">
                                 <label for="edit_status" class="form-label"><i class="fas fa-toggle-on me-1"></i> Status</label>
                                 <select name="status" id="edit_status" class="form-select" required>
+                                    <option value="" disabled selected>Select status...</option>
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
                                 </select>

@@ -210,18 +210,20 @@ $(document).ready(function () {
         });
     });
 
-    // Flash message
-    function showMessage(type, message) {
-        const alertBox = `
-            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        `;
-        $('#materialMessage').html(alertBox);
-        setTimeout(() => {
-            $('#materialMessage .alert').alert('close');
-        }, 4000);
+    function showMessage(msg, type = 'success') {
+        // Use toastr for better looking notifications
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "timeOut": "3000"
+        };
+        
+        if (type === 'success') {
+            toastr.success(msg);
+        } else {
+            toastr.error(msg);
+        }
     }
 
     loadMaterials();

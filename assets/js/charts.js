@@ -266,4 +266,39 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+
+    // Update Vendors card
+    $.ajax({
+        url: '/DMS/api/fetchVendorData.php',
+        method: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            if (response.status === 'success') {
+                const vendorElement = document.getElementById('totalVendors');
+                if (vendorElement) {
+                    const formattedVendors = response.data.total_vendors.toLocaleString();
+                    vendorElement.textContent = formattedVendors;
+                }
+            } else {
+                console.error('Failed to fetch vendor stats:', response.message);
+                const vendorElement = document.getElementById('totalVendors');
+                if (vendorElement) {
+                    vendorElement.textContent = 'Error';
+                }
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching vendor stats:', error);
+            const vendorElement = document.getElementById('totalVendors');
+            if (vendorElement) {
+                vendorElement.textContent = 'Error';
+            }
+        }
+    });
 });
+
+$('#addVendorModal').on('show.bs.modal', function () {
+    $(this).find('select[name="status"]').val('active');
+});
+
+$('#edit_status').val($(this).data('status'));

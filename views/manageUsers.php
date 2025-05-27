@@ -74,20 +74,25 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                         <div class="modal-body row g-3">
                             <div class="col-md-12">
                                 <label><i class="fas fa-user me-1"></i> Full Name</label>
-                                <input type="text" name="full_name" class="form-control" required>
+                                <input type="text" name="full_name" class="form-control" required placeholder="Enter full name">
                             </div>
                             <div class="col-md-12">
                                 <label><i class="fas fa-envelope me-1"></i> Email</label>
-                                <input type="email" name="email" class="form-control" required>
+                                <input type="email" name="email" class="form-control" required placeholder="Enter email address">
                             </div>
                             <div class="col-md-12">
                                 <label><i class="fas fa-lock me-1"></i> Password</label>
-                                <input type="password" name="password" class="form-control" required>
+                                <div class="input-group">
+                                    <input type="password" name="password" class="form-control" required placeholder="Enter password">
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="col-md-12">
                                 <label><i class="fas fa-user-tag me-1"></i> Role</label>
                                 <select name="role_id" class="form-select" required>
-                                    <option value="">Select Role</option>
+                                    <option value="" disabled selected>Select role...</option>
                                     <option value="1">Admin</option>
                                     <option value="2">Manager</option>
                                     <option value="3">Salesperson</option>
@@ -119,15 +124,16 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                         <div class="modal-body row g-3">
                             <div class="col-md-12">
                                 <label><i class="fas fa-user me-1"></i> Full Name</label>
-                                <input type="text" name="full_name" id="edit_full_name" class="form-control" required>
+                                <input type="text" name="full_name" id="edit_full_name" class="form-control" required placeholder="Enter full name">
                             </div>
                             <div class="col-md-12">
                                 <label><i class="fas fa-envelope me-1"></i> Email</label>
-                                <input type="email" name="email" id="edit_email" class="form-control" required>
+                                <input type="email" name="email" id="edit_email" class="form-control" required placeholder="Enter email address">
                             </div>
                             <div class="col-md-12">
                                 <label><i class="fas fa-user-tag me-1"></i> Role</label>
                                 <select name="role_id" id="edit_role_id" class="form-select" required>
+                                    <option value="" disabled selected>Select role...</option>
                                     <option value="1">Admin</option>
                                     <option value="2">Manager</option>
                                     <option value="3">Salesperson</option>

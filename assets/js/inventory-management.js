@@ -170,7 +170,7 @@ $(document).ready(function () {
         $('#edit_unit_price').val($(this).data('price'));
         $('#edit_minimum_stock').val($(this).data('min'));
         $('#edit_description').val($(this).data('desc'));
-        $('#edit_status').val($(this).data('status')); // NEW
+        $('#edit_status').val($(this).data('status'));
         $('#editItemModal').modal('show');
     });
 
@@ -370,12 +370,21 @@ $(document).ready(function () {
         });
     });
 
-    // Flash message
-    function showMessage(message, type = 'success') {
-        const msgBox = $('#inventoryMessage');
-        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-        msgBox.html(`<div class="alert ${alertClass}">${message}</div>`);
-        setTimeout(() => msgBox.html(''), 4000);
+    
+    function showMessage(msg, type = 'success') {
+        // Use toastr for better looking notifications
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "timeOut": "3000"
+        };
+        
+        if (type === 'success') {
+            toastr.success(msg);
+        } else {
+            toastr.error(msg);
+        }
     }
 
     // Search

@@ -21,6 +21,7 @@ try {
     $city            = sanitize_input($_POST['city'] ?? '');
     $state           = sanitize_input($_POST['state'] ?? '');
     $zip_code        = sanitize_input($_POST['zip_code'] ?? '');
+    $status          = sanitize_input($_POST['status'] ?? 'active');
 
     // Basic validation
     if (empty($customer_name) || empty($phone) || empty($address) || empty($city)) {
@@ -31,8 +32,8 @@ try {
     // Prepare insert query
     $stmt = $pdo->prepare("
         INSERT INTO customers 
-        (customer_name, contact_person, phone, email, address, city, state, zip_code) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        (customer_name, contact_person, phone, email, address, city, state, zip_code, status) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     $result = $stmt->execute([
@@ -43,7 +44,8 @@ try {
         $address,
         $city,
         $state,
-        $zip_code
+        $zip_code,
+        $status
     ]);
 
     if ($result) {

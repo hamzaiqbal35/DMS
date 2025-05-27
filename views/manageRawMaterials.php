@@ -74,23 +74,24 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                 <div class="modal-body row g-3">
                     <div class="col-12">
                         <label><i class="fas fa-hashtag me-1"></i> Material Code</label>
-                        <input type="text" name="material_code" id="material_code" class="form-control" required>
+                        <input type="text" name="material_code" id="material_code" class="form-control" required placeholder="Enter material code">
                     </div>
                     <div class="col-12">
                         <label><i class="fas fa-cube me-1"></i> Material Name</label>
-                        <input type="text" name="material_name" id="material_name" class="form-control" required>
+                        <input type="text" name="material_name" id="material_name" class="form-control" required placeholder="Enter material name">
                     </div>
                     <div class="col-12">
                         <label><i class="fas fa-ruler me-1"></i> Unit of Measure</label>
-                        <input type="text" name="unit_of_measure" id="unit_of_measure" class="form-control" required>
+                        <input type="text" name="unit_of_measure" id="unit_of_measure" class="form-control" required placeholder="Enter unit (e.g., kg, pcs)">
                     </div>
                     <div class="col-12">
                         <label><i class="fas fa-align-left me-1"></i> Description</label>
-                        <textarea name="description" id="description" class="form-control" rows="3"></textarea>
+                        <textarea name="description" id="description" class="form-control" rows="3" placeholder="Enter description"></textarea>
                     </div>
                     <div class="col-12">
                         <label><i class="fas fa-toggle-on me-1"></i> Status</label>
                         <select name="status" id="status" class="form-select" required>
+                            <option value="" disabled selected>Select status...</option>
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
                         </select>
@@ -120,23 +121,24 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                 <div class="modal-body row g-3">
                     <div class="col-12">
                         <label><i class="fas fa-hashtag me-1"></i> Material Code</label>
-                        <input type="text" name="material_code" id="edit_material_code" class="form-control" required>
+                        <input type="text" name="material_code" id="edit_material_code" class="form-control" required placeholder="Enter material code">
                     </div>
                     <div class="col-12">
                         <label><i class="fas fa-cube me-1"></i> Material Name</label>
-                        <input type="text" name="material_name" id="edit_material_name" class="form-control" required>
+                        <input type="text" name="material_name" id="edit_material_name" class="form-control" required placeholder="Enter material name">
                     </div>
                     <div class="col-12">
                         <label><i class="fas fa-ruler me-1"></i> Unit of Measure</label>
-                        <input type="text" name="unit_of_measure" id="edit_unit_of_measure" class="form-control" required>
+                        <input type="text" name="unit_of_measure" id="edit_unit_of_measure" class="form-control" required placeholder="Enter unit (e.g., kg, pcs)">
                     </div>
                     <div class="col-12">
                         <label><i class="fas fa-align-left me-1"></i> Description</label>
-                        <textarea name="description" id="edit_description" class="form-control" rows="3"></textarea>
+                        <textarea name="description" id="edit_description" class="form-control" rows="3" placeholder="Enter description"></textarea>
                     </div>
                     <div class="col-12">
                         <label><i class="fas fa-toggle-on me-1"></i> Status</label>
                         <select name="status" id="edit_status" class="form-select" required>
+                            <option value="" disabled selected>Select status...</option>
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
                         </select>

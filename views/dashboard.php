@@ -19,9 +19,9 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
             <div class="col-md-3">
                 <div class="card stat-card">
                     <div class="card-body">
-                        <h5>Total Sales</h5>
-                        <h2>$12,340</h2>
-                        <p>Last 30 days</p>
+                        <h5>Total Vendors</h5>
+                        <h2 id="totalVendors">Loading...</h2>
+                        <p>Active Vendors</p>
                     </div>
                 </div>
             </div>

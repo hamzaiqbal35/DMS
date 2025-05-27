@@ -43,6 +43,7 @@ $(document).ready(function () {
         $('#edit_city').val($(this).data('city'));
         $('#edit_state').val($(this).data('state'));
         $('#edit_zip_code').val($(this).data('zip'));
+        $('#edit_status').val($(this).data('status'));
         $('#editCustomerModal').modal('show');
     });
 
@@ -131,6 +132,11 @@ function fetchCustomers() {
                                 <td>${customer.state || ''}</td>
                                 <td>${customer.zip_code || ''}</td>
                                 <td>
+                                    <span class="badge bg-${customer.status === 'active' ? 'success' : 'secondary'}">
+                                        ${customer.status.charAt(0).toUpperCase() + customer.status.slice(1)}
+                                    </span>
+                                </td>
+                                <td>
                                     <div class="dropdown">
                                         <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                             <i class="fas fa-ellipsis-v"></i>
@@ -146,7 +152,8 @@ function fetchCustomers() {
                                                     data-address="${customer.address}"
                                                     data-city="${customer.city}"
                                                     data-state="${customer.state || ''}"
-                                                    data-zip="${customer.zip_code || ''}">
+                                                    data-zip="${customer.zip_code || ''}"
+                                                    data-status="${customer.status}">
                                                     <i class="fas fa-edit me-2"></i> Edit
                                                 </a>
                                             </li>
@@ -238,12 +245,18 @@ function filterCustomers(searchTerm) {
     }
 }
 
-// 🔹 Flash Message Handler
-function showMessage(message, type = 'success') {
-    $('#customerMessage').html(`
-        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    `);
+function showMessage(msg, type = 'success') {
+    // Use toastr for better looking notifications
+    toastr.options = {
+        "closeButton": true,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "timeOut": "3000"
+    };
+    
+    if (type === 'success') {
+        toastr.success(msg);
+    } else {
+        toastr.error(msg);
+    }
 }
