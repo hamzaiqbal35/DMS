@@ -119,6 +119,7 @@ CREATE TABLE IF NOT EXISTS raw_materials (
     material_name VARCHAR(150) NOT NULL,
     description TEXT,
     unit_of_measure VARCHAR(20) NOT NULL,
+    current_stock DECIMAL(10,2) DEFAULT 0,
     status ENUM('active', 'inactive') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -200,27 +201,17 @@ CREATE TABLE IF NOT EXISTS password_resets (
 );
 
 
--- Triggers for inventory management
 DELIMITER //
 
--- Update inventory stock after purchase
+-- Update raw materials stock after purchase (CORRECTED)
+DROP TRIGGER IF EXISTS after_purchase_detail_insert//
 CREATE TRIGGER after_purchase_detail_insert
 AFTER INSERT ON purchase_details
 FOR EACH ROW
 BEGIN
-    UPDATE inventory
+    UPDATE raw_materials
     SET current_stock = current_stock + NEW.quantity
-    WHERE item_id = NEW.item_id;
-END //
-
--- Update inventory stock after sale
-CREATE TRIGGER after_sale_detail_insert
-AFTER INSERT ON sale_details
-FOR EACH ROW
-BEGIN
-    UPDATE inventory
-    SET current_stock = current_stock - NEW.quantity
-    WHERE item_id = NEW.item_id;
+    WHERE material_id = NEW.material_id;
 END //
 
 DELIMITER ;

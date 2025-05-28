@@ -131,9 +131,9 @@ const Charts = {
                     },
                     title: {
                         display: true,
-                        text: 'Inventory Distribution',
+                        text: 'Inventory',
                         font: {
-                            size: 16,
+                            size: 20,
                             weight: 'bold'
                         },
                         padding: {
@@ -292,6 +292,41 @@ document.addEventListener('DOMContentLoaded', function() {
             const vendorElement = document.getElementById('totalVendors');
             if (vendorElement) {
                 vendorElement.textContent = 'Error';
+            }
+        }
+    });
+
+    // Update Purchases card
+    $.ajax({
+        url: '/DMS/api/fetchPurchaseData.php',
+        method: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            if (response.status === 'success') {
+                const purchaseElement = document.getElementById('totalPurchases');
+                if (purchaseElement) {
+                    const formattedAmount = new Intl.NumberFormat('en-PK', {
+                        style: 'currency',
+                        currency: 'PKR',
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }).format(response.data.total_purchases);
+                    
+                    purchaseElement.textContent = formattedAmount;
+                }
+            } else {
+                console.error('Failed to fetch purchase stats:', response.message);
+                const purchaseElement = document.getElementById('totalPurchases');
+                if (purchaseElement) {
+                    purchaseElement.textContent = 'Error';
+                }
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching purchase stats:', error);
+            const purchaseElement = document.getElementById('totalPurchases');
+            if (purchaseElement) {
+                purchaseElement.textContent = 'Error';
             }
         }
     });

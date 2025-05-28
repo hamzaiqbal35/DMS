@@ -345,6 +345,31 @@ footer {
     justify-content: center;
     margin-bottom: 1rem;
     box-sizing: border-box;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.stat-card:hover::before {
+    opacity: 1;
 }
 
 .stat-card .card-body {
@@ -356,12 +381,35 @@ footer {
     justify-content: center;
     align-items: center;
     height: 100%;
+    position: relative;
+    z-index: 1;
 }
 
 .stat-card h2 {
     font-size: 2rem;
     margin: 0.5rem 0;
     word-break: break-all;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover h2 {
+    transform: scale(1.05);
+}
+
+.stat-card h5 {
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover h5 {
+    transform: translateY(-2px);
+}
+
+.stat-card p {
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover p {
+    transform: translateY(2px);
 }
 
 /* Charts */
@@ -688,6 +736,7 @@ footer {
     top: 50%;
     transform: translateY(-50%);
     color: #6c757d;
+    z-index: 1;
 }
 
 .search-container input {
@@ -695,10 +744,13 @@ footer {
     border-radius: 2rem;
     border: 1px solid #ced4da;
     box-shadow: var(--box-shadow);
+    position: relative;
+    z-index: 0;
 }
 
 .search-container input:focus {
     border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
 }
 
 /* Filter Container */
@@ -1245,7 +1297,7 @@ label {
 .filter-container .form-select {
     border-radius: 0.5rem;
     border: 1px solid #dee2e6;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 2.5rem;
 }
 
 .filter-container .form-control:focus,

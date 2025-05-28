@@ -38,7 +38,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                 <div class="card stat-card">
                     <div class="card-body">
                         <h5>Purchases</h5>
-                        <h2>$5,680</h2>
+                        <h2 id="totalPurchases">Loading...</h2>
                         <p>Last 30 days</p>
                     </div>
                 </div>
