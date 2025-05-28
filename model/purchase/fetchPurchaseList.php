@@ -20,7 +20,8 @@ try {
             pd.total_price,
             p.purchase_date,
             p.payment_status,
-            p.delivery_status
+            p.delivery_status,
+            p.invoice_file
         FROM purchases p
         JOIN vendors v ON p.vendor_id = v.vendor_id
         JOIN purchase_details pd ON p.purchase_id = pd.purchase_id
