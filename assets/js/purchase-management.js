@@ -179,106 +179,180 @@ $(document).ready(function () {
         applyFilters();
     });
 
-    // Add Purchase
-    $("#addPurchaseForm").submit(function (e) {
-        e.preventDefault();
-        
-        // Validate form
-        const quantity = parseFloat($("#quantity").val());
-        const unitPrice = parseFloat($("#unit_price").val());
-        
-        if (quantity <= 0 || unitPrice <= 0) {
-            showMessage("Quantity and unit price must be greater than 0", "error");
-            return;
-        }
-
-        // Show loading state
-        const submitBtn = $(this).find('button[type="submit"]');
-        const originalText = submitBtn.html();
-        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
+    // Function to calculate costs
+    function calculateCosts(formType = 'add') {
+        const quantity = parseFloat($(`#${formType}_quantity`).val()) || 0;
+        const unitPrice = parseFloat($(`#${formType}_unit_price`).val()) || 0;
+        const taxRate = parseFloat($(`#${formType}_tax_rate`).val()) || 0;
+        const discountRate = parseFloat($(`#${formType}_discount_rate`).val()) || 0;
 
         $.ajax({
-            url: "../model/purchase/insertPurchase.php",
-            method: "POST",
-            data: $(this).serialize(),
-            dataType: "json",
-            success: function (res) {
-                if (res.status === "success") {
-                    $("#addPurchaseModal").modal("hide");
-                    $("#addPurchaseForm")[0].reset();
-                    $('.modal-backdrop').remove();
-                    $('body').removeClass('modal-open');
-                    loadPurchases();
-                    showMessage(res.message, "success");
-                } else {
-                    showMessage(res.message || "Failed to add purchase", "error");
+            url: '../model/purchase/calculateTotalCost.php',
+            method: 'POST',
+            data: {
+                quantity: quantity,
+                unit_price: unitPrice,
+                tax_rate: taxRate,
+                discount_rate: discountRate
+            },
+            cache: false,
+            success: function(response) {
+                if (response.status === 'success') {
+                    if (formType === 'add') {
+                        $('#preview_subtotal').text('PKR ' + response.data.subtotal);
+                        $('#preview_tax').text('PKR ' + response.data.tax_amount);
+                        $('#preview_discount').text('PKR ' + response.data.discount_amount);
+                        $('#preview_total').text('PKR ' + response.data.total);
+                    } else {
+                        $('#edit_preview_subtotal').text('PKR ' + response.data.subtotal);
+                        $('#edit_preview_tax').text('PKR ' + response.data.tax_amount);
+                        $('#edit_preview_discount').text('PKR ' + response.data.discount_amount);
+                        $('#edit_preview_total').text('PKR ' + response.data.total);
+                    }
                 }
             },
-            error: function (xhr, status, error) {
-                console.error("Error:", error);
-                showMessage("Failed to add purchase. Please try again.", "error");
+            error: function() {
+                showAlert('error', 'Failed to calculate costs. Please try again.');
+            }
+        });
+    }
+
+    // Add event listeners for real-time calculations in Add Modal
+    $('#add_quantity, #add_unit_price, #add_tax_rate, #add_discount_rate').on('input', function() {
+        calculateCosts('add');
+    });
+
+    // Add event listeners for real-time calculations in Edit Modal
+    $('#edit_quantity, #edit_unit_price, #edit_tax_rate, #edit_discount_rate').on('input', function() {
+        calculateCosts('edit');
+    });
+
+    // Trigger cost calculation when Add modal opens
+    $('#addPurchaseModal').on('shown.bs.modal', function () {
+        calculateCosts('add');
+    });
+
+    // FIXED: Update add form submission handler - Remove the calculateCosts call
+    $('#addPurchaseForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const submitBtn = $(this).find('button[type="submit"]');
+        const originalText = submitBtn.html();
+        
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
+        
+        $.ajax({
+            url: '../model/purchase/insertPurchase.php',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            cache: false,
+            success: function(response) {
+                if (response.status === 'success') {
+                    $('#addPurchaseModal').modal('hide');
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
+                    $('#addPurchaseForm')[0].reset();
+                    showMessage(response.message, 'success'); // Use showMessage instead of showAlert
+                    loadPurchases(); // This will refresh the table with new data
+                } else {
+                    showMessage(response.message, 'error'); // Use showMessage instead of showAlert
+                }
+            },
+            error: function() {
+                showMessage('Failed to add purchase. Please try again.', 'error'); // Use showMessage instead of showAlert
             },
             complete: function() {
                 submitBtn.prop('disabled', false).html(originalText);
             }
         });
     });
+
+    // FIXED: Update edit form submission handler - Remove the calculateCosts call
+    $('#editPurchaseForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const submitBtn = $(this).find('button[type="submit"]');
+        const originalText = submitBtn.html();
+        
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Updating...');
+        
+        $.ajax({
+            url: '../model/purchase/updatePurchase.php',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.status === 'success') {
+                    $('#editPurchaseModal').modal('hide');
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
+                    $('#editPurchaseForm')[0].reset();
+                    showMessage(response.message, 'success'); // Use showMessage instead of showAlert
+                    loadPurchases(); // This will refresh the table with new data
+                } else {
+                    showMessage(response.message, 'error'); // Use showMessage instead of showAlert
+                }
+            },
+            error: function() {
+                showMessage('Failed to update purchase. Please try again.', 'error'); // Use showMessage instead of showAlert
+            },
+            complete: function() {
+                submitBtn.prop('disabled', false).html(originalText);
+            }
+        });
+    });
+
+    // Update the loadPurchaseDetails function
+    function loadPurchaseDetails(purchaseId) {
+        const loadingBtn = $(`.editBtn[data-id="${purchaseId}"]`);
+        const originalText = loadingBtn.html();
+        loadingBtn.html('<i class="fas fa-spinner fa-spin"></i>');
+        
+        $.ajax({
+            url: '../model/purchase/getPurchaseDetails.php',
+            method: 'GET',
+            data: { purchase_id: purchaseId },
+            success: function(response) {
+                if (response.status === 'success') {
+                    const purchase = response.data;
+                    $('#edit_purchase_id').val(purchase.purchase_id);
+                    $('#edit_vendor_id').val(purchase.vendor_id);
+                    $('#edit_material_id').val(purchase.material_id);
+                    $('#edit_quantity').val(purchase.quantity);
+                    $('#edit_unit_price').val(purchase.unit_price);
+                    $('#edit_tax_rate').val(purchase.tax_rate);
+                    $('#edit_discount_rate').val(purchase.discount_rate);
+                    $('#edit_purchase_date').val(purchase.purchase_date);
+                    $('#edit_payment_status').val(purchase.payment_status);
+                    $('#edit_status').val(purchase.delivery_status);
+                    $('#edit_notes').val(purchase.notes);
+                    
+                    // Calculate and display costs
+                    calculateCosts('edit');
+                    
+                    $('#editPurchaseModal').modal('show');
+                } else {
+                    showMessage(response.message, 'error'); // Use showMessage instead of showAlert
+                }
+            },
+            error: function() {
+                showMessage('Failed to load purchase details. Please try again.', 'error'); // Use showMessage instead of showAlert
+            },
+            complete: function() {
+                loadingBtn.html(originalText);
+            }
+        });
+    }
 
     // Load purchase data into edit modal
     $(document).on("click", ".editBtn", function () {
         const id = $(this).data("id");
-        $.get("../model/purchase/getPurchaseDetails.php", { purchase_id: id }, function (res) {
-            if (res.status === "success") {
-                const d = res.data;
-                $("#edit_purchase_id").val(d.purchase_id);
-                $("#edit_vendor_id").val(d.vendor_id);
-                $("#edit_material_id").val(d.material_id);
-                $("#edit_quantity").val(d.quantity);
-                $("#edit_unit_price").val(d.unit_price);
-                $("#edit_purchase_date").val(d.purchase_date);
-                $("#edit_payment_status").val(d.payment_status);
-                $("#edit_status").val(d.status);
-                $("#edit_notes").val(d.notes);
-                $("#editPurchaseModal").modal("show");
-            } else {
-                showMessage("Failed to load purchase data.", "error");
-            }
-        });
-    });
-
-    // Update purchase
-    $("#editPurchaseForm").submit(function (e) {
-        e.preventDefault();
-        
-        // Show loading state
-        const submitBtn = $(this).find('button[type="submit"]');
-        const originalText = submitBtn.html();
-        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Updating...');
-        
-        $.ajax({
-            url: "../model/purchase/updatePurchase.php",
-            method: "POST",
-            data: $(this).serialize(),
-            dataType: "json",
-            success: function (res) {
-                if (res.status === "success") {
-                    $("#editPurchaseModal").modal("hide");
-                    $("#editPurchaseForm")[0].reset();
-                    $('.modal-backdrop').remove();
-                    $('body').removeClass('modal-open');
-                    loadPurchases();
-                    showMessage(res.message, "success");
-                } else {
-                    showMessage(res.message, "error");
-                }
-            },
-            error: function () {
-                showMessage("Failed to update purchase.", "error");
-            },
-            complete: function() {
-                submitBtn.prop('disabled', false).html(originalText);
-            }
-        });
+        loadPurchaseDetails(id);
     });
 
     // Prepare delete

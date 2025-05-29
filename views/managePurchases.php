@@ -97,12 +97,41 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                         <select name="material_id" id="material_id" class="form-select" required></select>
                     </div>
                     <div class="col-md-4">
-                        <label for="quantity" class="form-label">Quantity</label>
-                        <input type="number" name="quantity" id="quantity" class="form-control" required min="1">
+                        <label for="add_quantity" class="form-label">Quantity</label>
+                        <input type="number" name="quantity" id="add_quantity" class="form-control" required min="1">
                     </div>
                     <div class="col-md-4">
-                        <label for="unit_price" class="form-label">Unit Price</label>
-                        <input type="number" name="unit_price" id="unit_price" class="form-control" required step="0.01" min="0.01">
+                        <label for="add_unit_price" class="form-label">Unit Price</label>
+                        <input type="number" name="unit_price" id="add_unit_price" class="form-control" required step="0.01" min="0.01">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="add_tax_rate" class="form-label">Tax Rate (%)</label>
+                        <input type="number" name="tax_rate" id="add_tax_rate" class="form-control" step="0.01" min="0" max="100" value="0">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="add_discount_rate" class="form-label">Discount Rate (%)</label>
+                        <input type="number" name="discount_rate" id="add_discount_rate" class="form-control" step="0.01" min="0" max="100" value="0">
+                    </div>
+                    <div class="col-12">
+                        <div class="cost-preview card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">Cost Preview</h6>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <p class="mb-1">Subtotal:</p>
+                                        <p class="mb-1">Tax Amount:</p>
+                                        <p class="mb-1">Discount Amount:</p>
+                                        <p class="mb-0 fw-bold">Total:</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <p class="mb-1" id="preview_subtotal">PKR 0.00</p>
+                                        <p class="mb-1" id="preview_tax">PKR 0.00</p>
+                                        <p class="mb-1" id="preview_discount">PKR 0.00</p>
+                                        <p class="mb-0 fw-bold" id="preview_total">PKR 0.00</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-4">
                         <label for="purchase_date" class="form-label">Purchase Date</label>
@@ -165,6 +194,35 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                     <div class="col-md-4">
                         <label for="edit_unit_price" class="form-label">Unit Price</label>
                         <input type="number" name="unit_price" id="edit_unit_price" class="form-control" required step="0.01" min="0.01">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="edit_tax_rate" class="form-label">Tax Rate (%)</label>
+                        <input type="number" name="tax_rate" id="edit_tax_rate" class="form-control" step="0.01" min="0" max="100" value="0">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="edit_discount_rate" class="form-label">Discount Rate (%)</label>
+                        <input type="number" name="discount_rate" id="edit_discount_rate" class="form-control" step="0.01" min="0" max="100" value="0">
+                    </div>
+                    <div class="col-12">
+                        <div class="cost-preview card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">Cost Preview</h6>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <p class="mb-1">Subtotal:</p>
+                                        <p class="mb-1">Tax Amount:</p>
+                                        <p class="mb-1">Discount Amount:</p>
+                                        <p class="mb-0 fw-bold">Total:</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <p class="mb-1" id="edit_preview_subtotal">PKR 0.00</p>
+                                        <p class="mb-1" id="edit_preview_tax">PKR 0.00</p>
+                                        <p class="mb-1" id="edit_preview_discount">PKR 0.00</p>
+                                        <p class="mb-0 fw-bold" id="edit_preview_total">PKR 0.00</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-4">
                         <label for="edit_purchase_date" class="form-label">Purchase Date</label>

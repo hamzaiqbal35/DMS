@@ -4,76 +4,48 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once '../../inc/config/database.php';
+require_once '../../inc/helpers.php';
 header('Content-Type: application/json');
 
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    echo json_encode(['status' => 'error', 'message' => 'Invalid request method.']);
+    exit;
+}
+
 try {
-    if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-        throw new Exception("Invalid request method.");
+    $purchase_id = intval($_GET['purchase_id'] ?? 0);
+    
+    if ($purchase_id <= 0) {
+        throw new Exception('Invalid purchase ID.');
     }
 
-    if (!isset($_GET['purchase_id']) || !is_numeric($_GET['purchase_id'])) {
-        throw new Exception("Invalid or missing purchase ID.");
-    }
-
-    $purchase_id = intval($_GET['purchase_id']);
-
-    // Fetch main purchase info
     $stmt = $pdo->prepare("
-        SELECT 
-            p.purchase_id,
-            p.purchase_number,
-            p.vendor_id,
-            v.vendor_name,
-            p.purchase_date,
-            p.payment_status,
-            p.delivery_status as status,
-            p.notes
+        SELECT p.*, pd.material_id, pd.quantity, pd.unit_price, 
+               pd.tax as tax_amount, pd.discount as discount_amount,
+               (pd.tax / (pd.quantity * pd.unit_price) * 100) as tax_rate,
+               (pd.discount / (pd.quantity * pd.unit_price) * 100) as discount_rate
         FROM purchases p
-        JOIN vendors v ON p.vendor_id = v.vendor_id
-        WHERE p.purchase_id = ?
+        JOIN purchase_details pd ON p.purchase_id = pd.purchase_id
+        WHERE p.purchase_id = :purchase_id
     ");
-    $stmt->execute([$purchase_id]);
+    
+    $stmt->execute(['purchase_id' => $purchase_id]);
     $purchase = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$purchase) {
-        throw new Exception("Purchase not found.");
+        throw new Exception('Purchase not found.');
     }
-
-    // Fetch purchase detail (only one material per purchase in this setup)
-    $detailStmt = $pdo->prepare("
-        SELECT 
-            pd.material_id,
-            rm.material_name,
-            pd.quantity,
-            pd.unit_price,
-            pd.total_price
-        FROM purchase_details pd
-        JOIN raw_materials rm ON pd.material_id = rm.material_id
-        WHERE pd.purchase_id = ?
-    ");
-    $detailStmt->execute([$purchase_id]);
-    $detail = $detailStmt->fetch(PDO::FETCH_ASSOC);
-
-    // Combine purchase and detail data for easier access in frontend
-    $result = array_merge($purchase, [
-        'material_id' => $detail['material_id'],
-        'material_name' => $detail['material_name'],
-        'quantity' => $detail['quantity'],
-        'unit_price' => $detail['unit_price'],
-        'total_price' => $detail['total_price']
-    ]);
 
     echo json_encode([
         'status' => 'success',
-        'data' => $result
+        'data' => $purchase
     ]);
 
 } catch (Exception $e) {
-    error_log("Get Purchase Details Error: " . $e->getMessage(), 3, "../../error_log.log");
-
-    echo json_encode([
-        'status' => 'error',
-        'message' => $e->getMessage()
-    ]);
+    error_log("Get Purchase Details Error: " . $e->getMessage(), 3, '../../error_log.log');
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+} catch (PDOException $e) {
+    error_log("Get Purchase Details Database Error: " . $e->getMessage(), 3, '../../error_log.log');
+    echo json_encode(['status' => 'error', 'message' => 'Database error. Please try again.']);
 }
 ?>

@@ -19,6 +19,8 @@ try {
     $material_id     = intval($_POST['material_id'] ?? 0);
     $quantity        = floatval($_POST['quantity'] ?? 0);
     $unit_price      = floatval($_POST['unit_price'] ?? 0);
+    $tax_rate        = floatval($_POST['tax_rate'] ?? 0);
+    $discount_rate   = floatval($_POST['discount_rate'] ?? 0);
     $purchase_date   = trim($_POST['purchase_date'] ?? '');
     $payment_status  = trim($_POST['payment_status'] ?? '');
     $delivery_status = trim($_POST['status'] ?? '');
@@ -50,7 +52,11 @@ try {
         throw new Exception('Invalid delivery status.');
     }
 
-    $total_amount = $quantity * $unit_price;
+    // Calculate amounts
+    $subtotal = $quantity * $unit_price;
+    $tax_amount = ($subtotal * $tax_rate) / 100;
+    $discount_amount = ($subtotal * $discount_rate) / 100;
+    $total_amount = $subtotal + $tax_amount - $discount_amount;
 
     // Start transaction
     $pdo->beginTransaction();
@@ -83,6 +89,8 @@ try {
         SET material_id = :material_id,
             quantity = :quantity,
             unit_price = :unit_price,
+            tax = :tax,
+            discount = :discount,
             total_price = :total_price
         WHERE purchase_id = :purchase_id
     ");
@@ -90,6 +98,8 @@ try {
         'material_id'  => $material_id,
         'quantity'     => $quantity,
         'unit_price'   => $unit_price,
+        'tax'          => $tax_amount,
+        'discount'     => $discount_amount,
         'total_price'  => $total_amount,
         'purchase_id'  => $purchase_id
     ]);
@@ -97,7 +107,16 @@ try {
     // Commit transaction
     $pdo->commit();
 
-    echo json_encode(['status' => 'success', 'message' => 'Purchase updated successfully.']);
+    echo json_encode([
+        'status' => 'success', 
+        'message' => 'Purchase updated successfully.',
+        'data' => [
+            'subtotal' => number_format($subtotal, 2, '.', ''),
+            'tax_amount' => number_format($tax_amount, 2, '.', ''),
+            'discount_amount' => number_format($discount_amount, 2, '.', ''),
+            'total_amount' => number_format($total_amount, 2, '.', '')
+        ]
+    ]);
 
 } catch (Exception $e) {
     if ($pdo->inTransaction()) {
