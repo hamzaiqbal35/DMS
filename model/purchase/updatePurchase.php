@@ -25,6 +25,7 @@ try {
     $payment_status  = trim($_POST['payment_status'] ?? '');
     $delivery_status = trim($_POST['status'] ?? '');
     $notes           = trim($_POST['notes'] ?? '');
+    $expected_delivery = trim($_POST['expected_delivery'] ?? null);
 
     // Validate required fields
     if ($purchase_id <= 0) {
@@ -69,6 +70,7 @@ try {
             total_amount = :total_amount,
             payment_status = :payment_status,
             delivery_status = :delivery_status,
+            expected_delivery = :expected_delivery,
             notes = :notes,
             updated_at = NOW()
         WHERE purchase_id = :purchase_id
@@ -79,6 +81,7 @@ try {
         'total_amount'    => $total_amount,
         'payment_status'  => $payment_status,
         'delivery_status' => $delivery_status,
+        'expected_delivery'=> $expected_delivery ?: null,
         'notes'           => $notes,
         'purchase_id'     => $purchase_id
     ]);

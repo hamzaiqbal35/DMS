@@ -328,6 +328,7 @@ $(document).ready(function () {
                     $('#edit_tax_rate').val(purchase.tax_rate);
                     $('#edit_discount_rate').val(purchase.discount_rate);
                     $('#edit_purchase_date').val(purchase.purchase_date);
+                    $('#edit_expected_delivery').val(purchase.expected_delivery);
                     $('#edit_payment_status').val(purchase.payment_status);
                     $('#edit_status').val(purchase.delivery_status);
                     $('#edit_notes').val(purchase.notes);
@@ -411,6 +412,45 @@ $(document).ready(function () {
             toastr.error(message);
         }
     }
+
+    // Function to check for delayed deliveries
+    function checkDelayedDeliveries() {
+        $.ajax({
+            url: '../model/purchase/flagDelayedDeliveries.php',
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    // If any new deliveries were flagged as delayed
+                    if (response.data.newly_flagged > 0) {
+                        // Show notification
+                        toastr.warning(`${response.data.newly_flagged} purchase(s) have been flagged as delayed.`);
+                        // Reload the purchases table to show updated statuses
+                        loadPurchases();
+                    }
+                    
+                    // Update delayed deliveries count in UI if element exists
+                    const delayedCountElement = document.getElementById('delayedDeliveriesCount');
+                    if (delayedCountElement) {
+                        delayedCountElement.textContent = response.data.total_delayed;
+                        // Show/hide the count badge based on whether there are delayed deliveries
+                        delayedCountElement.style.display = response.data.total_delayed > 0 ? 'inline' : 'none';
+                    }
+                }
+            },
+            error: function() {
+                console.error('Error checking delayed deliveries');
+            }
+        });
+    }
+
+    // Call checkDelayedDeliveries every 5 minutes
+    setInterval(checkDelayedDeliveries, 5 * 60 * 1000);
+
+    // Initial check when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        checkDelayedDeliveries();
+    });
 
     // Initial loads
     loadDropdowns();

@@ -25,6 +25,7 @@ try {
     $payment_status  = trim($_POST['payment_status'] ?? 'pending');
     $delivery_status = trim($_POST['status'] ?? 'pending');
     $notes           = trim($_POST['notes'] ?? '');
+    $expected_delivery = trim($_POST['expected_delivery'] ?? null);
     $created_by      = $_SESSION['user_id'] ?? 1;
 
     // Validate required fields
@@ -66,10 +67,10 @@ try {
     $insertPurchase = $pdo->prepare("
         INSERT INTO purchases (
             purchase_number, vendor_id, purchase_date, total_amount,
-            payment_status, delivery_status, notes, created_by
+            payment_status, delivery_status, expected_delivery, notes, created_by
         ) VALUES (
             :purchase_number, :vendor_id, :purchase_date, :total_amount,
-            :payment_status, :delivery_status, :notes, :created_by
+            :payment_status, :delivery_status, :expected_delivery, :notes, :created_by
         )
     ");
     $insertPurchase->execute([
@@ -79,6 +80,7 @@ try {
         'total_amount'     => $total_amount,
         'payment_status'   => $payment_status,
         'delivery_status'  => $delivery_status,
+        'expected_delivery'=> $expected_delivery ?: null,
         'notes'            => $notes ?: null,
         'created_by'       => $created_by
     ]);

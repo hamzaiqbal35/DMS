@@ -13,7 +13,13 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
         <div class="container-fluid fade-in">
             <div class="page-header d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h2><i class="fas fa-shopping-cart text-dark me-2"></i>Purchase Management</h2>
+                    <h2>
+                        <i class="fas fa-shopping-cart text-dark me-2"></i>Purchase Management
+                        <span class="badge bg-danger ms-2" id="delayedDeliveriesCount" style="display: none;">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <span>0</span> Delayed
+                        </span>
+                    </h2>
                 </div>
                 <button class="btn btn-add-purchase slide-in" data-bs-toggle="modal" data-bs-target="#addPurchaseModal">
                     <i class="fas fa-plus me-2"></i> Add Purchase
@@ -137,6 +143,10 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                         <label for="purchase_date" class="form-label">Purchase Date</label>
                         <input type="date" name="purchase_date" id="purchase_date" class="form-control" required>
                     </div>
+                    <div class="col-md-4">
+                        <label for="expected_delivery" class="form-label">Expected Delivery Date</label>
+                        <input type="date" name="expected_delivery" id="expected_delivery" class="form-control" required>
+                    </div>
                     <div class="col-md-6">
                         <label for="payment_status" class="form-label">Payment Status</label>
                         <select name="payment_status" id="payment_status" class="form-select" required>
@@ -227,6 +237,10 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                     <div class="col-md-4">
                         <label for="edit_purchase_date" class="form-label">Purchase Date</label>
                         <input type="date" name="purchase_date" id="edit_purchase_date" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="edit_expected_delivery" class="form-label">Expected Delivery Date</label>
+                        <input type="date" name="expected_delivery" id="edit_expected_delivery" class="form-control" required>
                     </div>
                     <div class="col-md-6">
                         <label for="edit_payment_status" class="form-label">Payment Status</label>
