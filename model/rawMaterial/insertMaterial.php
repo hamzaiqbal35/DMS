@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $unit_of_measure = trim($_POST['unit_of_measure'] ?? '');
     $status          = strtolower(trim($_POST['status'] ?? 'active'));
     $description     = trim($_POST['description'] ?? '');
+    $minimum_stock   = floatval($_POST['minimum_stock'] ?? 0);
 
     // Validate required inputs
     if (empty($material_code) || empty($material_name) || empty($unit_of_measure)) {
@@ -25,6 +26,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!in_array($status, ['active', 'inactive'])) {
         echo json_encode(['status' => 'error', 'message' => 'Invalid status provided.']);
+        exit;
+    }
+
+    // Validate minimum stock (optional, but good practice)
+    if ($minimum_stock < 0) {
+        echo json_encode(['status' => 'error', 'message' => 'Minimum stock cannot be negative.']);
         exit;
     }
 
@@ -40,10 +47,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Insert new material
-        $insertQuery = "INSERT INTO raw_materials (material_code, material_name, description, unit_of_measure, status, created_at) 
-                        VALUES (?, ?, ?, ?, ?, NOW())";
+        $insertQuery = "INSERT INTO raw_materials (material_code, material_name, description, unit_of_measure, minimum_stock, status, created_at) 
+                        VALUES (?, ?, ?, ?, ?, ?, NOW())";
         $insertStmt = $pdo->prepare($insertQuery);
-        $insertStmt->execute([$material_code, $material_name, $description, $unit_of_measure, $status]);
+        $insertStmt->execute([$material_code, $material_name, $description, $unit_of_measure, $minimum_stock, $status]);
 
         echo json_encode(['status' => 'success', 'message' => 'Raw material added successfully.']);
     } catch (PDOException $e) {

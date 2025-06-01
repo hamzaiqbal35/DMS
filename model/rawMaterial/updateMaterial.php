@@ -25,6 +25,7 @@ $material_name    = isset($input['material_name']) ? trim($input['material_name'
 $unit_of_measure  = isset($input['unit_of_measure']) ? trim($input['unit_of_measure']) : '';
 $description      = isset($input['description']) ? trim($input['description']) : '';
 $status           = isset($input['status']) ? trim($input['status']) : '';
+$minimum_stock    = isset($input['minimum_stock']) ? floatval($input['minimum_stock']) : 0;
 
 if (
     $material_id <= 0 || empty($material_code) || empty($material_name) || 
@@ -34,6 +35,12 @@ if (
         'status' => 'error',
         'message' => 'Invalid input data.'
     ]);
+    exit;
+}
+
+// Validate minimum stock (optional, but good practice)
+if ($minimum_stock < 0) {
+    echo json_encode(['status' => 'error', 'message' => 'Minimum stock cannot be negative.']);
     exit;
 }
 
@@ -72,6 +79,7 @@ try {
             material_name = :material_name,
             unit_of_measure = :unit_of_measure,
             description = :description,
+            minimum_stock = :minimum_stock,
             status = :status
         WHERE material_id = :material_id
     ");
@@ -81,6 +89,7 @@ try {
         'material_name'     => $material_name,
         'unit_of_measure'   => $unit_of_measure,
         'description'       => $description,
+        'minimum_stock'     => $minimum_stock,
         'status'            => $status,
         'material_id'       => $material_id
     ]);

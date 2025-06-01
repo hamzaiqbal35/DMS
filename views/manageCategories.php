@@ -68,21 +68,21 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                 <form id="addCategoryForm">
                     <div class="modal-content">
                         <div class="modal-header bg-primary text-white">
-                            <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Add Category</h5>
+                            <h5 class="modal-title" id="addCategoryLabel"><i class="fas fa-plus-circle me-2"></i>Add Category</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body row g-3">
                             <div class="col-12">
-                                <label><i class="fas fa-tag me-1"></i> Category Name</label>
-                                <input type="text" name="category_name" id="category_name" class="form-control" required placeholder="Enter category name">
+                                <label for="add_category_name" class="form-label"><i class="fas fa-tag me-1"></i> Category Name</label>
+                                <input type="text" name="category_name" id="add_category_name" class="form-control" required placeholder="Enter category name">
                             </div>
                             <div class="col-12">
-                                <label><i class="fas fa-align-left me-1"></i> Description</label>
-                                <textarea name="description" id="description" class="form-control" rows="3" placeholder="Enter description"></textarea>
+                                <label for="add_description" class="form-label"><i class="fas fa-align-left me-1"></i> Description</label>
+                                <textarea name="description" id="add_description" class="form-control" rows="3" placeholder="Enter description"></textarea>
                             </div>
                             <div class="col-12">
-                                <label><i class="fas fa-toggle-on me-1"></i> Status</label>
-                                <select name="status" id="status" class="form-select" required>
+                                <label for="add_status" class="form-label"><i class="fas fa-toggle-on me-1"></i> Status</label>
+                                <select name="status" id="add_status" class="form-select" required>
                                     <option value="" disabled selected>Select status...</option>
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
@@ -107,20 +107,20 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                     <input type="hidden" name="category_id" id="edit_category_id">
                     <div class="modal-content">
                         <div class="modal-header bg-warning">
-                            <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Category</h5>
+                            <h5 class="modal-title" id="editCategoryLabel"><i class="fas fa-edit me-2"></i>Edit Category</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body row g-3">
                             <div class="col-12">
-                                <label><i class="fas fa-tag me-1"></i> Category Name</label>
+                                <label for="edit_category_name" class="form-label"><i class="fas fa-tag me-1"></i> Category Name</label>
                                 <input type="text" name="category_name" id="edit_category_name" class="form-control" required placeholder="Enter category name">
                             </div>
                             <div class="col-12">
-                                <label><i class="fas fa-align-left me-1"></i> Description</label>
+                                <label for="edit_description" class="form-label"><i class="fas fa-align-left me-1"></i> Description</label>
                                 <textarea name="description" id="edit_description" class="form-control" rows="3" placeholder="Enter description"></textarea>
                             </div>
                             <div class="col-12">
-                                <label><i class="fas fa-toggle-on me-1"></i> Status</label>
+                                <label for="edit_status" class="form-label"><i class="fas fa-toggle-on me-1"></i> Status</label>
                                 <select name="status" id="edit_status" class="form-select" required>
                                     <option value="" disabled selected>Select status...</option>
                                     <option value="active">Active</option>

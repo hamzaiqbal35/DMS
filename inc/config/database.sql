@@ -120,9 +120,24 @@ CREATE TABLE IF NOT EXISTS raw_materials (
     description TEXT,
     unit_of_measure VARCHAR(20) NOT NULL,
     current_stock DECIMAL(10,2) DEFAULT 0,
+    minimum_stock DECIMAL(10,2) DEFAULT 0,
     status ENUM('active', 'inactive') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Raw Material Stock Logs Table
+CREATE TABLE IF NOT EXISTS raw_material_stock_logs (
+    log_id INT PRIMARY KEY AUTO_INCREMENT,
+    material_id INT NOT NULL,
+    quantity DECIMAL(10,2) NOT NULL,
+    type ENUM('addition', 'reduction') NOT NULL,
+    reason VARCHAR(255) NOT NULL,
+    notes TEXT,
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (material_id) REFERENCES raw_materials(material_id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(user_id)
 );
 
 -- Purchases Table
@@ -200,7 +215,6 @@ CREATE TABLE IF NOT EXISTS password_resets (
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
-
 DELIMITER //
 
 -- Update raw materials stock after purchase (CORRECTED)
@@ -214,4 +228,16 @@ BEGIN
     WHERE material_id = NEW.material_id;
 END //
 
+-- Update inventory stock after sale
+DROP TRIGGER IF EXISTS after_sale_detail_insert//
+CREATE TRIGGER after_sale_detail_insert
+AFTER INSERT ON sale_details
+FOR EACH ROW
+BEGIN
+    UPDATE inventory
+    SET current_stock = current_stock - NEW.quantity
+    WHERE item_id = NEW.item_id;
+END //
+
 DELIMITER ;
+

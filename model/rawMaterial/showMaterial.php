@@ -11,6 +11,8 @@ try {
             material_name, 
             description, 
             unit_of_measure, 
+            current_stock, 
+            minimum_stock, 
             status, 
             created_at 
         FROM raw_materials 

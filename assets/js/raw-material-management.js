@@ -9,12 +9,22 @@ $(document).ready(function () {
                 let rows = '';
                 if (data.status === 'success' && Array.isArray(data.data)) {
                     data.data.forEach(function (item) {
+                        const stockLevel = parseFloat(item.current_stock) || 0;
+                        const stockClass = stockLevel <= 0 ? 'text-danger' : 
+                                         stockLevel <= (parseFloat(item.minimum_stock) || 0) ? 'text-warning' : 'text-success';
+                        
                         rows += `
                             <tr>
                                 <td>${item.material_id}</td>
                                 <td>${item.material_code}</td>
                                 <td>${item.material_name}</td>
                                 <td>${item.unit_of_measure}</td>
+                                <td>
+                                    <span class="${stockClass}">
+                                        <i class="fas fa-box me-1"></i>
+                                        ${stockLevel.toFixed(2)}
+                                    </span>
+                                </td>
                                 <td>${item.status}</td>
                                 <td>
                                     <div class="dropdown">
@@ -23,13 +33,30 @@ $(document).ready(function () {
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end">
                                             <li>
+                                                <a class="dropdown-item viewStockBtn" href="#" 
+                                                    data-id="${item.material_id}"
+                                                    data-name="${item.material_name}">
+                                                    <i class="fas fa-chart-line me-2"></i> View Stock History
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item reduceStockBtn" href="#" 
+                                                    data-id="${item.material_id}"
+                                                    data-name="${item.material_name}"
+                                                    data-unit="${item.unit_of_measure}"
+                                                    data-stock="${item.current_stock}">
+                                                    <i class="fas fa-minus-circle me-2"></i> Reduce Stock
+                                                </a>
+                                            </li>
+                                            <li>
                                                 <a class="dropdown-item editMaterialBtn" href="#" 
                                                     data-id="${item.material_id}" 
                                                     data-code="${item.material_code}"
                                                     data-name="${item.material_name}" 
                                                     data-unit="${item.unit_of_measure}" 
                                                     data-description="${item.description}" 
-                                                    data-status="${item.status}">
+                                                    data-status="${item.status}"
+                                                    data-min-stock="${item.minimum_stock || 0}">
                                                     <i class="fas fa-edit me-2"></i> Edit
                                                 </a>
                                             </li>
@@ -47,7 +74,7 @@ $(document).ready(function () {
                         `;
                     });
                 } else {
-                    rows = `<tr><td colspan="6" class="text-center">No raw materials found.</td></tr>`;
+                    rows = `<tr><td colspan="7" class="text-center">No raw materials found.</td></tr>`;
                 }
                 $('#materialTable tbody').html(rows);
 
@@ -58,7 +85,7 @@ $(document).ready(function () {
                 }
             },
             error: function () {
-                $('#materialTable tbody').html('<tr><td colspan="6" class="text-center text-danger">Failed to load raw materials.</td></tr>');
+                $('#materialTable tbody').html('<tr><td colspan="7" class="text-center text-danger">Failed to load raw materials.</td></tr>');
             }
         });
     }
@@ -95,7 +122,7 @@ $(document).ready(function () {
             if ($('#no-search-results').length === 0) {
                 $('#materialTable tbody').append(`
                     <tr id="no-search-results">
-                        <td colspan="6" class="text-center">
+                        <td colspan="7" class="text-center">
                             No raw materials matching "${searchTerm}" found
                         </td>
                     </tr>
@@ -136,11 +163,11 @@ $(document).ready(function () {
                 $('body').removeClass('modal-open');
                 $('.modal-backdrop').remove();
                 $('#addMaterialForm')[0].reset();
-                showMessage(response.status, response.message);
+                showMessage(response.message, response.status);
                 loadMaterials();
             },
             error: function () {
-                showMessage('danger', 'Error adding material.');
+                showMessage('Error adding material.', 'error');
             }
         });
     });
@@ -153,6 +180,7 @@ $(document).ready(function () {
         $('#edit_unit_of_measure').val($(this).data('unit'));
         $('#edit_description').val($(this).data('description'));
         $('#edit_status').val($(this).data('status'));
+        $('#edit_min_stock').val($(this).data('min-stock'));
         $('#editMaterialModal').modal('show');
     });
 
@@ -167,11 +195,11 @@ $(document).ready(function () {
             success: function (response) {
                 closeModal('editMaterialModal');
                 $('#editMaterialForm')[0].reset();
-                showMessage(response.status, response.message);
+                showMessage(response.message, response.status);
                 loadMaterials();
             },
             error: function () {
-                showMessage('danger', 'Error updating material.');
+                showMessage('Error updating material.', 'error');
             }
         });
     });
@@ -193,10 +221,10 @@ $(document).ready(function () {
             success: function (response) {
                 if (response.status === 'success') {
                     closeModal('deleteMaterialModal');
-                    showMessage('success', response.message);
+                    showMessage(response.message, 'success');
                     loadMaterials();
                 } else {
-                    showMessage('danger', response.message || 'Error deleting material.');
+                    showMessage(response.message || 'Error deleting material.', 'error');
                 }
             },
             error: function (xhr, status, error) {
@@ -205,13 +233,13 @@ $(document).ready(function () {
                     error: error,
                     response: xhr.responseText
                 });
-                showMessage('danger', 'Error deleting material. Please try again.');
+                showMessage('Error deleting material. Please try again.', 'error');
             }
         });
     });
 
-    function showMessage(msg, type = 'success') {
-        // Use toastr for better looking notifications
+    // Show flash message
+    function showMessage(message, type = 'success') {
         toastr.options = {
             "closeButton": true,
             "progressBar": true,
@@ -220,11 +248,119 @@ $(document).ready(function () {
         };
         
         if (type === 'success') {
-            toastr.success(msg);
+            toastr.success(message);
         } else {
-            toastr.error(msg);
+            toastr.error(message);
         }
     }
+
+    // Handle view stock history
+    $(document).on('click', '.viewStockBtn', function() {
+        const materialId = $(this).data('id');
+        const materialName = $(this).data('name');
+        
+        $('#stockHistoryMaterialName').text(materialName);
+        
+        $.ajax({
+            url: '/DMS/model/rawMaterial/getStockHistory.php',
+            method: 'GET',
+            data: { material_id: materialId },
+            dataType: 'json',
+            success: function(res) {
+                if (res.status === 'success') {
+                    // Update current and minimum stock values
+                    $('#currentStockValue').text(parseFloat(res.data.current_stock).toFixed(2));
+                    $('#minimumStockValue').text(parseFloat(res.data.minimum_stock).toFixed(2));
+                    
+                    // Update stock history table
+                    let rows = '';
+                    res.data.history.forEach(function(record) {
+                        const typeClass = record.type === 'addition' ? 'text-success' : 'text-danger';
+                        const typeIcon = record.type === 'addition' ? 'fa-plus' : 'fa-minus';
+                        const reference = record.source === 'Purchase' ? `Purchase # ${record.reference}` : record.reference; // Use reason for reduction logs
+
+                        rows += `
+                            <tr>
+                                <td>${record.date}</td>
+                                <td><span class="${typeClass}"><i class="fas ${typeIcon} me-1"></i>${record.type}</span></td>
+                                <td>${parseFloat(record.amount).toFixed(2)}</td>
+                                <td>${reference}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    if (rows === '') {
+                        rows = '<tr><td colspan="4" class="text-center">No stock history found</td></tr>';
+                    }
+                    
+                    $('#stockHistoryTableBody').html(rows);
+                    $('#stockHistoryModal').modal('show');
+                } else {
+                    toastr.error(res.message || 'Failed to load stock history');
+                }
+            },
+            error: function() {
+                toastr.error('Error loading stock history');
+            }
+        });
+    });
+
+    // Handle reduce stock button click
+    $(document).on('click', '.reduceStockBtn', function() {
+        const materialId = $(this).data('id');
+        const materialName = $(this).data('name');
+        const materialUnit = $(this).data('unit');
+        const currentStock = $(this).data('stock');
+        
+        $('#reduce_material_id').val(materialId);
+        $('#reduceStockMaterialName').text(materialName);
+        $('#reduceStockMaterialUnit').text(materialUnit);
+        $('#reduceStockCurrentStock').text(parseFloat(currentStock).toFixed(2));
+        $('#reduce_quantity').val(''); // Clear previous value
+        $('#reduction_reason').val(''); // Clear previous value
+        $('#reduce_notes').val(''); // Clear previous value
+        
+        $('#reduceStockModal').modal('show');
+    });
+
+    // Handle reduce stock form submission
+    $('#reduceStockForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = $(this).serialize();
+        const submitBtn = $(this).find('button[type="submit"]');
+        const originalText = submitBtn.html();
+        
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Reducing...');
+
+        $.ajax({
+            url: '/DMS/model/rawMaterial/reduceStock.php',
+            method: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    closeModal('reduceStockModal');
+                    $('#reduceStockForm')[0].reset();
+                    showMessage(response.message, 'success');
+                    loadMaterials(); // Reload table to show updated stock
+                } else {
+                    showMessage(response.message || 'Error reducing stock.', 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Reduce stock error:', {
+                    status: status,
+                    error: error,
+                    response: xhr.responseText
+                });
+                showMessage('Error reducing stock. Please try again.', 'error');
+            },
+            complete: function() {
+                submitBtn.prop('disabled', false).html(originalText);
+            }
+        });
+    });
 
     loadMaterials();
 });

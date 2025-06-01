@@ -20,8 +20,8 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                         <i class="fas fa-download me-2"></i> Export Report
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="exportBtn">
-                        <li><a class="dropdown-item" href="#" onclick="setExportFormat('csv'); exportReport();">Export as Excel</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="setExportFormat('pdf'); exportReport();">Export as PDF</a></li>
+                        <li><a class="dropdown-item" href="#" data-export-format="csv"><i class="fas fa-file-csv me-2"></i> Export as CSV</a></li>
+                        <li><a class="dropdown-item" href="#" data-export-format="pdf"><i class="fas fa-file-pdf me-2"></i> Export as PDF</a></li>
                     </ul>
                 </div>
             </div>

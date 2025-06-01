@@ -30,16 +30,16 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                 <div class="col-md-4">
                     <div class="search-container">
                         <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="searchInput" class="form-control" placeholder="Search by customer or item...">
+                        <input type="text" id="searchInput" name="search" class="form-control" placeholder="Search by customer or item...">
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <select id="filterCustomer" class="form-select">
+                    <select id="filterCustomer" name="filter_customer" class="form-select">
                         <option value="">Filter by Customer</option>
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <select id="filterPaymentStatus" class="form-select">
+                    <select id="filterPaymentStatus" name="filter_payment_status" class="form-select">
                         <option value="">Filter by Payment Status</option>
                         <option value="pending">Pending</option>
                         <option value="partial">Partial</option>
@@ -47,7 +47,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <button class="btn btn-secondary w-100" id="resetFilters">Reset</button>
+                    <button type="button" class="btn btn-secondary w-100" id="resetFilters">Reset</button>
                 </div>
             </div>
 
@@ -76,7 +76,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                             <i class="fas fa-chart-line"></i>
                             <h5>No Sales Found</h5>
                             <p>Start by adding a sale or try searching differently.</p>
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSaleModal">
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSaleModal">
                                 <i class="fas fa-plus me-1"></i> Add Sale
                             </button>
                         </div>
@@ -99,27 +99,31 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                 <div class="modal-body row g-3">
                     <div class="col-md-6">
                         <label for="customer_id" class="form-label">Customer</label>
-                        <select name="customer_id" id="customer_id" class="form-select" required></select>
+                        <select name="customer_id" id="customer_id" class="form-select" required>
+                            <option value="">Select Customer</option>
+                        </select>
                     </div>
                     <div class="col-md-6">
                         <label for="item_id" class="form-label">Item</label>
-                        <select name="item_id" id="item_id" class="form-select" required></select>
+                        <select name="item_id" id="item_id" class="form-select" required>
+                            <option value="">Select Item</option>
+                        </select>
                     </div>
                     <div class="col-md-4">
-                        <label for="add_quantity" class="form-label">Quantity</label>
-                        <input type="number" name="quantity" id="add_quantity" class="form-control" required min="0.01" step="0.01">
+                        <label for="quantity" class="form-label">Quantity</label>
+                        <input type="number" name="quantity" id="quantity" class="form-control" required min="0.01" step="0.01">
                     </div>
                     <div class="col-md-4">
-                        <label for="add_unit_price" class="form-label">Unit Price</label>
-                        <input type="number" name="unit_price" id="add_unit_price" class="form-control" required step="0.01" min="0.01">
+                        <label for="unit_price" class="form-label">Unit Price</label>
+                        <input type="number" name="unit_price" id="unit_price" class="form-control" required step="0.01" min="0.01">
                     </div>
                     <div class="col-md-4">
-                        <label for="add_tax_rate" class="form-label">Tax Rate (%)</label>
-                        <input type="number" name="tax_rate" id="add_tax_rate" class="form-control" step="0.01" min="0" max="100" value="0">
+                        <label for="tax_rate" class="form-label">Tax Rate (%)</label>
+                        <input type="number" name="tax_rate" id="tax_rate" class="form-control" step="0.01" min="0" max="100" value="0">
                     </div>
                     <div class="col-md-4">
-                        <label for="add_discount_rate" class="form-label">Discount Rate (%)</label>
-                        <input type="number" name="discount_rate" id="add_discount_rate" class="form-control" step="0.01" min="0" max="100" value="0">
+                        <label for="discount_rate" class="form-label">Discount Rate (%)</label>
+                        <input type="number" name="discount_rate" id="discount_rate" class="form-control" step="0.01" min="0" max="100" value="0">
                     </div>
                     <div class="col-12">
                         <div class="cost-preview card bg-light">
@@ -160,7 +164,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Save Sale</button>
                 </div>
             </div>
@@ -181,11 +185,15 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                 <div class="modal-body row g-3">
                     <div class="col-md-6">
                         <label for="edit_customer_id" class="form-label">Customer</label>
-                        <select name="customer_id" id="edit_customer_id" class="form-select" required></select>
+                        <select name="customer_id" id="edit_customer_id" class="form-select" required>
+                            <option value="">Select Customer</option>
+                        </select>
                     </div>
                     <div class="col-md-6">
                         <label for="edit_item_id" class="form-label">Item</label>
-                        <select name="item_id" id="edit_item_id" class="form-select" required></select>
+                        <select name="item_id" id="edit_item_id" class="form-select" required>
+                            <option value="">Select Item</option>
+                        </select>
                     </div>
                     <div class="col-md-4">
                         <label for="edit_quantity" class="form-label">Quantity</label>
@@ -242,7 +250,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-warning"><i class="fas fa-save me-1"></i> Update</button>
                 </div>
             </div>
@@ -272,7 +280,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                         <p><strong>Invoice:</strong> <span id="view_invoice_number"></span></p>
                         <p><strong>Date:</strong> <span id="view_sale_date"></span></p>
                         <p><strong>Status:</strong> <span id="view_payment_status"></span></p>
-                        <p><strong>Created By:</strong> <span id="view_created_by"></span></p>
+                        <p><strong>Created By:</strong> <span id="view_created_by_name"></span></p>
                     </div>
                 </div>
                 <div class="row mt-3">
@@ -292,7 +300,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                                 <tbody>
                                     <tr>
                                         <td id="view_item_name"></td>
-                                        <td id="view_item_code"></td>
+                                        <td id="view_item_number"></td>
                                         <td id="view_quantity"></td>
                                         <td id="view_unit_price"></td>
                                         <td id="view_total_price"></td>
@@ -329,10 +337,10 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to delete this sale? This action cannot be undone.</p>
-                <input type="hidden" id="delete_sale_id">
+                <input type="hidden" name="sale_id" id="delete_sale_id">
             </div>
             <div class="modal-footer">
-                <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
                     <i class="fas fa-trash-alt me-1"></i> Delete Sale
                 </button>
