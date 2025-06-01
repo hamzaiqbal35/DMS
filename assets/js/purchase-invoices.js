@@ -165,6 +165,27 @@ $(document).ready(function () {
         const submitBtn = $(this).find('button[type="submit"]');
         const originalText = submitBtn.html();
         
+        // Validate file input
+        const fileInput = $('#invoice_file')[0];
+        if (!fileInput.files || fileInput.files.length === 0) {
+            toastr.error('Please select a file to upload');
+            return;
+        }
+
+        // Validate file size (5MB max)
+        const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+        if (fileInput.files[0].size > maxSize) {
+            toastr.error('File size exceeds the 5MB limit');
+            return;
+        }
+
+        // Validate file type
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+        if (!allowedTypes.includes(fileInput.files[0].type)) {
+            toastr.error('Invalid file type. Only PDF, JPEG, and PNG files are allowed');
+            return;
+        }
+
         submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Uploading...');
 
         $.ajax({
@@ -180,13 +201,14 @@ $(document).ready(function () {
                     $('.modal-backdrop').remove();
                     $('body').removeClass('modal-open');
                     loadInvoices();
-                    showMessage(res.message, "success");
+                    toastr.success(res.message);
                 } else {
-                    showMessage(res.message, "error");
+                    toastr.error(res.message);
                 }
             },
-            error: function () {
-                showMessage("Failed to upload invoice. Please try again.", "error");
+            error: function (xhr, status, error) {
+                console.error("Upload Error:", error);
+                toastr.error("Failed to upload invoice. Please try again.");
             },
             complete: function() {
                 submitBtn.prop('disabled', false).html(originalText);

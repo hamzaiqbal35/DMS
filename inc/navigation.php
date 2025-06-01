@@ -88,11 +88,45 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 </div>
             </li>
 
+            <!-- Sales Dropdown -->
+            <?php
+            $salesActive = in_array($current_page, [
+                'manageSales.php', 'saleReports.php', 
+                'saleInvoices.php'
+            ]);
+            ?>
             <li class="nav-item">
-                <a class="nav-link <?= strpos($current_page, 'manageSales.php') !== false ? 'active' : '' ?>" 
-                   href="<?= $base_url ?>views/manageSales.php">
-                    <i class="fas fa-shopping-cart"></i> Sales
+                <a class="nav-link d-flex justify-content-between align-items-center <?= $salesActive ? 'menu-expanded' : '' ?>" 
+                data-bs-toggle="collapse" 
+                href="#salesMenu" 
+                role="button" 
+                aria-expanded="<?= $salesActive ? 'true' : 'false' ?>" 
+                aria-controls="salesMenu">
+                    <span><i class="fas fa-cash-register"></i> Sales</span>
+                    <i class="fas fa-chevron-down"></i>
                 </a>
+                <div class="collapse <?= $salesActive ? 'show' : '' ?>" id="salesMenu">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($current_page, 'manageSales.php') !== false ? 'active' : '' ?>" 
+                            href="<?= $base_url ?>views/manageSales.php">
+                                <i class="fas fa-cart-plus"></i> Manage Sales
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($current_page, 'saleReports.php') !== false ? 'active' : '' ?>" 
+                            href="<?= $base_url ?>views/saleReports.php">
+                                <i class="fas fa-file-alt"></i> Sale Reports
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($current_page, 'saleInvoices.php') !== false ? 'active' : '' ?>" 
+                            href="<?= $base_url ?>views/saleInvoices.php">
+                                <i class="fas fa-receipt"></i> Invoices
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>
 
             <!-- Purchases Dropdown -->

@@ -28,7 +28,17 @@ try {
 
     // Validate file upload
     if (!isset($_FILES['invoice_file']) || $_FILES['invoice_file']['error'] !== UPLOAD_ERR_OK) {
-        throw new Exception('No file uploaded or upload error occurred.');
+        $error = $_FILES['invoice_file']['error'] ?? 'Unknown error';
+        $errorMessages = [
+            UPLOAD_ERR_INI_SIZE => 'The uploaded file exceeds the upload_max_filesize directive in php.ini',
+            UPLOAD_ERR_FORM_SIZE => 'The uploaded file exceeds the MAX_FILE_SIZE directive in the HTML form',
+            UPLOAD_ERR_PARTIAL => 'The uploaded file was only partially uploaded',
+            UPLOAD_ERR_NO_FILE => 'No file was uploaded',
+            UPLOAD_ERR_NO_TMP_DIR => 'Missing a temporary folder',
+            UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk',
+            UPLOAD_ERR_EXTENSION => 'A PHP extension stopped the file upload'
+        ];
+        throw new Exception($errorMessages[$error] ?? 'File upload error occurred.');
     }
 
     $file = $_FILES['invoice_file'];
@@ -52,7 +62,9 @@ try {
     // Create uploads directory if it doesn't exist
     $upload_dir = '../../uploads/invoices/';
     if (!file_exists($upload_dir)) {
-        mkdir($upload_dir, 0777, true);
+        if (!mkdir($upload_dir, 0777, true)) {
+            throw new Exception('Failed to create upload directory.');
+        }
     }
 
     // Generate unique filename
@@ -72,15 +84,19 @@ try {
         WHERE purchase_id = :purchase_id
     ");
     
+    $relative_path = 'uploads/invoices/' . $new_filename;
     $updateStmt->execute([
-        ':invoice_file' => 'uploads/invoices/' . $new_filename,
+        ':invoice_file' => $relative_path,
         ':purchase_id' => $purchase_id
     ]);
 
-    header('Content-Type: application/pdf');
-    header('Content-Disposition: inline; filename="invoice.pdf"');
-    readfile($file_path);
-    exit;
+    echo json_encode([
+        'status' => 'success',
+        'message' => 'Invoice uploaded successfully',
+        'data' => [
+            'filepath' => $relative_path
+        ]
+    ]);
 
 } catch (Exception $e) {
     error_log("Invoice Upload Error: " . $e->getMessage(), 3, "../../error_log.log");

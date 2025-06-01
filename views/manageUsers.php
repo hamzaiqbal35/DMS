@@ -73,25 +73,25 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                         </div>
                         <div class="modal-body row g-3">
                             <div class="col-md-12">
-                                <label><i class="fas fa-user me-1"></i> Full Name</label>
-                                <input type="text" name="full_name" class="form-control" required placeholder="Enter full name">
+                                <label for="full_name" class="form-label"><i class="fas fa-user me-1"></i> Full Name</label>
+                                <input type="text" id="full_name" name="full_name" class="form-control" required placeholder="Enter full name" autocomplete="name">
                             </div>
                             <div class="col-md-12">
-                                <label><i class="fas fa-envelope me-1"></i> Email</label>
-                                <input type="email" name="email" class="form-control" required placeholder="Enter email address">
+                                <label for="email" class="form-label"><i class="fas fa-envelope me-1"></i> Email</label>
+                                <input type="email" id="email" name="email" class="form-control" required placeholder="Enter email address" autocomplete="email">
                             </div>
                             <div class="col-md-12">
-                                <label><i class="fas fa-lock me-1"></i> Password</label>
+                                <label for="password" class="form-label"><i class="fas fa-lock me-1"></i> Password</label>
                                 <div class="input-group">
-                                    <input type="password" name="password" class="form-control" required placeholder="Enter password">
+                                    <input type="password" id="password" name="password" class="form-control" required placeholder="Enter password" autocomplete="new-password">
                                     <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </div>
                             </div>
                             <div class="col-md-12">
-                                <label><i class="fas fa-user-tag me-1"></i> Role</label>
-                                <select name="role_id" class="form-select" required>
+                                <label for="role_id" class="form-label"><i class="fas fa-user-tag me-1"></i> Role</label>
+                                <select id="role_id" name="role_id" class="form-select" required>
                                     <option value="" disabled selected>Select role...</option>
                                     <option value="1">Admin</option>
                                     <option value="2">Manager</option>
@@ -123,16 +123,16 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                         </div>
                         <div class="modal-body row g-3">
                             <div class="col-md-12">
-                                <label><i class="fas fa-user me-1"></i> Full Name</label>
-                                <input type="text" name="full_name" id="edit_full_name" class="form-control" required placeholder="Enter full name">
+                                <label for="edit_full_name" class="form-label"><i class="fas fa-user me-1"></i> Full Name</label>
+                                <input type="text" id="edit_full_name" name="full_name" class="form-control" required placeholder="Enter full name" autocomplete="name">
                             </div>
                             <div class="col-md-12">
-                                <label><i class="fas fa-envelope me-1"></i> Email</label>
-                                <input type="email" name="email" id="edit_email" class="form-control" required placeholder="Enter email address">
+                                <label for="edit_email" class="form-label"><i class="fas fa-envelope me-1"></i> Email</label>
+                                <input type="email" id="edit_email" name="email" class="form-control" required placeholder="Enter email address" autocomplete="email">
                             </div>
                             <div class="col-md-12">
-                                <label><i class="fas fa-user-tag me-1"></i> Role</label>
-                                <select name="role_id" id="edit_role_id" class="form-select" required>
+                                <label for="edit_role_id" class="form-label"><i class="fas fa-user-tag me-1"></i> Role</label>
+                                <select id="edit_role_id" name="role_id" class="form-select" required>
                                     <option value="" disabled selected>Select role...</option>
                                     <option value="1">Admin</option>
                                     <option value="2">Manager</option>
