@@ -79,40 +79,40 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                         </div>
                         <div class="modal-body row g-3">
                             <div class="col-md-6">
-                                <label><i class="fas fa-building me-1"></i> Customer Name</label>
-                                <input type="text" name="customer_name" class="form-control" required placeholder="Enter customer name">
+                                <label for="customer_name"><i class="fas fa-building me-1"></i> Customer Name</label>
+                                <input type="text" id="customer_name" name="customer_name" class="form-control" required placeholder="Enter customer name" autocomplete="organization">
                             </div>
                             <div class="col-md-6">
-                                <label><i class="fas fa-user me-1"></i> Contact Person</label>
-                                <input type="text" name="contact_person" class="form-control" placeholder="Enter contact person">
+                                <label for="contact_person"><i class="fas fa-user me-1"></i> Contact Person</label>
+                                <input type="text" id="contact_person" name="contact_person" class="form-control" placeholder="Enter contact person" autocomplete="name">
                             </div>
                             <div class="col-md-6">
-                                <label><i class="fas fa-phone me-1"></i> Phone</label>
-                                <input type="text" name="phone" class="form-control" required placeholder="Enter phone number">
+                                <label for="phone"><i class="fas fa-phone me-1"></i> Phone</label>
+                                <input type="text" id="phone" name="phone" class="form-control" required placeholder="Enter phone number" autocomplete="tel">
                             </div>
                             <div class="col-md-6">
-                                <label><i class="fas fa-envelope me-1"></i> Email</label>
-                                <input type="email" name="email" class="form-control" placeholder="Enter email address">
+                                <label for="email"><i class="fas fa-envelope me-1"></i> Email</label>
+                                <input type="email" id="email" name="email" class="form-control" placeholder="Enter email address" autocomplete="email">
                             </div>
                             <div class="col-12">
-                                <label><i class="fas fa-map-marker-alt me-1"></i> Address</label>
-                                <textarea name="address" class="form-control" rows="2" required placeholder="Enter address"></textarea>
+                                <label for="address"><i class="fas fa-map-marker-alt me-1"></i> Address</label>
+                                <textarea id="address" name="address" class="form-control" rows="2" required placeholder="Enter address" autocomplete="street-address"></textarea>
                             </div>
                             <div class="col-md-4">
-                                <label><i class="fas fa-city me-1"></i> City</label>
-                                <input type="text" name="city" class="form-control" required placeholder="Enter city">
+                                <label for="city"><i class="fas fa-city me-1"></i> City</label>
+                                <input type="text" id="city" name="city" class="form-control" required placeholder="Enter city" autocomplete="address-level2">
                             </div>
                             <div class="col-md-4">
-                                <label><i class="fas fa-flag me-1"></i> State</label>
-                                <input type="text" name="state" class="form-control" placeholder="Enter state">
+                                <label for="state"><i class="fas fa-flag me-1"></i> State</label>
+                                <input type="text" id="state" name="state" class="form-control" placeholder="Enter state" autocomplete="address-level1">
                             </div>
                             <div class="col-md-4">
-                                <label><i class="fas fa-map-pin me-1"></i> ZIP</label>
-                                <input type="text" name="zip_code" class="form-control" placeholder="Enter ZIP code">
+                                <label for="zip_code"><i class="fas fa-map-pin me-1"></i> ZIP</label>
+                                <input type="text" id="zip_code" name="zip_code" class="form-control" placeholder="Enter ZIP code" autocomplete="postal-code">
                             </div>
                             <div class="col-md-4">
-                            <label for="status" class="form-label"><i class="fas fa-toggle-on me-1"></i> Status</label>
-                                <select name="status" class="form-control" required>
+                                <label for="status"><i class="fas fa-toggle-on me-1"></i> Status</label>
+                                <select id="status" name="status" class="form-control" required>
                                     <option value="" disabled selected>Select status...</option>
                                     <option value="active" selected>Active</option>
                                     <option value="inactive">Inactive</option>
@@ -142,40 +142,40 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                         </div>
                         <div class="modal-body row g-3">
                             <div class="col-md-6">
-                                <label><i class="fas fa-building me-1"></i> Customer Name</label>
-                                <input type="text" name="customer_name" id="edit_customer_name" class="form-control" required placeholder="Enter customer name">
+                                <label for="edit_customer_name"><i class="fas fa-building me-1"></i> Customer Name</label>
+                                <input type="text" id="edit_customer_name" name="customer_name" class="form-control" required placeholder="Enter customer name" autocomplete="organization">
                             </div>
                             <div class="col-md-6">
-                                <label><i class="fas fa-user me-1"></i> Contact Person</label>
-                                <input type="text" name="contact_person" id="edit_contact_person" class="form-control" placeholder="Enter contact person">
+                                <label for="edit_contact_person"><i class="fas fa-user me-1"></i> Contact Person</label>
+                                <input type="text" id="edit_contact_person" name="contact_person" class="form-control" placeholder="Enter contact person" autocomplete="name">
                             </div>
                             <div class="col-md-6">
-                                <label><i class="fas fa-phone me-1"></i> Phone</label>
-                                <input type="text" name="phone" id="edit_phone" class="form-control" required placeholder="Enter phone number">
+                                <label for="edit_phone"><i class="fas fa-phone me-1"></i> Phone</label>
+                                <input type="text" id="edit_phone" name="phone" class="form-control" required placeholder="Enter phone number" autocomplete="tel">
                             </div>
                             <div class="col-md-6">
-                                <label><i class="fas fa-envelope me-1"></i> Email</label>
-                                <input type="email" name="email" id="edit_email" class="form-control" placeholder="Enter email address">
+                                <label for="edit_email"><i class="fas fa-envelope me-1"></i> Email</label>
+                                <input type="email" id="edit_email" name="email" class="form-control" placeholder="Enter email address" autocomplete="email">
                             </div>
                             <div class="col-12">
-                                <label><i class="fas fa-map-marker-alt me-1"></i> Address</label>
-                                <textarea name="address" id="edit_address" class="form-control" rows="2" required placeholder="Enter address"></textarea>
+                                <label for="edit_address"><i class="fas fa-map-marker-alt me-1"></i> Address</label>
+                                <textarea id="edit_address" name="address" class="form-control" rows="2" required placeholder="Enter address" autocomplete="street-address"></textarea>
                             </div>
                             <div class="col-md-4">
-                                <label><i class="fas fa-city me-1"></i> City</label>
-                                <input type="text" name="city" id="edit_city" class="form-control" required placeholder="Enter city">
+                                <label for="edit_city"><i class="fas fa-city me-1"></i> City</label>
+                                <input type="text" id="edit_city" name="city" class="form-control" required placeholder="Enter city" autocomplete="address-level2">
                             </div>
                             <div class="col-md-4">
-                                <label><i class="fas fa-flag me-1"></i> State</label>
-                                <input type="text" name="state" id="edit_state" class="form-control" placeholder="Enter state">
+                                <label for="edit_state"><i class="fas fa-flag me-1"></i> State</label>
+                                <input type="text" id="edit_state" name="state" class="form-control" placeholder="Enter state" autocomplete="address-level1">
                             </div>
                             <div class="col-md-4">
-                                <label><i class="fas fa-map-pin me-1"></i> ZIP</label>
-                                <input type="text" name="zip_code" id="edit_zip_code" class="form-control" placeholder="Enter ZIP code">
+                                <label for="edit_zip_code"><i class="fas fa-map-pin me-1"></i> ZIP</label>
+                                <input type="text" id="edit_zip_code" name="zip_code" class="form-control" placeholder="Enter ZIP code" autocomplete="postal-code">
                             </div>
                             <div class="col-md-4">
-                            <label for="status" class="form-label"><i class="fas fa-toggle-on me-1"></i> Status</label>
-                                <select name="status" id="edit_status" class="form-control" required>
+                                <label for="edit_status"><i class="fas fa-toggle-on me-1"></i> Status</label>
+                                <select id="edit_status" name="status" class="form-control" required>
                                     <option value="" disabled selected>Select status...</option>
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
