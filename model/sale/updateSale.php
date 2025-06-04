@@ -47,8 +47,21 @@ try {
     }
 
     // Recalculate total
-    $subtotal = $quantity * $unit_price;
-    $total_amount = $subtotal;
+    $total_amount = $quantity * $unit_price;
+
+    // Get current paid amount
+    $paidStmt = $pdo->prepare("SELECT paid_amount FROM sales WHERE sale_id = ?");
+    $paidStmt->execute([$sale_id]);
+    $paid_amount = $paidStmt->fetchColumn() ?: 0;
+
+    // Recalculate payment status based on new total and paid amount
+    if ($paid_amount >= $total_amount) {
+        $payment_status = 'paid';
+    } elseif ($paid_amount > 0) {
+        $payment_status = 'partial';
+    } else {
+        $payment_status = 'pending';
+    }
 
     // Start transaction
     $pdo->beginTransaction();
@@ -97,7 +110,6 @@ try {
         'status' => 'success',
         'message' => 'Sale updated successfully.',
         'data' => [
-            'subtotal'     => number_format($subtotal, 2, '.', ''),
             'total_amount' => number_format($total_amount, 2, '.', '')
         ]
     ]);

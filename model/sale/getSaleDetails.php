@@ -26,6 +26,7 @@ try {
             sd.quantity, 
             sd.unit_price, 
             sd.total_price,
+            s.paid_amount,
             i.item_name,
             i.item_number,
             c.customer_name,
@@ -47,6 +48,24 @@ try {
     if (!$sale) {
         throw new Exception('Sale not found.');
     }
+
+    // Fetch all payments for this sale
+    $paymentsStmt = $pdo->prepare("
+        SELECT
+            payment_date,
+            amount,
+            method,
+            notes
+        FROM payments
+        WHERE sale_id = :sale_id
+        ORDER BY payment_date ASC, created_at ASC
+    ");
+    $paymentsStmt->execute(['sale_id' => $sale_id]);
+    $payments = $paymentsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Add payments and total paid amount to the sale data
+    $sale['payments'] = $payments;
+    // The total paid amount is already in sales.paid_amount, so we don't need to sum payments here
 
     echo json_encode([
         'status' => 'success',

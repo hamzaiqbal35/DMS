@@ -66,7 +66,8 @@ $roles = [
     <!-- Bootstrap JS and dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
+    <script src="../assets/js/scripts.js"></script>
+
     <script>
         $(document).ready(function () {
             // Password toggle functionality
@@ -84,7 +85,7 @@ $roles = [
                 }
             });
 
-            // Login form submission
+            // Login form submission - FIXED
             $("#loginForm").submit(function (e) {
                 e.preventDefault();
                 $.ajax({
@@ -94,6 +95,9 @@ $roles = [
                     dataType: "json",
                     success: function (response) {
                         if (response.status === "success") {
+                            // Store JWT token in localStorage - THIS WAS MISSING
+                            localStorage.setItem("jwt_token", response.token);
+                            
                             $("#alertBox")
                                 .removeClass("d-none alert-danger")
                                 .addClass("alert-success")

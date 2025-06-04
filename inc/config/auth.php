@@ -8,8 +8,26 @@ if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
+// Define pages that don't require authentication
+$public_pages = [
+    'login.php',
+    'register.php',
+    'forgotPassword.php',
+    'resetPasswordForm.php'
+];
+
+// Get current page name
+$current_page = basename($_SERVER['PHP_SELF']);
+
 // Secure view access via JWT
 function require_jwt_auth() {
+    global $public_pages, $current_page;
+    
+    // Allow access to public pages without authentication
+    if (in_array($current_page, $public_pages)) {
+        return true;
+    }
+
     // Check if JWT token exists in session
     if (!isset($_SESSION['jwt_token'])) {
         session_unset();

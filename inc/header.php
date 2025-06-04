@@ -86,8 +86,9 @@ function generate_csrf_token() {
                     <form id="logoutForm" action="<?= $base_url ?>model/login/logout.php" method="POST" style="display: none;">
                         <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
                     </form>
-                    <a class="dropdown-item text-danger" href="#" onclick="document.getElementById('logoutForm').submit();">
-                        Logout
+                    <!-- Logout button in navigation -->
+                    <a href="#" onclick="logout(); return false;" class="nav-link">
+                        <i class="fas fa-sign-out-alt"></i> Logout
                     </a>
                 </li>
             </ul>

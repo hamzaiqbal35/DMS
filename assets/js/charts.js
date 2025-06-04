@@ -42,6 +42,171 @@ const Charts = {
         return this.initChart(canvasId, config);
     },
 
+    // Create sales overview chart
+    createSalesChart: function(canvasId) {
+        const config = {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Number of Sales',
+                        data: [],
+                        borderColor: '#4361ee',
+                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                        yAxisID: 'y',
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: '#4361ee',
+                        pointBorderColor: '#fff',
+                        pointHoverBorderColor: '#4361ee',
+                        pointBorderWidth: 2,
+                        pointHoverBorderWidth: 2
+                    },
+                    {
+                        label: 'Total Amount (PKR)',
+                        data: [],
+                        borderColor: '#4cc9f0',
+                        backgroundColor: 'rgba(76, 201, 240, 0.1)',
+                        yAxisID: 'y1',
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: '#4cc9f0',
+                        pointBorderColor: '#fff',
+                        pointHoverBorderColor: '#4cc9f0',
+                        pointBorderWidth: 2,
+                        pointHoverBorderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                stacked: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Sales Overview (Last 6 Months)',
+                        font: {
+                            size: 16,
+                            weight: 'bold'
+                        },
+                        padding: {
+                            top: 10,
+                            bottom: 20
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.dataset.yAxisID === 'y1') {
+                                    label += 'PKR ' + context.parsed.y.toLocaleString();
+                                } else {
+                                    label += context.parsed.y;
+                                }
+                                return label;
+                            }
+                        },
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 12
+                        },
+                        cornerRadius: 4,
+                        padding: 10
+                    }
+                },
+                scales: {
+                    x: {
+                         ticks: {
+                            font: {
+                                size: 10
+                            }
+                         },
+                         grid: {
+                             display: false
+                         }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Number of Sales',
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        },
+                        grid: {
+                           color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Total Amount (PKR)',
+                             font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
+                        },
+                        ticks: {
+                            font: {
+                                size: 10
+                            }
+                        },
+                        grid: {
+                            drawOnChartArea: false
+                        }
+                    }
+                }
+            }
+        };
+
+        const chart = this.initChart(canvasId, config);
+
+        // Fetch and update chart data
+        fetch('../api/fetchSalesChartData.php')
+            .then(response => response.json())
+            .then(result => {
+                if (result.status === 'success') {
+                    chart.data.labels = result.data.labels;
+                    chart.data.datasets[0].data = result.data.datasets[0].data;
+                    chart.data.datasets[1].data = result.data.datasets[1].data;
+                    chart.update();
+                } else {
+                    console.error('Error fetching sales chart data:', result.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching sales chart data:', error);
+            });
+
+        return chart;
+    },
+
     // Create bar chart
     createBarChart: function(canvasId, data, options = {}) {
         const config = {
@@ -112,7 +277,7 @@ const Charts = {
                                 return productLines;
                             }
                         },
-                        displayColors: false, // Hide color indicators for cleaner look
+                        displayColors: false,
                         backgroundColor: 'rgba(0, 0, 0, 0.9)',
                         titleColor: 'white',
                         bodyColor: 'white',
@@ -152,21 +317,13 @@ const Charts = {
 
 // Initialize charts when document is ready
 document.addEventListener('DOMContentLoaded', function() {
-    // Sales trend chart
+    // Initialize sales chart
     const salesChart = document.getElementById('salesChart');
     if (salesChart) {
-        Charts.createLineChart('salesChart', {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            datasets: [{
-                label: 'Sales',
-                data: [12, 19, 3, 5, 2, 3],
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.1
-            }]
-        });
+        Charts.createSalesChart('salesChart');
     }
 
-    // Inventory distribution doughnut chart
+    // Initialize inventory chart
     const inventoryChart = document.getElementById('inventoryChart');
     if (inventoryChart) {
         // Fetch inventory data from API
@@ -179,7 +336,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     Charts.createDoughnutChart('inventoryChart', {
                         labels: response.data.labels,
                         datasets: response.data.datasets
-                    }, {}, response.data.categoryProducts); // Pass products data
+                    }, {}, response.data.categoryProducts);
                 } else {
                     console.error('Failed to fetch chart data:', response.message);
                     // Show error message in chart area

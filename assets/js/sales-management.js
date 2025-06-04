@@ -59,20 +59,11 @@ $(document).ready(function () {
     function calculateTotals(formPrefix = '') {
         const quantity = parseFloat($(`#${formPrefix}quantity`).val()) || 0;
         const unitPrice = parseFloat($(`#${formPrefix}unit_price`).val()) || 0;
-        const taxRate = parseFloat($(`#${formPrefix}tax_rate`).val()) || 0;
-        const discountRate = parseFloat($(`#${formPrefix}discount_rate`).val()) || 0;
+        const total = quantity * unitPrice;
 
-        const subtotal = quantity * unitPrice;
-        const taxAmount = (subtotal * taxRate) / 100;
-        const discountAmount = (subtotal * discountRate) / 100;
-        const total = subtotal + taxAmount - discountAmount;
-
-        $(`#${formPrefix}preview_subtotal`).text(`PKR ${subtotal.toFixed(2)}`);
-        $(`#${formPrefix}preview_tax`).text(`PKR ${taxAmount.toFixed(2)}`);
-        $(`#${formPrefix}preview_discount`).text(`PKR ${discountAmount.toFixed(2)}`);
         $(`#${formPrefix}preview_total`).text(`PKR ${total.toFixed(2)}`);
 
-        return { subtotal, taxAmount, discountAmount, total };
+        return { total };
     }
 
     // Load sales data
@@ -83,6 +74,7 @@ $(document).ready(function () {
                 renderSalesTable(res.data);
                 $("#totalSalesCount span").text(res.data.length);
                 $("#totalSalesCount").show();
+                updateSummary(res.data);
             }
         });
     }
@@ -99,14 +91,19 @@ $(document).ready(function () {
 
         $("#emptyState").addClass('d-none');
         sales.forEach(sale => {
+            const totalPrice = parseFloat(sale.total_price || 0);
+            const paidAmount = parseFloat(sale.paid_amount || 0);
+            const unitPrice = parseFloat(sale.unit_price || 0);
+
             tbody.append(`
-                <tr data-customer-name="${sale.customer_name}">
+                <tr data-customer-name="${sale.customer_name}" data-payment-status="${sale.payment_status}">
                     <td>${sale.invoice_number}</td>
                     <td>${sale.customer_name}</td>
                     <td>${sale.item_name}</td>
                     <td>${sale.quantity}</td>
-                    <td>PKR ${parseFloat(sale.unit_price).toFixed(2)}</td>
-                    <td>PKR ${parseFloat(sale.total_price).toFixed(2)}</td>
+                    <td>PKR ${unitPrice.toFixed(2)}</td>
+                    <td>PKR ${totalPrice.toFixed(2)}</td>
+                    <td>PKR ${paidAmount.toFixed(2)}</td>
                     <td>${sale.sale_date}</td>
                     <td><span class="badge bg-${getStatusColor(sale.payment_status)}">${sale.payment_status}</span></td>
                     <td>
@@ -148,11 +145,13 @@ $(document).ready(function () {
         return colors[status] || 'secondary';
     }
 
-    // Search and filter functionality
+    // FIXED: Search and filter functionality
     function applyFilters() {
         const searchText = $("#searchInput").val().toLowerCase().trim();
         const customerFilter = $("#filterCustomer").val().trim();
         const statusFilter = $("#filterPaymentStatus").val().trim();
+
+        console.log("Applying filters - Status:", statusFilter);
 
         let visibleCount = 0;
 
@@ -161,7 +160,9 @@ $(document).ready(function () {
             const invoiceNumber = row.find('td:eq(0)').text().toLowerCase();
             const customerName = row.find('td:eq(1)').text().toLowerCase();
             const itemName = row.find('td:eq(2)').text().toLowerCase();
-            const paymentStatus = row.find('td:eq(7) .badge').text().toLowerCase();
+            
+            // FIXED: Get payment status from data attribute instead of badge text
+            const paymentStatus = row.data('payment-status') || row.find('td:eq(8) .badge').text().toLowerCase();
             
             // Get the actual customer name from data attribute
             const rowCustomerName = row.data('customer-name') || row.find('td:eq(1)').text();
@@ -175,10 +176,12 @@ $(document).ready(function () {
             // Customer filter - exact match with customer name
             const matchesCustomer = !customerFilter || rowCustomerName === customerFilter;
             
-            // Status filter
-            const matchesStatus = !statusFilter || paymentStatus === statusFilter.toLowerCase();
+            // FIXED: Status filter - compare with original status value
+            const matchesStatus = !statusFilter || paymentStatus === statusFilter;
 
             const shouldShow = matchesSearch && matchesCustomer && matchesStatus;
+            
+            console.log(`Row payment status: "${paymentStatus}", Filter: "${statusFilter}", Match: ${matchesStatus}`);
             
             if (shouldShow) {
                 row.show();
@@ -206,7 +209,8 @@ $(document).ready(function () {
     $("#searchInput").on('input', applyFilters);
 
     // Handle filter changes
-    $("#filterCustomer, #filterPaymentStatus").on('change', applyFilters);
+    $("#filterCustomer").on('change', applyFilters);
+    $("#filterPaymentStatus").on('change', applyFilters);
 
     // Handle reset filters
     $("#resetFilters").click(function() {
@@ -226,7 +230,7 @@ $(document).ready(function () {
     });
 
     // Handle quantity/price changes
-    $(document).on('input', '#quantity, #unit_price, #tax_rate, #discount_rate, #edit_quantity, #edit_unit_price, #edit_tax_rate, #edit_discount_rate', function() {
+    $(document).on('input', '#quantity, #unit_price, #edit_quantity, #edit_unit_price', function() {
         const formPrefix = $(this).attr('id').startsWith('edit_') ? 'edit_' : '';
         calculateTotals(formPrefix);
     });
@@ -306,9 +310,18 @@ $(document).ready(function () {
     // Handle view sale button click - UPDATED WITH MISSING FIELDS
     $(document).on('click', '.viewSaleBtn', function() {
         const saleId = $(this).data('id');
+        // Clear previous sale ID and disable generate button initially
+        $("#view_sale_id").val('');
+        $("#generateInvoiceBtn").prop('disabled', true).text('Generate Invoice'); // Disable and reset text
+
         $.get("../model/sale/getSaleDetails.php", { sale_id: saleId }, function(res) {
-            if (res.status === "success") {
+            if (res.status === "success" && res.data) {
                 const sale = res.data;
+                // Set the sale ID for invoice generation ONLY if successful
+                $("#view_sale_id").val(sale.sale_id);
+                // Enable generate button
+                $("#generateInvoiceBtn").prop('disabled', false).text('Generate Invoice');
+                
                 // Customer Information
                 $("#view_customer_name").text(sale.customer_name);
                 $("#view_customer_phone").text(sale.customer_phone || 'N/A');
@@ -332,7 +345,15 @@ $(document).ready(function () {
                 $("#view_notes").text(sale.notes || 'No notes available');
                 
                 $("#viewSaleModal").modal("show");
+            } else {
+                toastr.error(res.message || "Failed to load sale details.");
+                console.error("View sale error:", res);
+                $("#viewSaleModal").modal("hide"); // Hide modal if details fail to load
             }
+        }).fail(function(xhr, status, error) {
+             toastr.error("Error fetching sale details.");
+             console.error("View sale AJAX error:", error);
+             $("#viewSaleModal").modal("hide"); // Hide modal on AJAX error
         });
     });
 
@@ -386,9 +407,60 @@ $(document).ready(function () {
     });
 
     // Handle generate invoice button click
-    $("#generateInvoiceBtn").click(function() {
-        const saleId = $("#view_sale_id").val();
-        window.open(`../model/sale/generateInvoice.php?sale_id=${saleId}`, '_blank');
+    $("#generateInvoiceBtn").on("click", function() {
+        const saleId = parseInt($("#view_sale_id").val()); // Ensure it's an integer
+        if (isNaN(saleId) || saleId <= 0) {
+            toastr.error("Cannot generate invoice: Invalid sale ID.");
+            console.error("Generate invoice clicked with invalid sale ID:", $("#view_sale_id").val());
+            return;
+        }
+
+        $("#generateInvoiceBtn").prop('disabled', true).text('Generating...'); // Indicate processing
+
+        $.ajax({
+            url: "../model/sale/generateInvoice.php",
+            method: "POST",
+            data: {
+                sale_id: saleId,
+                invoice_date: new Date().toISOString().split('T')[0],
+                due_date: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0]
+            },
+            dataType: "json",
+            success: function(res) {
+                if (res.status === "success") {
+                    toastr.success(res.message);
+                    // Update the download link if available
+                    if (res.data && res.data.invoice_file) {
+                        // Note: The download link is in the View Invoice Modal, not this one.
+                        // The generateInvoice function is triggered from the View Invoice modal.
+                        // Let's make sure the file path is correctly handled in the View modal after generation.
+
+                        // We need to update the href of the download link in the view modal
+                        // Let's find the relevant element in the view modal. It has id 'downloadInvoice'
+                         $("#viewInvoiceModal #downloadInvoice").attr("href", "../" + res.data.invoice_file);
+                         // It might also be useful to update the invoice preview in the view modal
+                         // This would require fetching the updated sale details after generation, or updating the view modal content directly
+                         // For now, let's just ensure the download link is updated.
+
+                    }
+                     // Optionally, reload sales table to show updated status/invoice file link if table shows it
+                    // loadSales(); // This might be too disruptive, let's rely on the View modal's download link
+
+                    // Close the generate modal
+                    $("#generateInvoiceModal").modal("hide");
+
+                } else {
+                    toastr.error(res.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                toastr.error("Error generating invoice");
+                console.error("Generate invoice error:", error);
+            },
+            complete: function() {
+                 $("#generateInvoiceBtn").prop('disabled', false).text('Generate Invoice'); // Re-enable button
+            }
+        });
     });
 
     // Add modal open handler
@@ -414,4 +486,25 @@ $(document).ready(function () {
     loadCustomers();
     loadItems();
     loadSales();
+
+    // Function to update summary cards
+    function updateSummary(salesData) {
+        let totalAmount = 0;
+        let totalPaid = 0;
+        const uniqueCustomers = new Set();
+
+        if (salesData && salesData.length > 0) {
+            salesData.forEach(sale => {
+                totalAmount += parseFloat(sale.total_price || 0);
+                totalPaid += parseFloat(sale.paid_amount || 0);
+                uniqueCustomers.add(sale.customer_id);
+            });
+        }
+
+        $("#totalRecords").text(salesData ? salesData.length : 0);
+        $("#totalAmount").text(`PKR ${totalAmount.toFixed(2)}`);
+        $("#pendingPayments").text(`PKR ${(totalAmount - totalPaid).toFixed(2)}`);
+        $("#uniqueCustomers").text(uniqueCustomers.size);
+        $("#summaryCards").show();
+    }
 });

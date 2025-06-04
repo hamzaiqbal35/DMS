@@ -53,7 +53,7 @@ try {
         throw new Exception('Item not found in inventory.');
     }
     if ($stock < $quantity) {
-        throw new Exception('Not enough stock available for this item.');
+        throw new Exception('Not enough stock available. Current stock: ' . $stock);
     }
 
     // Calculate total

@@ -65,6 +65,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                                     <th>Qty</th>
                                     <th>Unit Price</th>
                                     <th>Total</th>
+                                    <th>Paid Amount</th>
                                     <th>Date</th>
                                     <th>Payment Status</th>
                                     <th>Actions</th>
@@ -109,21 +110,13 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                             <option value="">Select Item</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label for="quantity" class="form-label">Quantity</label>
                         <input type="number" name="quantity" id="quantity" class="form-control" required min="0.01" step="0.01">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label for="unit_price" class="form-label">Unit Price</label>
                         <input type="number" name="unit_price" id="unit_price" class="form-control" required step="0.01" min="0.01">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="tax_rate" class="form-label">Tax Rate (%)</label>
-                        <input type="number" name="tax_rate" id="tax_rate" class="form-control" step="0.01" min="0" max="100" value="0">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="discount_rate" class="form-label">Discount Rate (%)</label>
-                        <input type="number" name="discount_rate" id="discount_rate" class="form-control" step="0.01" min="0" max="100" value="0">
                     </div>
                     <div class="col-12">
                         <div class="cost-preview card bg-light">
@@ -131,15 +124,9 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                                 <h6 class="card-title">Sale Preview</h6>
                                 <div class="row">
                                     <div class="col-md-3">
-                                        <p class="mb-1">Subtotal:</p>
-                                        <p class="mb-1">Tax Amount:</p>
-                                        <p class="mb-1">Discount Amount:</p>
                                         <p class="mb-0 fw-bold">Total:</p>
                                     </div>
                                     <div class="col-md-3">
-                                        <p class="mb-1" id="preview_subtotal">PKR 0.00</p>
-                                        <p class="mb-1" id="preview_tax">PKR 0.00</p>
-                                        <p class="mb-1" id="preview_discount">PKR 0.00</p>
                                         <p class="mb-0 fw-bold" id="preview_total">PKR 0.00</p>
                                     </div>
                                 </div>
@@ -195,21 +182,13 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                             <option value="">Select Item</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label for="edit_quantity" class="form-label">Quantity</label>
                         <input type="number" name="quantity" id="edit_quantity" class="form-control" required min="0.01" step="0.01">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label for="edit_unit_price" class="form-label">Unit Price</label>
                         <input type="number" name="unit_price" id="edit_unit_price" class="form-control" required step="0.01" min="0.01">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="edit_tax_rate" class="form-label">Tax Rate (%)</label>
-                        <input type="number" name="tax_rate" id="edit_tax_rate" class="form-control" step="0.01" min="0" max="100" value="0">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="edit_discount_rate" class="form-label">Discount Rate (%)</label>
-                        <input type="number" name="discount_rate" id="edit_discount_rate" class="form-control" step="0.01" min="0" max="100" value="0">
                     </div>
                     <div class="col-12">
                         <div class="cost-preview card bg-light">
@@ -217,15 +196,9 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                                 <h6 class="card-title">Sale Preview</h6>
                                 <div class="row">
                                     <div class="col-md-3">
-                                        <p class="mb-1">Subtotal:</p>
-                                        <p class="mb-1">Tax Amount:</p>
-                                        <p class="mb-1">Discount Amount:</p>
                                         <p class="mb-0 fw-bold">Total:</p>
                                     </div>
                                     <div class="col-md-3">
-                                        <p class="mb-1" id="edit_preview_subtotal">PKR 0.00</p>
-                                        <p class="mb-1" id="edit_preview_tax">PKR 0.00</p>
-                                        <p class="mb-1" id="edit_preview_discount">PKR 0.00</p>
                                         <p class="mb-0 fw-bold" id="edit_preview_total">PKR 0.00</p>
                                     </div>
                                 </div>
@@ -267,6 +240,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <input type="hidden" id="view_sale_id">
                 <div class="row">
                     <div class="col-md-6">
                         <h6><i class="fas fa-user me-2"></i>Customer Information</h6>
@@ -319,9 +293,6 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-success" id="generateInvoiceBtn">
-                    <i class="fas fa-file-pdf me-1"></i> Generate Invoice
-                </button>
             </div>
         </div>
     </div>

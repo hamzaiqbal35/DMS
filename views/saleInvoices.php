@@ -21,7 +21,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                 <div class="col-md-3">
                     <div class="search-container">
                         <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="searchInput" class="form-control" placeholder="Search by invoice number or customer...">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search invoices...">
                     </div>
                 </div>
                 <div class="col-md-2">
@@ -64,7 +64,11 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody></tbody>
+                            <tbody>
+                                <tr>
+                                    <td colspan="6" class="text-center">Loading...</td>
+                                </tr>
+                            </tbody>
                         </table>
                         <div class="empty-state d-none" id="emptyState">
                             <i class="fas fa-file-invoice"></i>
@@ -77,6 +81,22 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
         </div>
     </main>
 </div>
+
+<!-- Action Menu Template -->
+<template id="actionMenuTemplate">
+    <div class="dropdown">
+        <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-ellipsis-v"></i>
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item view-invoice" href="#"><i class="fas fa-eye me-2"></i>View</a></li>
+            <li><a class="dropdown-item generate-invoice" href="#"><i class="fas fa-file-invoice me-2"></i>Generate Invoice</a></li>
+            <li><a class="dropdown-item record-payment" href="#"><i class="fas fa-credit-card me-2"></i>Record Payment</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item delete-invoice text-danger" href="#"><i class="fas fa-trash-alt me-2"></i>Delete</a></li>
+        </ul>
+    </div>
+</template>
 
 <!-- Generate Invoice Modal -->
 <div class="modal fade" id="generateInvoiceModal" tabindex="-1" aria-hidden="true">
@@ -117,12 +137,80 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                 <h5 class="modal-title"><i class="fas fa-eye me-2"></i>View Invoice</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body text-center">
-                <div id="invoicePreview" class="mb-3">
-                    <!-- Invoice preview will be loaded here -->
+            <div class="modal-body">
+                <div class="invoice-details mb-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Customer Information</h6>
+                            <p class="mb-1"><strong>Name:</strong> <span id="view_customer_name"></span></p>
+                            <p class="mb-1"><strong>Phone:</strong> <span id="view_customer_phone"></span></p>
+                            <p class="mb-1"><strong>Email:</strong> <span id="view_customer_email"></span></p>
+                            <p class="mb-0"><strong>Address:</strong> <span id="view_customer_address"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Invoice Information</h6>
+                            <p class="mb-1"><strong>Invoice #:</strong> <span id="view_invoice_number"></span></p>
+                            <p class="mb-1"><strong>Date:</strong> <span id="view_sale_date"></span></p>
+                            <p class="mb-1"><strong>Status:</strong> <span id="view_payment_status"></span></p>
+                            <p class="mb-0"><strong>Created By:</strong> <span id="view_created_by_name"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="invoice-items mb-4">
+                    <h6 class="text-muted mb-3">Item Details</h6>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Code</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td id="view_item_name"></td>
+                                    <td id="view_item_number"></td>
+                                    <td id="view_quantity"></td>
+                                    <td id="view_unit_price"></td>
+                                    <td id="view_total_price"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="payment-history">
+                    <h6 class="text-muted mb-3">Payment History</h6>
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="paymentHistoryTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Payment history will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="notes-section mt-4">
+                    <h6 class="text-muted mb-3">Notes</h6>
+                    <div class="p-3 bg-light rounded">
+                        <p id="view_notes" class="mb-0"></p>
+                    </div>
                 </div>
             </div>
-            <div class="modal-footer-download">
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
                 <a href="#" id="downloadInvoice" class="btn btn-primary" target="_blank">
                     <i class="fas fa-download me-1"></i> Download Invoice
                 </a>
@@ -155,7 +243,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
 
 <!-- Payment Modal -->
 <div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable custom-scrollable-modal custom-modal-position">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title"><i class="fas fa-credit-card me-2"></i>Record Payment</h5>
@@ -163,7 +251,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
             </div>
             <form id="paymentForm">
                 <div class="modal-body">
-                    <input type="hidden" id="payment_invoice_id" name="invoice_id">
+                    <input type="hidden" id="payment_invoice_id" name="sale_id">
                     <div class="mb-3">
                         <label for="payment_amount" class="form-label">Payment Amount</label>
                         <input type="number" class="form-control" id="payment_amount" name="payment_amount" step="0.01" required>

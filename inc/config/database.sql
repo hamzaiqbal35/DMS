@@ -186,6 +186,7 @@ CREATE TABLE IF NOT EXISTS sales (
     sale_date DATE NOT NULL,
     total_amount DECIMAL(12,2) NOT NULL,
     payment_status ENUM('pending', 'partial', 'paid') DEFAULT 'pending',
+    invoice_file VARCHAR(255) DEFAULT NULL,
     notes TEXT,
     created_by INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -210,10 +211,25 @@ CREATE TABLE IF NOT EXISTS sale_details (
 CREATE TABLE IF NOT EXISTS password_resets (
     reset_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
+    email VARCHAR(100) NOT NULL,
     token VARCHAR(64) NOT NULL UNIQUE,
     expires_at DATETIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+
+-- Payments Table
+CREATE TABLE IF NOT EXISTS payments (
+    payment_id INT PRIMARY KEY AUTO_INCREMENT,
+    sale_id INT NOT NULL,
+    payment_date DATE NOT NULL,
+    amount DECIMAL(12,2) NOT NULL,
+    method VARCHAR(50) NOT NULL, -- e.g., cash, bank_transfer, check, credit_card
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sale_id) REFERENCES sales(sale_id) ON DELETE CASCADE
+);
+
 
 DELIMITER //
 

@@ -42,7 +42,15 @@ require_once '../inc/helpers.php';
     <script>
         $(document).ready(function () {
             $("#forgotPasswordForm").submit(function (event) {
-                event.preventDefault(); // Prevent page reload
+                event.preventDefault();
+                
+                // Clear previous alerts
+                $("#alert-box").empty();
+                
+                // Show loading state
+                const submitBtn = $(this).find('button[type="submit"]');
+                const originalBtnText = submitBtn.text();
+                submitBtn.prop('disabled', true).text('Sending...');
                 
                 $.ajax({
                     url: "../model/login/sendResetLink.php",
@@ -50,14 +58,51 @@ require_once '../inc/helpers.php';
                     data: $(this).serialize(),
                     dataType: "json",
                     success: function (response) {
+                        console.log("Response:", response); // Debug log
                         if (response.status === "success") {
-                            $("#alert-box").html('<div class="alert alert-success">' + response.message + '</div>');
+                            $("#alert-box").html(
+                                '<div class="alert alert-success">' + 
+                                '<i class="fas fa-check-circle"></i> ' + 
+                                response.message + 
+                                '</div>'
+                            );
+                            // Clear the form
+                            $("#forgotPasswordForm")[0].reset();
                         } else {
-                            $("#alert-box").html('<div class="alert alert-danger">' + response.message + '</div>');
+                            $("#alert-box").html(
+                                '<div class="alert alert-danger">' + 
+                                '<i class="fas fa-exclamation-circle"></i> ' + 
+                                response.message + 
+                                '</div>'
+                            );
                         }
                     },
-                    error: function () {
-                        $("#alert-box").html('<div class="alert alert-danger">Something went wrong. Try again.</div>');
+                    error: function (xhr, status, error) {
+                        console.error("XHR Status:", status);
+                        console.error("Error:", error);
+                        console.error("Response Text:", xhr.responseText);
+                        
+                        let errorMessage = 'An error occurred while processing your request.';
+                        
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            if (response.message) {
+                                errorMessage = response.message;
+                            }
+                        } catch (e) {
+                            console.error("Error parsing response:", e);
+                        }
+                        
+                        $("#alert-box").html(
+                            '<div class="alert alert-danger">' + 
+                            '<i class="fas fa-exclamation-circle"></i> ' + 
+                            errorMessage + 
+                            '</div>'
+                        );
+                    },
+                    complete: function() {
+                        // Reset button state
+                        submitBtn.prop('disabled', false).text(originalBtnText);
                     }
                 });
             });

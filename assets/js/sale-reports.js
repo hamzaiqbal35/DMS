@@ -87,25 +87,61 @@ $(document).ready(function() {
     // Function to update summary cards
     function updateSummary(salesData) {
         let totalAmount = 0;
-        let pendingAmount = 0;
+        let totalPaid = 0;
+        let totalPending = 0;
         const uniqueCustomers = new Set();
+        const paymentStatusCounts = {
+            'pending': 0,
+            'partial': 0,
+            'paid': 0
+        };
 
         if (salesData && salesData.length > 0) {
             salesData.forEach(sale => {
-                totalAmount += parseFloat(sale.total_price);
-                if (sale.payment_status !== 'paid') {
-                    // Note: This assumes total_price is the pending amount if not paid.
-                    // You might need a separate field in the DB for paid amount if needed.
-                     pendingAmount += parseFloat(sale.total_price);
+                // Use the actual total_amount from sales table
+                totalAmount += parseFloat(sale.total_amount || 0);
+                // Use the paid_amount from sales table
+                totalPaid += parseFloat(sale.paid_amount || 0);
+                // Calculate pending amount
+                totalPending += parseFloat(sale.pending_amount || 0);
+                
+                uniqueCustomers.add(sale.customer_id);
+                
+                // Count payment statuses
+                if (sale.payment_status) {
+                    paymentStatusCounts[sale.payment_status]++;
                 }
-                 uniqueCustomers.add(sale.customer_id);
             });
         }
 
+        // Update summary cards
         $("#totalRecords").text(salesData ? salesData.length : 0);
         $("#totalAmount").text(`PKR ${totalAmount.toFixed(2)}`);
-        $("#pendingPayments").text(`PKR ${pendingAmount.toFixed(2)}`);
+        $("#pendingPayments").text(`PKR ${totalPending.toFixed(2)}`);
         $("#uniqueCustomers").text(uniqueCustomers.size);
+
+        // Update payment status breakdown
+        if ($("#paymentStatusBreakdown").length) {
+            let breakdownHtml = '';
+            for (const [status, count] of Object.entries(paymentStatusCounts)) {
+                const statusAmount = salesData.reduce((sum, sale) => {
+                    if (sale.payment_status === status) {
+                        return sum + parseFloat(sale.total_amount || 0);
+                    }
+                    return sum;
+                }, 0);
+
+                breakdownHtml += `
+                    <div class="status-item ${status}">
+                        <strong>${status.charAt(0).toUpperCase() + status.slice(1)}:</strong><br>
+                        ${count} sales<br>
+                        PKR ${statusAmount.toFixed(2)}
+                    </div>
+                `;
+            }
+            $("#paymentStatusBreakdown").html(breakdownHtml);
+        }
+
         $("#summaryCards").show();
     }
 
