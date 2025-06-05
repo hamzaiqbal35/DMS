@@ -11,9 +11,9 @@ try {
     $query = "
         SELECT 
             DATE_FORMAT(sale_date, '%Y-%m') as month,
-            COUNT(*) as total_sales,
-            SUM(total_amount) as total_amount
-        FROM sales 
+            COUNT(DISTINCT s.sale_id) as total_sales,
+            SUM(s.total_amount) as total_amount
+        FROM sales s
         WHERE sale_date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
         GROUP BY DATE_FORMAT(sale_date, '%Y-%m')
         ORDER BY month ASC

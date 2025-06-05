@@ -414,12 +414,12 @@ footer {
 
 /* Charts */
 .chart-container {
-    background: #fff;
+    background: var(--light-color);
     padding: 10px;
-    margin: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    height: 350px;
+    margin: 2px;
+    border-radius: 13px;
+    box-shadow: 0 0 13px rgba(0, 0, 0, 0.1);
+    height: 320px;
 }
 
 /* Cards */

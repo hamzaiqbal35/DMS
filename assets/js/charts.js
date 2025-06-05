@@ -93,7 +93,7 @@ const Charts = {
                         display: true,
                         text: 'Sales Overview (Last 6 Months)',
                         font: {
-                            size: 16,
+                            size: 18,
                             weight: 'bold'
                         },
                         padding: {
@@ -118,11 +118,11 @@ const Charts = {
                         },
                         backgroundColor: 'rgba(0, 0, 0, 0.8)',
                         titleFont: {
-                            size: 14,
+                            size: 16,
                             weight: 'bold'
                         },
                         bodyFont: {
-                            size: 12
+                            size: 14
                         },
                         cornerRadius: 4,
                         padding: 10
@@ -132,7 +132,7 @@ const Charts = {
                     x: {
                          ticks: {
                             font: {
-                                size: 10
+                                size: 12
                             }
                          },
                          grid: {
@@ -147,13 +147,13 @@ const Charts = {
                             display: true,
                             text: 'Number of Sales',
                             font: {
-                                size: 12,
+                                size: 14,
                                 weight: 'bold'
                             }
                         },
                         ticks: {
                             font: {
-                                size: 10
+                                size: 12
                             }
                         },
                         grid: {
@@ -168,13 +168,13 @@ const Charts = {
                             display: true,
                             text: 'Total Amount (PKR)',
                              font: {
-                                size: 12,
+                                size: 14,
                                 weight: 'bold'
                             }
                         },
                         ticks: {
                             font: {
-                                size: 10
+                                size: 12
                             }
                         },
                         grid: {
@@ -241,7 +241,7 @@ const Charts = {
                         labels: {
                             padding: 20,
                             font: {
-                                size: 12
+                                size: 14
                             }
                         }
                     },
@@ -298,7 +298,7 @@ const Charts = {
                         display: true,
                         text: 'Inventory',
                         font: {
-                            size: 20,
+                            size: 22,
                             weight: 'bold'
                         },
                         padding: {
