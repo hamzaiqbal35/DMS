@@ -32,6 +32,51 @@ const Charts = {
         }
     },
 
+    // Helper to get responsive font sizes
+    getResponsiveFontSizes: function() {
+        let titleFontSize = 18;
+        let labelFontSize = 14;
+        let tickFontSize = 12;
+        let tooltipTitleFontSize = 16;
+        let tooltipBodyFontSize = 14;
+
+        if (window.innerWidth <= 768) { 
+            titleFontSize = 14;
+            labelFontSize = 10;
+            tickFontSize = 8;
+            tooltipTitleFontSize = 12;
+            tooltipBodyFontSize = 10;
+        } else if (window.innerWidth <= 992) { 
+            titleFontSize = 16;
+            labelFontSize = 12;
+            tickFontSize = 10;
+            tooltipTitleFontSize = 14;
+            tooltipBodyFontSize = 12;
+        }
+        return { titleFontSize, labelFontSize, tickFontSize, tooltipTitleFontSize, tooltipBodyFontSize };
+    },
+
+    // Helper to get responsive doughnut chart font sizes
+    getDoughnutResponsiveFontSizes: function() {
+        let legendFontSize = 14;
+        let tooltipTitleFontSize = 14;
+        let tooltipBodyFontSize = 12;
+        let chartTitleFontSize = 22;
+
+        if (window.innerWidth <= 768) { 
+            legendFontSize = 10;
+            tooltipTitleFontSize = 10;
+            tooltipBodyFontSize = 9;
+            chartTitleFontSize = 16;
+        } else if (window.innerWidth <= 992) { 
+            legendFontSize = 12;
+            tooltipTitleFontSize = 12;
+            tooltipBodyFontSize = 11;
+            chartTitleFontSize = 18;
+        }
+        return { legendFontSize, tooltipTitleFontSize, tooltipBodyFontSize, chartTitleFontSize };
+    },
+
     // Create line chart
     createLineChart: function(canvasId, data, options = {}) {
         const config = {
@@ -44,6 +89,8 @@ const Charts = {
 
     // Create sales overview chart
     createSalesChart: function(canvasId) {
+        let { titleFontSize, labelFontSize, tickFontSize, tooltipTitleFontSize, tooltipBodyFontSize } = this.getResponsiveFontSizes();
+
         const config = {
             type: 'line',
             data: {
@@ -93,7 +140,7 @@ const Charts = {
                         display: true,
                         text: 'Sales Overview (Last 6 Months)',
                         font: {
-                            size: 18,
+                            size: titleFontSize,
                             weight: 'bold'
                         },
                         padding: {
@@ -118,11 +165,11 @@ const Charts = {
                         },
                         backgroundColor: 'rgba(0, 0, 0, 0.8)',
                         titleFont: {
-                            size: 16,
+                            size: tooltipTitleFontSize,
                             weight: 'bold'
                         },
                         bodyFont: {
-                            size: 14
+                            size: tooltipBodyFontSize
                         },
                         cornerRadius: 4,
                         padding: 10
@@ -132,7 +179,7 @@ const Charts = {
                     x: {
                          ticks: {
                             font: {
-                                size: 12
+                                size: tickFontSize
                             }
                          },
                          grid: {
@@ -147,13 +194,13 @@ const Charts = {
                             display: true,
                             text: 'Number of Sales',
                             font: {
-                                size: 14,
+                                size: labelFontSize,
                                 weight: 'bold'
                             }
                         },
                         ticks: {
                             font: {
-                                size: 12
+                                size: tickFontSize
                             }
                         },
                         grid: {
@@ -168,13 +215,13 @@ const Charts = {
                             display: true,
                             text: 'Total Amount (PKR)',
                              font: {
-                                size: 14,
+                                size: labelFontSize,
                                 weight: 'bold'
                             }
                         },
                         ticks: {
                             font: {
-                                size: 12
+                                size: tickFontSize
                             }
                         },
                         grid: {
@@ -186,6 +233,48 @@ const Charts = {
         };
 
         const chart = this.initChart(canvasId, config);
+
+        // Add resize event listener to update chart font sizes dynamically
+        window.addEventListener('resize', () => {
+            let { titleFontSize: newTitleFontSize, labelFontSize: newLabelFontSize, tickFontSize: newTickFontSize, tooltipTitleFontSize: newTooltipTitleFontSize, tooltipBodyFontSize: newTooltipBodyFontSize } = this.getResponsiveFontSizes();
+            
+            if (chart) {
+                // Update title font size
+                if (chart.options.plugins && chart.options.plugins.title && chart.options.plugins.title.font) {
+                    chart.options.plugins.title.font.size = newTitleFontSize;
+                }
+
+                // Update tooltip font sizes
+                if (chart.options.plugins && chart.options.plugins.tooltip) {
+                    if (chart.options.plugins.tooltip.titleFont) {
+                        chart.options.plugins.tooltip.titleFont.size = newTooltipTitleFontSize;
+                    }
+                    if (chart.options.plugins.tooltip.bodyFont) {
+                        chart.options.plugins.tooltip.bodyFont.size = newTooltipBodyFontSize;
+                    }
+                }
+
+                // Update scales font sizes
+                if (chart.options.scales) {
+                    if (chart.options.scales.x && chart.options.scales.x.ticks && chart.options.scales.x.ticks.font) {
+                        chart.options.scales.x.ticks.font.size = newTickFontSize;
+                    }
+                    if (chart.options.scales.y && chart.options.scales.y.title && chart.options.scales.y.title.font) {
+                        chart.options.scales.y.title.font.size = newLabelFontSize;
+                    }
+                    if (chart.options.scales.y && chart.options.scales.y.ticks && chart.options.scales.y.ticks.font) {
+                        chart.options.scales.y.ticks.font.size = newTickFontSize;
+                    }
+                    if (chart.options.scales.y1 && chart.options.scales.y1.title && chart.options.scales.y1.title.font) {
+                        chart.options.scales.y1.title.font.size = newLabelFontSize;
+                    }
+                    if (chart.options.scales.y1 && chart.options.scales.y1.ticks && chart.options.scales.y1.ticks.font) {
+                        chart.options.scales.y1.ticks.font.size = newTickFontSize;
+                    }
+                }
+                chart.update();
+            }
+        });
 
         // Fetch and update chart data
         fetch('../api/fetchSalesChartData.php')
@@ -229,6 +318,8 @@ const Charts = {
 
     // Create doughnut chart with product details on hover
     createDoughnutChart: function(canvasId, data, options = {}, categoryProducts = []) {
+        let { legendFontSize, tooltipTitleFontSize, tooltipBodyFontSize, chartTitleFontSize } = this.getDoughnutResponsiveFontSizes();
+
         const config = {
             type: 'doughnut',
             data: data,
@@ -241,7 +332,7 @@ const Charts = {
                         labels: {
                             padding: 20,
                             font: {
-                                size: 14
+                                size: legendFontSize
                             }
                         }
                     },
@@ -287,10 +378,10 @@ const Charts = {
                         caretPadding: 10,
                         padding: 12,
                         bodyFont: {
-                            size: 12
+                            size: tooltipBodyFontSize
                         },
                         titleFont: {
-                            size: 14,
+                            size: tooltipTitleFontSize,
                             weight: 'bold'
                         }
                     },
@@ -298,7 +389,7 @@ const Charts = {
                         display: true,
                         text: 'Inventory',
                         font: {
-                            size: 22,
+                            size: chartTitleFontSize,
                             weight: 'bold'
                         },
                         padding: {
@@ -311,7 +402,36 @@ const Charts = {
                 ...options
             }
         };
-        return this.initChart(canvasId, config);
+        const chart = this.initChart(canvasId, config);
+
+        // Add resize event listener for doughnut chart
+        window.addEventListener('resize', () => {
+            let { legendFontSize: newLegendFontSize, tooltipTitleFontSize: newTooltipTitleFontSize, tooltipBodyFontSize: newTooltipBodyFontSize, chartTitleFontSize: newChartTitleFontSize } = this.getDoughnutResponsiveFontSizes();
+            
+            if (chart) {
+                // Update legend font size
+                if (chart.options.plugins && chart.options.plugins.legend && chart.options.plugins.legend.labels && chart.options.plugins.legend.labels.font) {
+                    chart.options.plugins.legend.labels.font.size = newLegendFontSize;
+                }
+
+                // Update tooltip font sizes
+                if (chart.options.plugins && chart.options.plugins.tooltip) {
+                    if (chart.options.plugins.tooltip.titleFont) {
+                        chart.options.plugins.tooltip.titleFont.size = newTooltipTitleFontSize;
+                    }
+                    if (chart.options.plugins.tooltip.bodyFont) {
+                        chart.options.plugins.tooltip.bodyFont.size = newTooltipBodyFontSize;
+                    }
+                }
+
+                // Update chart title font size
+                if (chart.options.plugins && chart.options.plugins.title && chart.options.plugins.title.font) {
+                    chart.options.plugins.title.font.size = newChartTitleFontSize;
+                }
+                chart.update();
+            }
+        });
+        return chart;
     }
 };
 

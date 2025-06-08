@@ -16,7 +16,7 @@ $(document).ready(function () {
                         itemSelect.append(`<option value="${item.item_id}">${item.item_name}</option>`);
                     });
                 } else {
-                    showMediaMessage(response.message, 'danger');
+                    showMessage(response.message, 'danger');
                 }
             }
         });
@@ -35,7 +35,7 @@ $(document).ready(function () {
                 if (response.status === 'success' && response.data.length > 0) {
                     response.data.forEach(media => {
                         gallery.append(`
-                            <div class="col-md-3 mb-4">
+                            <div class="col-sm-12 col-md-6 col-lg-3 mb-4">
                                 <div class="card shadow-sm">
                                     <img src="../${media.file_path}" class="card-img-top" alt="Media">
                                     <div class="card-body text-center p-2 media-buttons">
@@ -70,17 +70,15 @@ $(document).ready(function () {
             processData: false,
             dataType: 'json',
             success: function (response) {
-                showMediaMessage(response.message, response.status);
+                showMessage(response.message, response.status);
                 if (response.status === 'success') {
                     $('#uploadModal').modal('hide');
                     $('#uploadForm')[0].reset();
                     fetchMediaGallery();
-                    $('.modal-backdrop').remove();
-                    $('body').removeClass('modal-open');
                 }
             },
             error: function (xhr) {
-                showMediaMessage("Upload failed. Check file size and type.", 'danger');
+                showMessage("Upload failed. Check file size and type.", 'danger');
             }
         });
     });
@@ -101,12 +99,10 @@ $(document).ready(function () {
             data: { media_id: id },
             dataType: 'json',
             success: function (response) {
-                showMediaMessage(response.message, response.status);
+                showMessage(response.message, response.status);
                 if (response.status === 'success') {
                     $('#deleteMediaModal').modal('hide');
                     fetchMediaGallery();
-                    $('.modal-backdrop').remove();
-                    $('body').removeClass('modal-open');
                 }
             }
         });
@@ -144,16 +140,36 @@ $(document).ready(function () {
                         </div>
                     `);
                     $('#itemDetailModal').modal('show');
-                    $('.modal-backdrop').remove();
-                    $('body').removeClass('modal-open');
                 } else {
-                    showMediaMessage("Failed to load item details.", 'danger');
+                    showMessage("Failed to load item details.", 'danger');
                 }
             },
             error: function () {
-                showMediaMessage("Error fetching item details.", 'danger');
+                showMessage("Error fetching item details.", 'danger');
             }
         });
+    });
+
+    // Event listener to ensure modal backdrop is removed after hiding
+    $('#uploadModal').on('hidden.bs.modal', function () {
+        setTimeout(() => {
+            $('.modal-backdrop').remove(); // Remove all modal backdrops
+            $('body').removeClass('modal-open'); // Ensure body class is removed
+        }, 300); // Increased delay for robustness
+    });
+
+    $('#deleteMediaModal').on('hidden.bs.modal', function () {
+        setTimeout(() => {
+            $('.modal-backdrop').remove(); // Remove all modal backdrops
+            $('body').removeClass('modal-open'); // Ensure body class is removed
+        }, 300); // Increased delay for robustness
+    });
+
+    $('#itemDetailModal').on('hidden.bs.modal', function () {
+        setTimeout(() => {
+            $('.modal-backdrop').remove(); // Remove all modal backdrops
+            $('body').removeClass('modal-open'); // Ensure body class is removed
+        }, 300); // Increased delay for robustness
     });
 
     function showMessage(msg, type = 'success') {
@@ -175,9 +191,9 @@ $(document).ready(function () {
 });
 
 $(document).ready(function() {
-    $('#item_id').select2({
-        dropdownParent: $('#uploadModal'),
-        width: '100%',
-        dropdownCssClass: 'select-custom-height'
-    });
+    // $('#item_id').select2({
+    //     dropdownParent: $('#uploadModal'),
+    //     width: '100%',
+    //     dropdownCssClass: 'select-custom-height'
+    // });
 });

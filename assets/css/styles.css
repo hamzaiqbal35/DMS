@@ -18,6 +18,10 @@
 }
 
 /* Base Layout */
+* {
+    box-sizing: border-box;
+}
+
 html, body {
     height: 100%;
     margin: 0;
@@ -334,12 +338,8 @@ footer {
 .stat-card {
     background: linear-gradient(to right, #007bff, #00d4ff);
     color: white;
-    min-width: 220px;
-    max-width: 100%;
     min-height: 150px;
-    max-height: 150px;
     height: 150px;
-    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -373,7 +373,6 @@ footer {
 }
 
 .stat-card .card-body {
-    width: 100%;
     text-align: center;
     padding: 0.5rem;
     display: flex;
@@ -412,6 +411,52 @@ footer {
     transform: translateY(2px);
 }
 
+/* Stat Cards - Responsive Font Sizes */
+@media (max-width: 767px) {
+    .stat-card h2 {
+        font-size: 2rem; /* Smaller for very small screens */
+    }
+    .stat-card h5 {
+        font-size: 1.5rem;
+    }
+    .stat-card p {
+        font-size: 1.25rem;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+    .stat-card h2 {
+        font-size: 1.2rem; /* Medium size for tablets */
+    }
+    .stat-card h5 {
+        font-size: 1rem;
+    }
+    .stat-card p {
+        font-size: 0.9rem;
+    }
+}
+
+@media (min-width: 992px) {
+    .stat-card h2 {
+        font-size: 1.35rem; /* Original size for large desktops */
+    }
+    .stat-card h5 {
+        font-size: 1rem; /* Slightly larger than default for good readability */
+    }
+    .stat-card p {
+        font-size: 0.95rem; /* Slightly larger than default for good readability */
+    }
+}
+
+/* Ensure elements within Bootstrap columns behave responsively */
+.row > [class*='col-'] > * {
+    width: 100%;
+    box-sizing: border-box;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+}
+
 /* Charts */
 .chart-container {
     background: var(--light-color);
@@ -438,7 +483,7 @@ footer {
 .media-card {
     transition: all 0.3s ease;
     margin-bottom: 1.5rem;
-    height: 100%;
+    height: 400px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -468,8 +513,9 @@ footer {
 
 .card-img-top {
     object-fit: cover;
-    height: 200px;
-    width: 100%;
+    max-height: 350px;
+    height: 60%;
+    width: 90%;
     border-top-left-radius: var(--border-radius);
     border-top-right-radius: var(--border-radius);
     transition: transform 0.3s ease;
@@ -477,6 +523,46 @@ footer {
 
 .card:hover .card-img-top {
     transform: scale(1.05);
+}
+
+/* Media Cards - Responsive Font Sizes */
+@media (max-width: 767px) {
+    .media-card .card-title {
+        font-size: 0.9rem; /* Smaller for very small screens */
+    }
+    .media-card .card-text {
+        font-size: 0.75rem;
+    }
+    .media-card .btn {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.6rem;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+    .media-card .card-title {
+        font-size: 0.95rem; /* Medium size for tablets */
+    }
+    .media-card .card-text {
+        font-size: 0.85rem;
+    }
+    .media-card .btn {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+    }
+}
+
+@media (min-width: 992px) {
+    .media-card .card-title .card-img-top {
+        font-size: 1rem; /* Original size for large desktops */
+    }
+    .media-card .card-text {
+        font-size: 0.9rem; /* Original size for large desktops */
+    }
+    .media-card .btn {
+        font-size: 0.875rem; /* Original size for large desktops */
+        padding: 0.5rem 1rem;
+    }
 }
 
 /* Media Gallery Container */
@@ -1158,6 +1244,10 @@ label {
         position: relative;
     }
 
+    .main-content {
+        margin-left: 0px;
+    }
+
     .content {
         margin-left: 0;
     }
@@ -1169,10 +1259,14 @@ label {
     }
 
     .stat-card {
-        min-width: 100%;
         height: 120px;
         max-height: 120px;
     }
+}
+
+.row > [class*='col-'] {
+    padding-right: 15px;
+    padding-left: 15px;
 }
 
 /* Table Action Dropdown */

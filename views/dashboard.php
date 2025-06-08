@@ -16,7 +16,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
 
         <!-- Dashboard Stats Cards -->
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-12 col-md-6 col-lg-3">
                 <div class="card stat-card">
                     <div class="card-body">
                         <h5>Total Vendors</h5>
@@ -25,7 +25,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-12 col-md-6 col-lg-3">
                 <div class="card stat-card">
                     <div class="card-body">
                         <h5>Total Inventory</h5>
@@ -34,7 +34,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-12 col-md-6 col-lg-3">
                 <div class="card stat-card">
                     <div class="card-body">
                         <h5>Purchases</h5>
@@ -43,7 +43,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-12 col-md-6 col-lg-3">
                 <div class="card stat-card">
                     <div class="card-body">
                         <h5>Customers</h5>
