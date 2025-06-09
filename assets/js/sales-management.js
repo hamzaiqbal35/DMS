@@ -507,4 +507,51 @@ $(document).ready(function () {
         $("#uniqueCustomers").text(uniqueCustomers.size);
         $("#summaryCards").show();
     }
+
+    // Add event listeners for modal hidden events
+    $('#addSaleModal, #editSaleModal, #deleteSaleModal, #viewSaleModal').on('hidden.bs.modal', function () {
+        setTimeout(() => {
+            $('.modal-backdrop').remove();
+            $('body').css({
+                'overflow': '',
+                'padding-right': ''
+            });
+        }, 300);
+    });
+
+    // Add payment
+    $('#addPaymentForm').on('submit', function (e) {
+        e.preventDefault();
+        $.ajax({
+            url: '../model/sales/addPayment.php',
+            method: 'POST',
+            data: $(this).serialize(),
+            dataType: 'json',
+            success: function (response) {
+                $('#addPaymentModal').modal('hide');
+                $('#addPaymentForm')[0].reset();
+                showMessage(response.status, response.message);
+                loadSales();
+                $('.modal-backdrop').remove();
+                $('body').css({
+                    'overflow': '',
+                    'padding-right': ''
+                });
+            },
+            error: function () {
+                showMessage('danger', 'Error adding payment.');
+            }
+        });
+    });
+
+    // Add event listeners for payment modal hidden events
+    $('#addPaymentModal, #viewPaymentModal').on('hidden.bs.modal', function () {
+        setTimeout(() => {
+            $('.modal-backdrop').remove();
+            $('body').css({
+                'overflow': '',
+                'padding-right': ''
+            });
+        }, 300);
+    });
 });

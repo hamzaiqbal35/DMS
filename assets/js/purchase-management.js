@@ -186,35 +186,51 @@ $(document).ready(function () {
         const taxRate = parseFloat($(`#${formType}_tax_rate`).val()) || 0;
         const discountRate = parseFloat($(`#${formType}_discount_rate`).val()) || 0;
 
-        $.ajax({
-            url: '../model/purchase/calculateTotalCost.php',
-            method: 'POST',
-            data: {
-                quantity: quantity,
-                unit_price: unitPrice,
-                tax_rate: taxRate,
-                discount_rate: discountRate
-            },
-            cache: false,
-            success: function(response) {
-                if (response.status === 'success') {
-                    if (formType === 'add') {
-                        $('#preview_subtotal').text('PKR ' + response.data.subtotal);
-                        $('#preview_tax').text('PKR ' + response.data.tax_amount);
-                        $('#preview_discount').text('PKR ' + response.data.discount_amount);
-                        $('#preview_total').text('PKR ' + response.data.total);
-                    } else {
-                        $('#edit_preview_subtotal').text('PKR ' + response.data.subtotal);
-                        $('#edit_preview_tax').text('PKR ' + response.data.tax_amount);
-                        $('#edit_preview_discount').text('PKR ' + response.data.discount_amount);
-                        $('#edit_preview_total').text('PKR ' + response.data.total);
+        // Only make the AJAX call if we have valid quantity and unit price
+        if (quantity > 0 && unitPrice > 0) {
+            $.ajax({
+                url: '../model/purchase/calculateTotalCost.php',
+                method: 'POST',
+                data: {
+                    quantity: quantity,
+                    unit_price: unitPrice,
+                    tax_rate: taxRate,
+                    discount_rate: discountRate
+                },
+                cache: false,
+                success: function(response) {
+                    if (response.status === 'success') {
+                        if (formType === 'add') {
+                            $('#preview_subtotal').text('PKR ' + response.data.subtotal);
+                            $('#preview_tax').text('PKR ' + response.data.tax_amount);
+                            $('#preview_discount').text('PKR ' + response.data.discount_amount);
+                            $('#preview_total').text('PKR ' + response.data.total);
+                        } else {
+                            $('#edit_preview_subtotal').text('PKR ' + response.data.subtotal);
+                            $('#edit_preview_tax').text('PKR ' + response.data.tax_amount);
+                            $('#edit_preview_discount').text('PKR ' + response.data.discount_amount);
+                            $('#edit_preview_total').text('PKR ' + response.data.total);
+                        }
                     }
+                },
+                error: function() {
+                    showMessage('Failed to calculate costs. Please try again.', 'error');
                 }
-            },
-            error: function() {
-                showAlert('error', 'Failed to calculate costs. Please try again.');
+            });
+        } else {
+            // Set default values when inputs are invalid
+            if (formType === 'add') {
+                $('#preview_subtotal').text('PKR 0.00');
+                $('#preview_tax').text('PKR 0.00');
+                $('#preview_discount').text('PKR 0.00');
+                $('#preview_total').text('PKR 0.00');
+            } else {
+                $('#edit_preview_subtotal').text('PKR 0.00');
+                $('#edit_preview_tax').text('PKR 0.00');
+                $('#edit_preview_discount').text('PKR 0.00');
+                $('#edit_preview_total').text('PKR 0.00');
             }
-        });
+        }
     }
 
     // Add event listeners for real-time calculations in Add Modal
@@ -450,6 +466,17 @@ $(document).ready(function () {
     // Initial check when page loads
     document.addEventListener('DOMContentLoaded', function() {
         checkDelayedDeliveries();
+    });
+
+    // Add event listeners for modal hidden events
+    $('#addPurchaseModal, #editPurchaseModal, #deletePurchaseModal, #viewPurchaseModal').on('hidden.bs.modal', function () {
+        setTimeout(() => {
+            $('.modal-backdrop').remove();
+            $('body').css({
+                'overflow': '',
+                'padding-right': ''
+            });
+        }, 300);
     });
 
     // Initial loads

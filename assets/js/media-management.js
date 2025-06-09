@@ -37,14 +37,27 @@ $(document).ready(function () {
                         gallery.append(`
                             <div class="col-sm-12 col-md-6 col-lg-3 mb-4">
                                 <div class="card shadow-sm">
-                                    <img src="../${media.file_path}" class="card-img-top" alt="Media">
-                                    <div class="card-body text-center p-2 media-buttons">
-                                        <button class="btn btn-sm btn-info viewDetails" data-id="${media.item_id}">
-                                            <i class="fas fa-info-circle"></i> Details
-                                        </button>
-                                        <button class="btn btn-sm btn-danger deleteMedia" data-id="${media.media_id}">
-                                            <i class="fas fa-trash-alt"></i> Delete
-                                        </button>
+                                    <img src="../${media.file_path}" class="card-img-top preview-image" alt="Media" style="cursor: pointer;" data-image="../${media.file_path}">
+                                    <div class="card-body text-center p-2">
+                                        <hr class="divider">
+                                        <div class="dropdown">
+                                            <button class="btn btn-link text-dark" type="button" id="dropdownMenu${media.media_id}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenu${media.media_id}">
+                                                <li>
+                                                    <a class="dropdown-item viewDetails" href="#" data-id="${media.item_id}">
+                                                        <i class="fas fa-info-circle me-2"></i>Details
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item text-danger deleteMedia" href="#" data-id="${media.media_id}">
+                                                        <i class="fas fa-trash-alt me-2"></i>Delete
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -75,6 +88,13 @@ $(document).ready(function () {
                     $('#uploadModal').modal('hide');
                     $('#uploadForm')[0].reset();
                     fetchMediaGallery();
+                    
+                    // Remove modal backdrop and restore body overflow
+                    $('.modal-backdrop').remove();
+                    $('body').css({
+                        'overflow': '',
+                        'padding-right': ''
+                    });
                 }
             },
             error: function (xhr) {
@@ -154,21 +174,30 @@ $(document).ready(function () {
     $('#uploadModal').on('hidden.bs.modal', function () {
         setTimeout(() => {
             $('.modal-backdrop').remove(); // Remove all modal backdrops
-            $('body').removeClass('modal-open'); // Ensure body class is removed
+            $('body').css({
+                'overflow': '',
+                'padding-right': ''
+            });
         }, 300); // Increased delay for robustness
     });
 
     $('#deleteMediaModal').on('hidden.bs.modal', function () {
         setTimeout(() => {
             $('.modal-backdrop').remove(); // Remove all modal backdrops
-            $('body').removeClass('modal-open'); // Ensure body class is removed
+            $('body').css({
+                'overflow': '',
+                'padding-right': ''
+            });
         }, 300); // Increased delay for robustness
     });
 
     $('#itemDetailModal').on('hidden.bs.modal', function () {
         setTimeout(() => {
             $('.modal-backdrop').remove(); // Remove all modal backdrops
-            $('body').removeClass('modal-open'); // Ensure body class is removed
+            $('body').css({
+                'overflow': '',
+                'padding-right': ''
+            });
         }, 300); // Increased delay for robustness
     });
 
@@ -188,6 +217,39 @@ $(document).ready(function () {
         }
     }
     
+    // Image Preview Functionality
+    $(document).on('click', '.preview-image', function() {
+        const imageUrl = $(this).data('image');
+        const previewModal = `
+            <div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable custom-scrollable-modal custom-modal-position">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-center p-3">
+                            <img src="${imageUrl}" class="img-fluid preview-img" alt="Preview" style="max-height: 70vh; width: auto; object-fit: contain;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove any existing preview modal
+        $('#imagePreviewModal').remove();
+        
+        // Add new preview modal to body
+        $('body').append(previewModal);
+        
+        // Show the modal
+        const modal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
+        modal.show();
+        
+        // Remove modal from DOM after it's hidden
+        $('#imagePreviewModal').on('hidden.bs.modal', function () {
+            $(this).remove();
+        });
+    });
 });
 
 $(document).ready(function() {

@@ -96,20 +96,23 @@ $(document).ready(function () {
     $('#addUserForm').on('submit', function (e) {
         e.preventDefault();
         $.ajax({
-            url: '/DMS/model/user/addUser.php',
+            url: '../model/user/addUser.php',
             method: 'POST',
             data: $(this).serialize(),
             dataType: 'json',
             success: function (response) {
-                showMessage(response.message, response.status);
-                if (response.status === 'success') {
-                    closeModal('addUserModal');
-                    $('#addUserForm')[0].reset();
-                    fetchUsers();
-                }
+                $('#addUserModal').modal('hide');
+                $('#addUserForm')[0].reset();
+                showMessage(response.status, response.message);
+                fetchUsers();
+                $('.modal-backdrop').remove();
+                $('body').css({
+                    'overflow': '',
+                    'padding-right': ''
+                });
             },
-            error: function() {
-                showMessage('Error adding user. Please try again.', 'error');
+            error: function () {
+                showMessage('danger', 'Error adding user.');
             }
         });
     });
@@ -128,20 +131,23 @@ $(document).ready(function () {
     $('#editUserForm').on('submit', function (e) {
         e.preventDefault();
         $.ajax({
-            url: '/DMS/model/user/updateUser.php',
+            url: '../model/user/updateUser.php',
             method: 'POST',
             data: $(this).serialize(),
             dataType: 'json',
             success: function (response) {
-                showMessage(response.message, response.status);
-                if (response.status === 'success') {
-                    closeModal('editUserModal');
-                    $('#editUserForm')[0].reset();
-                    fetchUsers();
-                }
+                $('#editUserModal').modal('hide');
+                $('#editUserForm')[0].reset();
+                showMessage(response.status, response.message);
+                fetchUsers();
+                $('.modal-backdrop').remove();
+                $('body').css({
+                    'overflow': '',
+                    'padding-right': ''
+                });
             },
-            error: function() {
-                showMessage('Error updating user. Please try again.', 'error');
+            error: function () {
+                showMessage('danger', 'Error updating user.');
             }
         });
     });
@@ -156,32 +162,39 @@ $(document).ready(function () {
 
     // Confirm Delete
     $('#confirmDeleteBtn').on('click', function() {
-        const userId = $('#delete_user_id').val();
+        const id = $('#delete_user_id').val();
         $.ajax({
-            url: '/DMS/model/user/deleteUser.php',
+            url: '../model/user/deleteUser.php',
             method: 'POST',
-            data: { id: userId },
+            data: { user_id: id },
             dataType: 'json',
             success: function (response) {
-                showMessage(response.message, response.status);
+                showMessage(response.status, response.message);
                 if (response.status === 'success') {
-                    closeModal('deleteUserModal');
+                    $('#deleteUserModal').modal('hide');
                     fetchUsers();
+                    $('.modal-backdrop').remove();
+                    $('body').css({
+                        'overflow': '',
+                        'padding-right': ''
+                    });
                 }
             },
-            error: function() {
-                showMessage('Error deleting user. Please try again.', 'error');
+            error: function () {
+                showMessage('danger', 'Error deleting user.');
             }
         });
     });
 
     // Modal event listeners to ensure proper cleanup
     $('#addUserModal, #editUserModal, #deleteUserModal').on('hidden.bs.modal', function () {
-        // Clean up any remaining backdrop
-        $('.modal-backdrop').remove();
-        $('body').removeClass('modal-open');
-        $('body').css('overflow', '');
-        $('body').css('padding-right', '');
+        setTimeout(() => {
+            $('.modal-backdrop').remove();
+            $('body').css({
+                'overflow': '',
+                'padding-right': ''
+            });
+        }, 300);
     });
 
     // Flash message utility

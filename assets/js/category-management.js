@@ -128,11 +128,14 @@ $(document).ready(function () {
             success: function (response) {
                 const modal = $('#addCategoryModal');
                 modal.modal('hide');
-                $('body').removeClass('modal-open');
-                $('.modal-backdrop').remove();
                 $('#addCategoryForm')[0].reset();
                 showMessage(response.status, response.message);
                 loadCategories();
+                $('.modal-backdrop').remove();
+                $('body').css({
+                    'overflow': '',
+                    'padding-right': ''
+                });
             },
             error: function () {
                 showMessage('danger', 'Error adding category.');
@@ -168,6 +171,11 @@ $(document).ready(function () {
                 $('#editCategoryForm')[0].reset();
                 showMessage(response.status, response.message);
                 loadCategories();
+                $('.modal-backdrop').remove();
+                $('body').css({
+                    'overflow': '',
+                    'padding-right': ''
+                });
             },
             error: function () {
                 showMessage('danger', 'Error updating category.');
@@ -196,12 +204,28 @@ $(document).ready(function () {
                 if (response.status === 'success') {
                     $('#deleteCategoryModal').modal('hide');
                     loadCategories();
+                    $('.modal-backdrop').remove();
+                    $('body').css({
+                        'overflow': '',
+                        'padding-right': ''
+                    });
                 }
             },
             error: function () {
                 showMessage('danger', 'Error deleting category.');
             }
         });
+    });
+
+    // Add event listeners for modal hidden events
+    $('#addCategoryModal, #editCategoryModal, #deleteCategoryModal').on('hidden.bs.modal', function () {
+        setTimeout(() => {
+            $('.modal-backdrop').remove();
+            $('body').css({
+                'overflow': '',
+                'padding-right': ''
+            });
+        }, 300);
     });
 
     function showMessage(msg, type = 'success') {

@@ -24,7 +24,10 @@ $(document).ready(function () {
                 showMessage('Customer added successfully!', 'success');
                 fetchCustomers();
                 $('.modal-backdrop').remove();
-                $('body').removeClass('modal-open');
+                $('body').css({
+                    'overflow': '',
+                    'padding-right': ''
+                });
             },
             error: function () {
                 showMessage('Failed to add customer.', 'danger');
@@ -62,9 +65,12 @@ $(document).ready(function () {
                 if (response.status === 'success') {
                     $('#editCustomerModal').modal('hide');
                     $('#editCustomerForm')[0].reset();
-                    fetchCustomers(); // Make sure this function exists and repopulates table
+                    fetchCustomers();
                     $('.modal-backdrop').remove();
-                    $('body').removeClass('modal-open');
+                    $('body').css({
+                        'overflow': '',
+                        'padding-right': ''
+                    });
                 }
             }
         });
@@ -92,13 +98,27 @@ $(document).ready(function () {
                     $('#deleteCustomerModal').modal('hide');
                     fetchCustomers();
                     $('.modal-backdrop').remove();
-                    $('body').removeClass('modal-open');
+                    $('body').css({
+                        'overflow': '',
+                        'padding-right': ''
+                    });
                 }
             },
             error: function () {
                 showMessage('Failed to delete customer.', 'danger');
             }
         });
+    });
+
+    // Add event listeners for modal hidden events
+    $('#addCustomerModal, #editCustomerModal, #deleteCustomerModal').on('hidden.bs.modal', function () {
+        setTimeout(() => {
+            $('.modal-backdrop').remove();
+            $('body').css({
+                'overflow': '',
+                'padding-right': ''
+            });
+        }, 300);
     });
 });
 

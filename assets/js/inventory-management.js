@@ -153,7 +153,10 @@ $(document).ready(function () {
                     $('#addItemForm')[0].reset();
                     $('#addItemModal').modal('hide');
                     $('.modal-backdrop').remove();
-                    $('body').removeClass('modal-open');
+                    $('body').css({
+                        'overflow': '',
+                        'padding-right': ''
+                    });
                     fetchItems();
                 }
             }
@@ -188,7 +191,10 @@ $(document).ready(function () {
                     $('#editItemForm')[0].reset();
                     $('#editItemModal').modal('hide');
                     $('.modal-backdrop').remove();
-                    $('body').removeClass('modal-open');
+                    $('body').css({
+                        'overflow': '',
+                        'padding-right': ''
+                    });
                     fetchItems();
                 }
             }
@@ -279,7 +285,10 @@ $(document).ready(function () {
                     $('#addStockForm')[0].reset();
                     $('#addStockModal').modal('hide');
                     $('.modal-backdrop').remove();
-                    $('body').removeClass('modal-open');
+                    $('body').css({
+                        'overflow': '',
+                        'padding-right': ''
+                    });
                     fetchItems();
                 } else {
                     showMessage(response.message || 'Failed to add stock', 'error');
@@ -393,5 +402,16 @@ $(document).ready(function () {
         $('#inventoryTable tbody tr').filter(function () {
             $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
         });
+    });
+
+    // Add event listeners for modal hidden events
+    $('#addItemModal, #editItemModal, #addStockModal, #reduceStockModal, #deleteConfirmModal').on('hidden.bs.modal', function () {
+        setTimeout(() => {
+            $('.modal-backdrop').remove();
+            $('body').css({
+                'overflow': '',
+                'padding-right': ''
+            });
+        }, 300);
     });
 });

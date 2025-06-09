@@ -513,8 +513,8 @@ footer {
 
 .card-img-top {
     object-fit: cover;
-    max-height: 350px;
-    height: 60%;
+    max-height: 300px;
+    height: 300px;
     width: 90%;
     border-top-left-radius: var(--border-radius);
     border-top-right-radius: var(--border-radius);
@@ -1632,4 +1632,18 @@ label {
 /* Ensure custom-modal-position also doesn't interfere */
 .custom-modal-position.modal-dialog-scrollable {
     max-height: calc(100% - 3.5rem);
+}
+
+/* Report Filter Buttons */
+#reportFiltersForm .btn {
+    min-width: 120px;
+    max-width: 150px;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    #reportFiltersForm .btn {
+        min-width: 100px;
+        max-width: 130px;
+    }
 }

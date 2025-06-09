@@ -93,23 +93,27 @@ $(document).ready(function () {
         }
     }
 
-    // Add Vendor
-    $('#addVendorForm').submit(function (e) {
+    // Add vendor
+    $('#addVendorForm').on('submit', function (e) {
         e.preventDefault();
         $.ajax({
-            url: '../model/vendor/insertVendor.php',
+            url: '../model/vendor/addVendor.php',
             method: 'POST',
             data: $(this).serialize(),
             dataType: 'json',
             success: function (response) {
-                showMessage(response.message, response.status);
-                if (response.status === 'success') {
-                    $('#addVendorForm')[0].reset();
-                    $('#addVendorModal').modal('hide');
-                    $('.modal-backdrop').remove();
-                    $('body').removeClass('modal-open');
-                    fetchVendors();
-                }
+                $('#addVendorModal').modal('hide');
+                $('#addVendorForm')[0].reset();
+                showMessage(response.status, response.message);
+                fetchVendors();
+                $('.modal-backdrop').remove();
+                $('body').css({
+                    'overflow': '',
+                    'padding-right': ''
+                });
+            },
+            error: function () {
+                showMessage('danger', 'Error adding vendor.');
             }
         });
     });
@@ -130,23 +134,27 @@ $(document).ready(function () {
         $('#editVendorModal').modal('show');
     });
 
-    // Update Vendor
-    $('#editVendorForm').submit(function (e) {
+    // Update vendor
+    $('#editVendorForm').on('submit', function (e) {
         e.preventDefault();
         $.ajax({
-            url: '../model/vendor/updateVendorDetails.php',
+            url: '../model/vendor/updateVendor.php',
             method: 'POST',
             data: $(this).serialize(),
             dataType: 'json',
             success: function (response) {
-                showMessage(response.message, response.status);
-                if (response.status === 'success') {
-                    $('#editVendorModal').modal('hide');
-                    $('.modal-backdrop').remove();
-                    $('body').removeClass('modal-open');
-                    $('#editVendorForm')[0].reset();
-                    fetchVendors();
-                }
+                $('#editVendorModal').modal('hide');
+                $('#editVendorForm')[0].reset();
+                showMessage(response.status, response.message);
+                fetchVendors();
+                $('.modal-backdrop').remove();
+                $('body').css({
+                    'overflow': '',
+                    'padding-right': ''
+                });
+            },
+            error: function () {
+                showMessage('danger', 'Error updating vendor.');
             }
         });
     });
@@ -194,19 +202,36 @@ $(document).ready(function () {
             data: { vendor_id: id },
             dataType: 'json',
             success: function (response) {
-                showMessage(response.message, response.status);
+                showMessage(response.status, response.message);
                 if (response.status === 'success') {
                     $('#deleteVendorModal').modal('hide');
-                    $('.modal-backdrop').remove();
-                    $('body').removeClass('modal-open');
                     fetchVendors();
+                    $('.modal-backdrop').remove();
+                    $('body').css({
+                        'overflow': '',
+                        'padding-right': ''
+                    });
                 }
+            },
+            error: function () {
+                showMessage('danger', 'Error deleting vendor.');
             }
         });
     });
 
+    // Add event listeners for modal hidden events
+    $('#addVendorModal, #editVendorModal, #deleteVendorModal').on('hidden.bs.modal', function () {
+        setTimeout(() => {
+            $('.modal-backdrop').remove();
+            $('body').css({
+                'overflow': '',
+                'padding-right': ''
+            });
+        }, 300);
+    });
+
     // Utility function
-    function showMessage(msg, type = 'success') {
+    function showMessage(type, msg) {
         // Use toastr for better looking notifications
         toastr.options = {
             "closeButton": true,
