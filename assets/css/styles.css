@@ -349,6 +349,10 @@ footer {
     cursor: pointer;
     position: relative;
     overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .stat-card:hover {
@@ -374,41 +378,26 @@ footer {
 
 .stat-card .card-body {
     text-align: center;
-    padding: 0.5rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    position: relative;
-    z-index: 1;
-}
-
-.stat-card h2 {
-    font-size: 2rem;
-    margin: 0.5rem 0;
-    word-break: break-all;
-    transition: transform 0.3s ease;
-}
-
-.stat-card:hover h2 {
-    transform: scale(1.05);
+    padding: 1.5rem;
 }
 
 .stat-card h5 {
-    transition: transform 0.3s ease;
+    color: white;
+    margin-bottom: 1rem;
+    font-weight: 600;
 }
 
-.stat-card:hover h5 {
-    transform: translateY(-2px);
+.stat-card h2 {
+    color: white;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
 }
 
 .stat-card p {
-    transition: transform 0.3s ease;
-}
-
-.stat-card:hover p {
-    transform: translateY(2px);
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 0;
+    font-size: 0.9rem;
 }
 
 /* Stat Cards - Responsive Font Sizes */
