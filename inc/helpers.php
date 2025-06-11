@@ -8,12 +8,12 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
 define('JWT_SECRET', 'GPGaVfGbmZe8'); // Secure this properly
-define('JWT_EXPIRY', 60); // Token expiry in minutes
+define('JWT_EXPIRY', 180); // Token expiry in minutes
 define('JWT_ISSUER', 'AlliedSteelWorks'); // Issuer of the token
 // Generate JWT token
-function generate_jwt($payload, $expiry_minutes = 60) {
+function generate_jwt($payload, $expiry_minutes = 180) {
     $issuedAt = time();
-    $expire = $issuedAt + ($expiry_minutes * 60);
+    $expire = $issuedAt + ($expiry_minutes * 180);
 
     $token = [
         "iss" => "AlliedSteelWorks",

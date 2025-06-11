@@ -194,7 +194,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
             <!-- Reports Dropdown -->
             <?php
-            $reportsActive = in_array($current_page, ['reports.php']);
+            $reportsActive = in_array($current_page, ['reports.php', 'exportData.php']);
             ?>
             <li class="nav-item">
                 <a class="nav-link d-flex justify-content-between align-items-center <?= $reportsActive ? 'menu-expanded' : '' ?>" 
@@ -215,7 +215,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">
+                            <a class="nav-link <?= strpos($current_page, 'exportData.php') !== false ? 'active' : '' ?>" 
+                               href="<?= $base_url ?>views/exportData.php">
                                 <i class="fas fa-file-export"></i> Export Data
                             </a>
                         </li>
