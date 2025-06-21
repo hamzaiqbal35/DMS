@@ -52,7 +52,6 @@ $roles = [
                 </div>
                 <button type="submit" class="btn btn-login w-100">Sign In</button>
                 <div class="login-links">
-                    <a href="register.php">Create Account</a>
                     <a href="forgotPassword.php">Forgot Password?</a>
                 </div>
             </form>

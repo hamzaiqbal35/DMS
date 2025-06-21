@@ -76,45 +76,6 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
             </div>
         </div>
 
-        <!-- Recent Activities Table -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5>Recent Activities</h5>
-                    </div>
-                    <div class="card-body">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Activity</th>
-                                    <th>User</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>2025-04-02</td>
-                                    <td>Added new Inventory Item</td>
-                                    <td>Admin</td>
-                                </tr>
-                                <tr>
-                                    <td>2025-04-01</td>
-                                    <td>Updated Sales Report</td>
-                                    <td>Staff</td>
-                                </tr>
-                                <tr>
-                                    <td>2025-03-31</td>
-                                    <td>Vendor Payment Processed</td>
-                                    <td>Admin</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
 </div>
 
