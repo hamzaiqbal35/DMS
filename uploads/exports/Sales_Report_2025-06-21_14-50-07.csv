@@ -1,0 +1,22 @@
+"Sales Report"
+"Generated on: 21 Jun 2025 14:50:07"
+"Total records: 11"
+"Total amount: PKR 1,681,400.00"
+
+"Invoice #",Customer,Date,Item,Qty,"Unit Price",Total,"Payment Status","Created By"
+INV-16B4DCDF,"Gulzar company",2025-06-21,"Motor bike chassis",1.00,"12,000.00","12,000.00",Pending,"System Administrator"
+INV-61B1A3B0,"Pell Industries",2025-06-13,"Motor bike chassis",100.00,"12,000.00","1,200,000.00",Paid,"System Administrator"
+INV-67EBD7BA,"Kisan Engineering",2025-06-04,"Motor bike chassis",6.00,"12,000.00","72,000.00",Paid,"System Administrator"
+INV-8592E54E,"Kisan Engineering",2025-06-02,"Gyser Drum",2.00,"1,400.00","2,800.00",Paid,"System Administrator"
+INV-8F0A4AF3,"Gulzar company",2025-06-02,"Motor bike chassis",5.00,"12,000.00","60,000.00",Partial,"System Administrator"
+INV-AB0D76E6,"Gulzar company",2025-06-01,"Mud guard",5.00,"2,000.00","10,000.00",Paid,"System Administrator"
+INV-F87CFD89,"Gulzar company",2025-06-01,"Motor bike chassis",15.00,"12,000.00","180,000.00",Partial,"System Administrator"
+INV-B7C44FB0,"Gulzar company",2025-05-30,"Mud guard",5.00,"2,000.00","10,000.00",Paid,"System Administrator"
+INV-18B04978,"Kisan Engineering",2025-05-29,"Solar Channel",4.00,"1,200.00","4,800.00",Paid,"System Administrator"
+INV-F9BDCBCE,"Pell Industries",2025-05-22,"Motor bike chassis",10.00,"12,000.00","120,000.00",Paid,"System Administrator"
+INV-49A7585E,"Gulzar company",2025-04-24,"Gyser Drum",7.00,"1,400.00","9,800.00",Partial,"System Administrator"
+
+SUMMARY
+"Total Records",11
+"Total Amount","PKR 1,681,400.00"
+"Average Amount","PKR 152,854.55"

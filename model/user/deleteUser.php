@@ -11,7 +11,7 @@ try {
     }
 
     // Sanitize input
-    $user_id = sanitize_input($_POST['id'] ?? '');
+    $user_id = sanitize_input($_POST['user_id'] ?? '');
 
     if (empty($user_id)) {
         throw new Exception("User ID is required.");

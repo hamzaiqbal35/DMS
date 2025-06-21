@@ -103,7 +103,7 @@ $(document).ready(function () {
             success: function (response) {
                 $('#addUserModal').modal('hide');
                 $('#addUserForm')[0].reset();
-                showMessage(response.status, response.message);
+                showMessage(response.message, response.status);
                 fetchUsers();
                 $('.modal-backdrop').remove();
                 $('body').css({
@@ -112,7 +112,7 @@ $(document).ready(function () {
                 });
             },
             error: function () {
-                showMessage('danger', 'Error adding user.');
+                showMessage('Error adding user.', 'error');
             }
         });
     });
@@ -138,7 +138,7 @@ $(document).ready(function () {
             success: function (response) {
                 $('#editUserModal').modal('hide');
                 $('#editUserForm')[0].reset();
-                showMessage(response.status, response.message);
+                showMessage(response.message, response.status);
                 fetchUsers();
                 $('.modal-backdrop').remove();
                 $('body').css({
@@ -147,7 +147,7 @@ $(document).ready(function () {
                 });
             },
             error: function () {
-                showMessage('danger', 'Error updating user.');
+                showMessage('Error updating user.', 'error');
             }
         });
     });
@@ -169,7 +169,7 @@ $(document).ready(function () {
             data: { user_id: id },
             dataType: 'json',
             success: function (response) {
-                showMessage(response.status, response.message);
+                showMessage(response.message, response.status);
                 if (response.status === 'success') {
                     $('#deleteUserModal').modal('hide');
                     fetchUsers();
@@ -181,7 +181,7 @@ $(document).ready(function () {
                 }
             },
             error: function () {
-                showMessage('danger', 'Error deleting user.');
+                showMessage('Error deleting user.', 'error');
             }
         });
     });

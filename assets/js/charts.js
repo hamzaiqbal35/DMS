@@ -448,7 +448,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (inventoryChart) {
         // Fetch inventory data from API
         $.ajax({
-            url: '../api/fetchChartData.php',
+            url: '../api/fetchInventoryChart.php',
             method: 'GET',
             dataType: 'json',
             success: function(response) {

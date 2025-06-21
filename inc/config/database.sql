@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Insert default admin user (password: admin123)
 INSERT INTO users (username, password, email, full_name, role_id) VALUES 
-('admin', '$2y$10$8KcnNdVsD.X4LO2zKjkEv.mYyTo1Q5qjnKoESKnmwZkPxM6.zLvtS', 'admin@alliedsteel.com', 'System Administrator', 1);
+('Hamza Iqbal', '$2y$10$bKs0cfd5mbV/tMjbvJP6cObn4p6Nz/3QrhnSX0QfcGKtxEWF8H0Ey', 'hamzaiqbalrajpoot35@gmail.com', 'System Administrator', 1);
 
 -- Customers table
 CREATE TABLE IF NOT EXISTS customers (
