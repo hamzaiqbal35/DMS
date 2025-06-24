@@ -175,7 +175,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                 </div>
                 <!-- Help/Info Sidebar -->
                 <div class="col-lg-4">
-                    <div class="card shadow mb-4 sticky-top" style="top: 90px;">
+                    <div class="card shadow mb-4">
                         <div class="card-header bg-white">
                             <h5 class="card-title mb-0"><i class="fas fa-info-circle me-2 text-primary"></i>Export Help & Tips</h5>
                         </div>

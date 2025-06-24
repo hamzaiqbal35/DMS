@@ -514,6 +514,11 @@ document.addEventListener('DOMContentLoaded', function() {
         ReportCharts.loadStockData();
     });
 
+    // Listen for category chart type change
+    $('#categoryChartType').on('change', function() {
+        ReportCharts.loadCategoryData();
+    });
+
     // Refresh charts every 5 minutes
     setInterval(() => {
         ReportCharts.loadAllChartData();

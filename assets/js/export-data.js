@@ -308,13 +308,13 @@ $(document).ready(function () {
                                 <td>${hist.size}</td>
                                 <td>
                                     <div class="dropdown">
-                                        <button class="btn btn-sm btn-secondary export-actions-dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <button class="btn btn-sm btn-secondary export-actions-dropdown" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
                                             <i class="fas fa-ellipsis"></i>
                                         </button>
-                                        <ul class="dropdown-menu">
+                                        <ul class="dropdown-menu dropdown-menu-end">
                                             <li><a class="dropdown-item view-export-details" href="#" data-id="${hist.id}"><i class="fas fa-info-circle me-2"></i>Details</a></li>
                                             ${hasDownload ? `<li><a class="dropdown-item download-export-file" href="${hist.file_path.replace('..','..')}" download><i class="fas fa-download me-2"></i>Download</a></li>` : ''}
-                                            <li><a class="dropdown-item delete-export-record" href="#" data-id="${hist.id}"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                            <li><a class="dropdown-item delete-export-record" href="#" data-id="${hist.id}"><i class="fas fa-trash-alt me-2 text-danger"></i>Delete</a></li>
                                         </ul>
                                     </div>
                                 </td>

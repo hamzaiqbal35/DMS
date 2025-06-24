@@ -211,7 +211,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-                <a href="#" id="downloadInvoice" class="btn btn-primary" target="_blank">
+                <a href="#" id="downloadInvoice" class="btn btn-primary" target="">
                     <i class="fas fa-download me-1"></i> Download Invoice
                 </a>
             </div>

@@ -6,6 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once '../../inc/config/database.php';
 require_once '../../vendor/autoload.php';
 require_once '../../inc/helpers.php';
+date_default_timezone_set('Asia/Karachi');
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -244,8 +245,8 @@ try {
             <h1>INVOICE</h1>
             <div class="company-info">
                 <h2>Allied Steel Works</h2>
-                <p>123 Industrial Area, Karachi, Pakistan</p>
-                <p>Phone: +92 300 1234567 | Email: info@alliedsteel.com</p>
+                <p>Allied Steel Works (Pvt) Ltd., Service Road, Bhamma Lahore Lahore,</p>
+                <p>Phone: +92 300 8889918 | Email: info@alliedsteel.com</p>
             </div>
         </div>
 

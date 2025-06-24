@@ -183,7 +183,6 @@ $(document).ready(function() {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '../model/purchase/exportPurchases.php';
-        form.target = '_blank'; // Open in new tab for PDF
 
         // Add all form fields to the export form
         for (let [key, value] of formData.entries()) {

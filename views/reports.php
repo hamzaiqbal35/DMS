@@ -288,21 +288,13 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
 
 <?php include_once '../inc/footer.php'; ?>
 
-<!-- Scripts -->
-<script src="../assets/js/jquery.min.js"></script>
-<script src="../assets/js/scripts.js"></script>
-<script src="../assets/js/animations.js"></script>
+<!-- Scripts unique to reports page -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="../assets/js/report-charts.js"></script>
 <script src="../assets/js/reports.js"></script>
 
-<!-- Styles -->
-<link href="../assets/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Styles unique to reports page -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css" rel="stylesheet">
-<link href="../assets/css/styles.css" rel="stylesheet">
-<link href="../assets/css/animations.css" rel="stylesheet">
 
 <style>
 .empty-state {
@@ -588,22 +580,3 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
     margin: 0 auto;
 }
 </style>
-
-<script>
-// Chart filter event listeners
-document.getElementById('chartDateRange').addEventListener('change', function() {
-    ReportCharts.loadSalesPurchasesData();
-});
-
-document.getElementById('categoryChartType').addEventListener('change', function() {
-    ReportCharts.loadCategoryData();
-});
-
-document.getElementById('stockChartFilter').addEventListener('change', function() {
-    ReportCharts.loadStockData();
-});
-
-document.getElementById('paymentChartPeriod').addEventListener('change', function() {
-    ReportCharts.loadPaymentData();
-});
-</script>
