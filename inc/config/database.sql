@@ -22,10 +22,14 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     full_name VARCHAR(150) NOT NULL,
+    phone VARCHAR(20) DEFAULT NULL,
     role_id INT NOT NULL,
     status ENUM('active', 'inactive') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    profile_picture VARCHAR(255) DEFAULT NULL,
+    last_login DATETIME DEFAULT NULL,
+    total_logins INT DEFAULT 0,
     FOREIGN KEY (role_id) REFERENCES roles(role_id)
 );
 
@@ -229,7 +233,6 @@ CREATE TABLE IF NOT EXISTS payments (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (sale_id) REFERENCES sales(sale_id) ON DELETE CASCADE
 );
-
 
 DELIMITER //
 

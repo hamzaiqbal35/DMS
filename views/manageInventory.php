@@ -99,7 +99,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
         </div>
 
         <!-- Add Item Modal -->
-        <div class="modal fade" id="addItemModal" tabindex="-1" aria-labelledby="addItemLabel" aria-hidden="true">
+        <div class="modal fade modal-animate" id="addItemModal" tabindex="-1" aria-labelledby="addItemLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable custom-scrollable-modal custom-modal-position">
                 <form id="addItemForm">
                     <div class="modal-content">
@@ -160,7 +160,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
         </div>
 
         <!-- Edit Item Modal -->
-        <div class="modal fade" id="editItemModal" tabindex="-1" aria-labelledby="editItemLabel" aria-hidden="true">
+        <div class="modal fade modal-animate" id="editItemModal" tabindex="-1" aria-labelledby="editItemLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable custom-scrollable-modal custom-modal-position">
                 <form id="editItemForm">
                     <input type="hidden" name="item_id" id="edit_item_id">
@@ -222,7 +222,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
         </div>
 
         <!-- Add Stock Modal -->
-        <div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockLabel" aria-hidden="true">
+        <div class="modal fade modal-animate" id="addStockModal" tabindex="-1" aria-labelledby="addStockLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <form id="addStockForm">
                     <div class="modal-content">
@@ -249,7 +249,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
         </div>
 
         <!-- Reduce Stock Modal -->
-        <div class="modal fade" id="reduceStockModal" tabindex="-1" aria-labelledby="reduceStockLabel" aria-hidden="true">
+        <div class="modal fade modal-animate" id="reduceStockModal" tabindex="-1" aria-labelledby="reduceStockLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <form id="reduceStockForm">
                     <div class="modal-content">
@@ -292,7 +292,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
         </div>
 
         <!-- Delete Confirmation Modal -->
-        <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal fade modal-animate" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header bg-danger text-white">

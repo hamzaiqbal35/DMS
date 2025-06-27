@@ -101,7 +101,7 @@ html.auth-page {
 /* Sidebar */
 #sidebar {
     width: 265px;
-    height: 90vh;
+    height: 92vh;
     position: fixed;
     top: 67px;
     left: 0;
@@ -968,7 +968,7 @@ footer {
 /* Custom modal positioning */
 .custom-modal-position {
     margin-top: 40px;
-    margin-left: 270px; 
+    margin-left: 280px; 
 }
 
 /* User Management Modal Positioning */

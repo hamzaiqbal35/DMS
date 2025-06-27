@@ -36,6 +36,18 @@ function removeAnimationClass(element, className) {
     element.classList.remove(className, 'animated');
 }
 
+// Modal animation trigger
+$(document).on('show.bs.modal', '.modal', function () {
+    var dialog = $(this).find('.modal-dialog');
+    dialog.removeClass('modal-animate-apply'); // Remove if present
+    void dialog[0].offsetWidth; // Force reflow
+    dialog.addClass('modal-animate-apply');
+});
+$(document).on('hidden.bs.modal', '.modal', function () {
+    var dialog = $(this).find('.modal-dialog');
+    dialog.removeClass('modal-animate-apply');
+});
+
 // Export functions if using modules
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {

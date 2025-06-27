@@ -69,7 +69,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
         </div>
 
         <!-- Add Customer Modal -->
-        <div class="modal fade" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerLabel" aria-hidden="true">
+        <div class="modal fade modal-animate" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable custom-scrollable-modal custom-modal-position">
                 <form id="addCustomerForm">
                     <div class="modal-content">
@@ -131,7 +131,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
         </div>
 
         <!-- Edit Customer Modal -->
-        <div class="modal fade" id="editCustomerModal" tabindex="-1" aria-labelledby="editCustomerLabel" aria-hidden="true">
+        <div class="modal fade modal-animate" id="editCustomerModal" tabindex="-1" aria-labelledby="editCustomerLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable custom-scrollable-modal custom-modal-position">
                 <form id="editCustomerForm">
                     <input type="hidden" name="customer_id" id="edit_customer_id">
@@ -194,7 +194,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
         </div>
 
         <!-- Delete Confirmation Modal -->
-        <div class="modal fade" id="deleteCustomerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal fade modal-animate" id="deleteCustomerModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header bg-danger text-white">

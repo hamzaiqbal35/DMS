@@ -68,7 +68,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
         </div>
 
         <!-- Add Vendor Modal -->
-        <div class="modal fade" id="addVendorModal" tabindex="-1" aria-labelledby="addVendorLabel" aria-hidden="true">
+        <div class="modal fade modal-animate" id="addVendorModal" tabindex="-1" aria-labelledby="addVendorLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable custom-scrollable-modal custom-modal-position">
                 <form id="addVendorForm">
                     <div class="modal-content">
@@ -130,7 +130,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
         </div>
 
         <!-- Edit Vendor Modal -->
-        <div class="modal fade" id="editVendorModal" tabindex="-1" aria-labelledby="editVendorLabel" aria-hidden="true">
+        <div class="modal fade modal-animate" id="editVendorModal" tabindex="-1" aria-labelledby="editVendorLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable custom-scrollable-modal custom-modal-position">
                 <form id="editVendorForm">
                     <input type="hidden" name="vendor_id" id="edit_vendor_id">
@@ -193,7 +193,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
         </div>
 
         <!-- Delete Confirmation Modal -->
-        <div class="modal fade" id="deleteVendorModal" tabindex="-1" aria-hidden="true">
+        <div class="modal fade modal-animate" id="deleteVendorModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header bg-danger text-white">

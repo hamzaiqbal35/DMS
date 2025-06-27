@@ -31,6 +31,10 @@ try {
         throw new Exception("Incorrect role selected.");
     }
 
+    // Update last_login and increment total_logins
+    $updateLoginStmt = $pdo->prepare("UPDATE users SET last_login = NOW(), total_logins = total_logins + 1 WHERE user_id = ?");
+    $updateLoginStmt->execute([$user['user_id']]);
+
     // Create JWT payload
     $payload = [
         "user_id"  => $user['user_id'],
