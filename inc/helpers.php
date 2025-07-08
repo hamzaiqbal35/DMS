@@ -39,6 +39,27 @@ function decode_jwt($token) {
     }
 }
 
+// Customer JWT helpers
+function generate_customer_jwt($payload, $expiry_minutes = 180) {
+    $issuedAt = time();
+    $expire = $issuedAt + ($expiry_minutes * 60);
+    $token = [
+        "iss" => "AlliedSteelWorksCustomer",
+        "iat" => $issuedAt,
+        "exp" => $expire,
+        "data" => $payload
+    ];
+    return \Firebase\JWT\JWT::encode($token, JWT_SECRET, 'HS256');
+}
+
+function decode_customer_jwt($token) {
+    try {
+        return \Firebase\JWT\JWT::decode($token, new \Firebase\JWT\Key(JWT_SECRET, 'HS256'));
+    } catch (Exception $e) {
+        return null;
+    }
+}
+
 // Check if user is logged in based on session
 function isUserLoggedIn() {
     return isset($_SESSION['user_id']);
@@ -52,7 +73,6 @@ function set_flash_message($type, $message) {
 
 function redirect($url) {
     header("Location: $url");
-    exit();
 }
 
 // Sanitize input
@@ -80,6 +100,7 @@ function hasAccess($module, $role_id = null) {
         'media_catalog' => [ROLE_ADMIN, ROLE_MANAGER, ROLE_INVENTORY_MANAGER],
         'categories' => [ROLE_ADMIN, ROLE_MANAGER, ROLE_INVENTORY_MANAGER],
         'sales' => [ROLE_ADMIN, ROLE_MANAGER, ROLE_SALESPERSON],
+        'manage_orders' => [ROLE_ADMIN, ROLE_MANAGER, ROLE_SALESPERSON],
         'sale_reports' => [ROLE_ADMIN, ROLE_MANAGER, ROLE_SALESPERSON],
         'sale_invoices' => [ROLE_ADMIN, ROLE_MANAGER, ROLE_SALESPERSON],
         'purchases' => [ROLE_ADMIN, ROLE_MANAGER, ROLE_INVENTORY_MANAGER],
@@ -104,5 +125,22 @@ function hasAnyAccess($modules, $role_id = null) {
 function getRoleName($role_id) {
     $map = [1=>'Admin',2=>'Manager',3=>'Salesperson',4=>'Inventory Manager'];
     return $map[$role_id] ?? 'Unknown';
+}
+
+// Fetch customer status by customer_user_id
+function get_customer_status($pdo, $customer_user_id) {
+    // Get admin_customer_id from customer_users
+    $stmt = $pdo->prepare("SELECT admin_customer_id FROM customer_users WHERE customer_user_id = ?");
+    $stmt->execute([$customer_user_id]);
+    $row = $stmt->fetch();
+    if (!$row || !$row['admin_customer_id']) {
+        return null; // linkage missing
+    }
+    $admin_customer_id = $row['admin_customer_id'];
+    // Now get status from customers table
+    $stmt = $pdo->prepare("SELECT status FROM customers WHERE customer_id = ?");
+    $stmt->execute([$admin_customer_id]);
+    $row2 = $stmt->fetch();
+    return $row2 ? $row2['status'] : null;
 }
 ?>

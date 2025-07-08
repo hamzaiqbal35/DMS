@@ -1,9 +1,12 @@
 <?php
-// Start session if not already started
-if (session_status() == PHP_SESSION_NONE) {
+if (session_status() === PHP_SESSION_NONE) {
+    session_name('admin_session');
     session_start();
 }
-
+// Restore JWT from cookie to session if not already set (for admin)
+if (!isset($_SESSION['jwt_token']) && isset($_COOKIE['jwt_token'])) {
+    $_SESSION['jwt_token'] = $_COOKIE['jwt_token'];
+}
 // Define base URL (Adjust if needed)
 $base_url = "http://localhost/DMS/";
 
@@ -59,20 +62,13 @@ function generate_csrf_token() {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Allied Steel Works - Dashboard</title>
 
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- FontAwesome (For Icons) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-
-    <!-- Custom Styles -->
     <link rel="stylesheet" href="<?= $base_url ?>assets/css/styles.css">
     <link rel="stylesheet" href="<?= $base_url ?>assets/css/animations.css">
 
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     
-    <!-- Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>

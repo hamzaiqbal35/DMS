@@ -1,7 +1,6 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+session_name('admin_session');
+session_start();
 require_once "../inc/config/auth.php"; // Ensure user authentication
 require_jwt_auth(); // Enforce JWT authentication
 require_once "../inc/header.php"; // Include header

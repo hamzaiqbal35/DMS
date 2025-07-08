@@ -138,9 +138,9 @@ $(document).ready(function() {
                     var html = '';
                     // Group and abstract permissions for a friendlier UI
                     var groups = {
-                        'Data Access': ['View/Edit All Data', 'View Reports', 'View Sales', 'Manage Inventory', 'View Stock Alerts', 'Manage Users'],
+                        'Data Access': ['View/Edit All Data', 'View Reports', 'View Sales', 'Manage Orders', 'Manage Inventory', 'View Stock Alerts', 'Manage Users'],
                         'Export & Reports': ['Export Data', 'Export Sales Reports', 'Sale Reports', 'Purchase Reports', 'Analytics'],
-                        'Management': ['Manage Users', 'Manage Inventory', 'Manage Vendors', 'Manage Customers', 'Manage Categories', 'User Management', 'System Settings'],
+                        'Management': ['Manage Users', 'Manage Orders', 'Manage Inventory', 'Manage Vendors', 'Manage Customers', 'Manage Categories', 'User Management', 'System Settings'],
                         'Other': ['System Settings', 'Full Admin Access', 'Basic Access']
                     };
                     var shown = [];

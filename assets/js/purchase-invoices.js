@@ -221,8 +221,28 @@ $(document).ready(function () {
         const filePath = $(this).data("file");
         const fileUrl = "../" + filePath;
         
-        // Set download link
-        $("#downloadInvoice").attr("href", fileUrl);
+        // Set download link with API endpoint
+        const filename = filePath.split('/').pop(); // Extract filename from path
+        
+        // Prevent opening in new tab and trigger direct download
+        $("#downloadInvoice").off('click').on('click', function(e) {
+            e.preventDefault();
+            
+            console.log('[DEBUG] Downloading purchase invoice:', filename);
+            
+            // Create hidden iframe for download without redirect
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = `../api/sale/downloadInvoice.php?filename=${encodeURIComponent(filename)}`;
+            document.body.appendChild(iframe);
+            
+            // Remove iframe after download starts
+            setTimeout(() => {
+                document.body.removeChild(iframe);
+            }, 3000);
+            
+            console.log('[DEBUG] Download initiated via iframe for purchase invoice:', filename);
+        });
         
         // Preview file based on type
         const fileExtension = filePath.split('.').pop().toLowerCase();

@@ -1,8 +1,4 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-require_once __DIR__ . '/helpers.php';
 $base_url = "http://localhost/DMS/";
 $role_id = $_SESSION['role_id'] ?? null;
 $email = $_SESSION['email'] ?? 'Unknown User';
@@ -103,7 +99,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <!-- Sales Dropdown -->
             <?php if (hasAnyAccess(['sales','sale_reports','sale_invoices'])): ?>
             <?php $salesActive = in_array($current_page, [
-                'manageSales.php', 'saleReports.php', 
+                'manageSales.php', 'manageOrders.php', 'saleReports.php', 
                 'saleInvoices.php'
             ]); ?>
             <li class="nav-item">
@@ -118,6 +114,14 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 </a>
                 <div class="collapse <?= $salesActive ? 'show' : '' ?>" id="salesMenu">
                     <ul class="nav flex-column">
+                        <?php if (hasAccess('manage_orders')): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?= strpos($current_page, 'manageOrders.php') !== false ? 'active' : '' ?>" 
+                            href="<?= $base_url ?>views/manageOrders.php">
+                                <i class="fas fa-shopping-cart"></i> Manage Orders
+                            </a>
+                        </li>
+                        <?php endif; ?>
                         <?php if (hasAccess('sales')): ?>
                         <li class="nav-item">
                             <a class="nav-link <?= strpos($current_page, 'manageSales.php') !== false ? 'active' : '' ?>" 

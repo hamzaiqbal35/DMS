@@ -1,7 +1,6 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+session_name('admin_session');
+session_start();
 require_once "../inc/config/auth.php"; // Ensure user authentication
 require_jwt_auth(); // Enforce JWT authentication
 require_once "../inc/header.php"; // Include header
@@ -33,29 +32,21 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                 </div>
                 <div class="card-body">
                     <form id="reportFiltersForm" class="row g-3">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label for="customer_id" class="form-label">Customer</label>
                             <select class="form-select" id="customer_id" name="customer_id">
                                 <option value="">Select Customer (All)</option>
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label for="date_from" class="form-label">Date From</label>
                             <input type="date" class="form-control" id="date_from" name="date_from" placeholder="Select start date">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label for="date_to" class="form-label">Date To</label>
                             <input type="date" class="form-control" id="date_to" name="date_to" placeholder="Select end date">
                         </div>
-                        <div class="col-md-4">
-                            <label for="min_amount" class="form-label">Minimum Amount (PKR)</label>
-                            <input type="number" class="form-control" id="min_amount" name="min_amount" step="0.01" min="0" placeholder="Enter minimum amount">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="max_amount" class="form-label">Maximum Amount (PKR)</label>
-                            <input type="number" class="form-control" id="max_amount" name="max_amount" step="0.01" min="0" placeholder="Enter maximum amount">
-                        </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label for="payment_status" class="form-label">Payment Status</label>
                             <select class="form-select" id="payment_status" name="payment_status">
                                 <option value="">Select Payment Status (All)</option>
@@ -63,6 +54,34 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                                 <option value="partial">Partial</option>
                                 <option value="paid">Paid</option>
                             </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="order_status" class="form-label">Order Status</label>
+                            <select class="form-select" id="order_status" name="order_status">
+                                <option value="">Select Order Status (All)</option>
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="processing">Processing</option>
+                                <option value="shipped">Shipped</option>
+                                <option value="delivered">Delivered</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="sale_type" class="form-label">Sale Type</label>
+                            <select class="form-select" id="sale_type" name="sale_type">
+                                <option value="">Select Sale Type (All)</option>
+                                <option value="direct">Direct Sale</option>
+                                <option value="from_order">From Customer Order</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="min_amount" class="form-label">Minimum Amount (PKR)</label>
+                            <input type="number" class="form-control" id="min_amount" name="min_amount" step="0.01" min="0" placeholder="Enter minimum amount">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="max_amount" class="form-label">Maximum Amount (PKR)</label>
+                            <input type="number" class="form-control" id="max_amount" name="max_amount" step="0.01" min="0" placeholder="Enter maximum amount">
                         </div>
                         <div class="col-12">
                             <button type="submit" class="btn btn-primary">
@@ -78,7 +97,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
 
             <!-- Summary Cards -->
             <div class="row mb-4" id="summaryCards" style="display: none;">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="card bg-primary text-white">
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
@@ -91,7 +110,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="card bg-success text-white">
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
@@ -104,21 +123,34 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Total Paid</h6>
+                                    <h4 id="totalPaid">PKR 0</h4>
+                                </div>
+                                <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
                     <div class="card bg-warning text-white">
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
                                 <div>
-                                    <h6 class="card-title">Pending Payments</h6>
-                                    <h4 id="pendingPayments">0</h4>
+                                    <h6 class="card-title">Total Pending</h6>
+                                    <h4 id="totalPending">PKR 0</h4>
                                 </div>
                                 <i class="fas fa-clock fa-2x opacity-75"></i>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card bg-info text-white">
+                <div class="col-md-2">
+                    <div class="card bg-secondary text-white">
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
                                 <div>
@@ -126,6 +158,19 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                                     <h4 id="uniqueCustomers">0</h4>
                                 </div>
                                 <i class="fas fa-users fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card bg-dark text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Average Sale</h6>
+                                    <h4 id="averageSale">PKR 0</h4>
+                                </div>
+                                <i class="fas fa-chart-line fa-2x opacity-75"></i>
                             </div>
                         </div>
                     </div>
@@ -145,12 +190,15 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                                 <tr>
                                     <th>Invoice #</th>
                                     <th>Customer</th>
+                                    <th>Sale Type</th>
                                     <th>Date</th>
-                                    <th>Item</th>
-                                    <th>Quantity</th>
-                                    <th>Unit Price</th>
+                                    <th>Items</th>
                                     <th>Total Amount</th>
+                                    <th>Paid Amount</th>
+                                    <th>Pending Amount</th>
                                     <th>Payment Status</th>
+                                    <th>Order Status</th>
+                                    <th>Tracking #</th>
                                     <th>Created By</th>
                                 </tr>
                             </thead>
@@ -201,68 +249,84 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
     border-radius: 0.375rem;
 }
 
-.badge {
-    font-size: 0.75em;
-    padding: 0.375rem 0.75rem;
-}
-
-.summary-card {
+.summary-cards .card {
     transition: transform 0.2s ease-in-out;
 }
 
-.summary-card:hover {
+.summary-cards .card:hover {
     transform: translateY(-2px);
 }
 
-.btn-group .dropdown-toggle {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
+#summaryCards .card {
+    min-height: 120px; 
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
-.btn-group .btn:first-child {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
 }
 
-.dropdown-menu {
-    min-width: 200px;
-    padding: 0.5rem 0;
-    margin: 0;
-    border: 1px solid rgba(0,0,0,.15);
+.status-paid {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #664d03;
+}
+
+.status-partial {
+    background-color: #cff4fc;
+    color: #055160;
+}
+
+.status-confirmed {
+    background-color: #cff4fc;
+    color: #055160;
+}
+
+.status-processing {
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+.status-shipped {
+    background-color: #cff4fc;
+    color: #055160;
+}
+
+.status-delivered {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.sale-type-badge {
+    padding: 0.2rem 0.4rem;
     border-radius: 0.25rem;
-    box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
 }
 
-.dropdown-item {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
+.sale-type-direct {
+    background-color: #e2e3e5;
+    color: #383d41;
 }
 
-.dropdown-item:hover {
-    background-color: #f8f9fa;
-}
-
-.dropdown-item i {
-    width: 1.25rem;
-    text-align: center;
-}
-
-#recordCount {
-    font-size: 0.9rem;
-    color: #6c757d;
-}
-
-.table th {
-    font-weight: 600;
-    border-bottom: 2px solid #dee2e6;
-}
-
-.table td {
-    vertical-align: middle;
-}
-
-.form-select:focus, .form-control:focus {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+.sale-type-from_order {
+    background-color: #d1ecf1;
+    color: #0c5460;
 }
 </style>

@@ -186,17 +186,6 @@ $(document).ready(function () {
         });
     });
 
-    // Modal event listeners to ensure proper cleanup
-    $('#addUserModal, #editUserModal, #deleteUserModal').on('hidden.bs.modal', function () {
-        setTimeout(() => {
-            $('.modal-backdrop').remove();
-            $('body').css({
-                'overflow': '',
-                'padding-right': ''
-            });
-        }, 300);
-    });
-
     // Flash message utility
     function showMessage(message, type = 'success') {
         toastr.options = {

@@ -106,28 +106,63 @@ try {
 
     switch ($reportType) {
         case 'sales':
-            // Get sales data
+            // Get sales data with proper hybrid logic (one row per sale, not per item)
             $stmt = $pdo->prepare("
                 SELECT 
-                    s.*,
+                    s.sale_id,
+                    s.invoice_number,
+                    s.customer_id,
+                    s.sale_date,
+                    s.total_amount as sale_total_amount,
+                    s.paid_amount,
+                    (s.total_amount - s.paid_amount) as pending_amount,
+                    s.payment_status,
+                    s.order_status,
+                    s.invoice_file,
+                    s.notes,
+                    s.created_by,
+                    s.created_at,
+                    s.updated_at,
                     c.customer_name,
-                    GROUP_CONCAT(
-                        CONCAT(i.item_name, ' (', sd.quantity, ' x ', sd.unit_price, ')')
-                        SEPARATOR '; '
-                    ) as items_details
+                    c.phone as customer_phone,
+                    c.email as customer_email,
+                    COALESCE(co.order_number, 'N/A') as order_number,
+                    COALESCE(co.order_date, 'N/A') as order_date,
+                    CASE 
+                        WHEN s.customer_order_id IS NOT NULL THEN 'From Customer Order'
+                        ELSE 'Direct Sale'
+                    END as sale_type,
+                    (
+                        SELECT GROUP_CONCAT(
+                            CONCAT(
+                                i2.item_name, ' (', 
+                                sd2.quantity, ' x ', 
+                                FORMAT(sd2.unit_price, 2), ' = ', 
+                                FORMAT(sd2.total_price, 2), ')'
+                            ) SEPARATOR '; '
+                        )
+                        FROM sale_details sd2
+                        JOIN inventory i2 ON sd2.item_id = i2.item_id
+                        WHERE sd2.sale_id = s.sale_id
+                    ) as items_details,
+                    (
+                        SELECT COUNT(DISTINCT sd3.item_id)
+                        FROM sale_details sd3
+                        WHERE sd3.sale_id = s.sale_id
+                    ) as items_count
                 FROM sales s
                 JOIN customers c ON s.customer_id = c.customer_id
-                JOIN sale_details sd ON s.sale_id = sd.sale_id
-                JOIN inventory i ON sd.item_id = i.item_id
+                LEFT JOIN customer_orders co ON s.customer_order_id = co.order_id
                 WHERE 1=1
+                AND (
+                    s.customer_order_id IS NULL
+                    OR (s.customer_order_id IS NOT NULL AND (co.order_status NOT IN ('pending', 'cancelled')))
+                )
                 " . ($dateFrom ? "AND s.sale_date >= :date_from" : "") . "
                 " . ($dateTo ? "AND s.sale_date <= :date_to" : "") . "
-                " . ($status ? "AND s.status = :status" : "") . "
+                " . ($status ? "AND s.order_status = :status" : "") . "
                 " . ($paymentStatus ? "AND s.payment_status = :payment_status" : "") . "
-                GROUP BY s.sale_id, s.invoice_number, s.customer_id, s.sale_date, 
-                         s.total_amount, s.payment_status, s.invoice_file, s.notes, 
-                         s.created_by, s.created_at, s.updated_at, c.customer_name
-                ORDER BY s.sale_date DESC
+                ORDER BY s.sale_date DESC, s.sale_id DESC
             ");
 
             $params = [];
@@ -142,8 +177,8 @@ try {
             // Calculate summary
             $summary = [
                 'total_sales' => count($data['sales']),
-                'total_revenue' => array_sum(array_column($data['sales'], 'total_amount')),
-                'total_pending' => array_sum(array_column($data['sales'], 'pending_amount')),
+                'total_revenue' => array_sum(array_column($data['sales'], 'sale_total_amount')),
+                'total_pending' => 0, // Calculate pending amount if needed
                 'unique_customers' => count(array_unique(array_column($data['sales'], 'customer_id')))
             ];
 
@@ -152,10 +187,21 @@ try {
             break;
 
         case 'purchases':
-            // Get purchase data
+            // Get purchase data with proper table aliases
             $stmt = $pdo->prepare("
                 SELECT 
-                    p.*,
+                    p.purchase_id,
+                    p.purchase_number,
+                    p.vendor_id,
+                    p.purchase_date,
+                    p.total_amount as purchase_total_amount,
+                    p.payment_status,
+                    p.delivery_status,
+                    p.invoice_file,
+                    p.notes,
+                    p.created_by,
+                    p.created_at,
+                    p.updated_at,
                     v.vendor_name,
                     GROUP_CONCAT(
                         CONCAT(rm.material_name, ' (', pd.quantity, ' x ', pd.unit_price, ')')
@@ -170,7 +216,9 @@ try {
                 " . ($dateTo ? "AND p.purchase_date <= :date_to" : "") . "
                 " . ($status ? "AND p.status = :status" : "") . "
                 " . ($paymentStatus ? "AND p.payment_status = :payment_status" : "") . "
-                GROUP BY p.purchase_id
+                GROUP BY p.purchase_id, p.purchase_number, p.vendor_id, p.purchase_date, 
+                         p.total_amount, p.payment_status, p.delivery_status, p.invoice_file, 
+                         p.notes, p.created_by, p.created_at, p.updated_at, v.vendor_name
                 ORDER BY p.purchase_date DESC
             ");
 
@@ -186,8 +234,8 @@ try {
             // Calculate summary
             $summary = [
                 'total_purchases' => count($data['purchases']),
-                'total_amount' => array_sum(array_column($data['purchases'], 'total_amount')),
-                'total_pending' => array_sum(array_column($data['purchases'], 'pending_amount')),
+                'total_amount' => array_sum(array_column($data['purchases'], 'purchase_total_amount')),
+                'total_pending' => 0, // Calculate pending amount if needed
                 'unique_vendors' => count(array_unique(array_column($data['purchases'], 'vendor_id')))
             ];
 
@@ -247,7 +295,8 @@ try {
                     COALESCE(SUM(s.total_amount), 0) as total_spent
                 FROM customers c
                 LEFT JOIN sales s ON c.customer_id = s.customer_id
-                WHERE 1=1
+                LEFT JOIN customer_orders co ON s.customer_order_id = co.order_id
+                WHERE (co.order_status IS NULL OR co.order_status != 'cancelled')
             ";
 
             if ($dateFrom && $dateTo) {
@@ -332,18 +381,28 @@ try {
         'summary' => $summary
     ];
 
-    // Add trend data for sales and purchases
-    if ($reportType === 'sales' || $reportType === 'purchases') {
-        $response['sales_trend'] = getSalesTrend($dateFrom, $dateTo);
-        $response['purchases_trend'] = getPurchaseTrend($dateFrom, $dateTo);
-    }
+    // Add trend data for charts (always include for chart functionality)
+    $response['sales_trend'] = getSalesTrend($dateFrom, $dateTo);
+    $response['purchases_trend'] = getPurchaseTrend($dateFrom, $dateTo);
 
     // Add category summary for inventory
     if ($reportType === 'inventory') {
         $response['category_summary'] = getCategorySummary($categoryId);
     }
 
-    echo json_encode($response);
+    // Set proper content type and handle JSON encoding errors
+    header('Content-Type: application/json');
+    $jsonResponse = json_encode($response);
+    
+    if ($jsonResponse === false) {
+        error_log("JSON encoding error: " . json_last_error_msg());
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Data encoding error'
+        ]);
+    } else {
+        echo $jsonResponse;
+    }
 
 } catch (Exception $e) {
     error_log("Fetch Report Data Error: " . $e->getMessage());
@@ -359,14 +418,15 @@ function getSalesTrend($dateFrom, $dateTo) {
     
     $stmt = $pdo->prepare("
         SELECT 
-            DATE(sale_date) as date,
+            DATE(s.sale_date) as date,
             COUNT(*) as count,
-            SUM(total_amount) as amount
-        FROM sales
-        WHERE 1=1
-        " . ($dateFrom ? "AND sale_date >= :date_from" : "") . "
-        " . ($dateTo ? "AND sale_date <= :date_to" : "") . "
-        GROUP BY DATE(sale_date)
+            SUM(s.total_amount) as amount
+        FROM sales s
+        LEFT JOIN customer_orders co ON s.customer_order_id = co.order_id
+        WHERE (co.order_status IS NULL OR co.order_status != 'cancelled')
+        " . ($dateFrom ? "AND s.sale_date >= :date_from" : "") . "
+        " . ($dateTo ? "AND s.sale_date <= :date_to" : "") . "
+        GROUP BY DATE(s.sale_date)
         ORDER BY date ASC
     ");
 
@@ -388,14 +448,14 @@ function getPurchaseTrend($dateFrom, $dateTo) {
     
     $stmt = $pdo->prepare("
         SELECT 
-            DATE(purchase_date) as date,
+            DATE(p.purchase_date) as date,
             COUNT(*) as count,
-            SUM(total_amount) as amount
-        FROM purchases
+            SUM(p.total_amount) as amount
+        FROM purchases p
         WHERE 1=1
-        " . ($dateFrom ? "AND purchase_date >= :date_from" : "") . "
-        " . ($dateTo ? "AND purchase_date <= :date_to" : "") . "
-        GROUP BY DATE(purchase_date)
+        " . ($dateFrom ? "AND p.purchase_date >= :date_from" : "") . "
+        " . ($dateTo ? "AND p.purchase_date <= :date_to" : "") . "
+        GROUP BY DATE(p.purchase_date)
         ORDER BY date ASC
     ");
 
@@ -465,30 +525,23 @@ function getProfitMargin($startDate, $endDate) {
         $totalSales = $salesStmt->fetch(PDO::FETCH_ASSOC)['total_sales'];
 
         // Get total purchases for the period
-        $purchasesQuery = "
+        $purchaseQuery = "
             SELECT 
                 COALESCE(SUM(p.total_amount), 0) as total_purchases
             FROM purchases p
             WHERE p.purchase_date BETWEEN :start_date AND :end_date
             AND p.payment_status != 'cancelled'
         ";
-        $purchasesStmt = $pdo->prepare($purchasesQuery);
-        $purchasesStmt->execute([
+        $purchaseStmt = $pdo->prepare($purchaseQuery);
+        $purchaseStmt->execute([
             ':start_date' => $startDate,
             ':end_date' => $endDate
         ]);
-        $totalPurchases = $purchasesStmt->fetch(PDO::FETCH_ASSOC)['total_purchases'];
+        $totalPurchases = $purchaseStmt->fetch(PDO::FETCH_ASSOC)['total_purchases'];
 
         // Calculate actual profit margin
         $grossProfit = $totalSales - $totalPurchases;
         $profitMarginPercentage = $totalSales > 0 ? ($grossProfit / $totalSales) * 100 : 0;
-
-        // Log the calculation for debugging
-        error_log("Profit Margin Calculation for period $startDate to $endDate:");
-        error_log("Total Sales: $totalSales");
-        error_log("Total Purchases: $totalPurchases");
-        error_log("Gross Profit: $grossProfit");
-        error_log("Profit Margin: $profitMarginPercentage%");
 
         return [
             'status' => 'success',
@@ -499,11 +552,10 @@ function getProfitMargin($startDate, $endDate) {
                 'profit_margin_percentage' => round($profitMarginPercentage, 2)
             ]
         ];
-    } catch (PDOException $e) {
-        error_log("Error calculating profit margin: " . $e->getMessage());
+    } catch (Exception $e) {
         return [
             'status' => 'error',
-            'message' => 'Failed to calculate profit margin: ' . $e->getMessage()
+            'message' => $e->getMessage()
         ];
     }
 }
@@ -516,33 +568,32 @@ function getInventoryValue($categoryId = null) {
             SELECT 
                 COALESCE(SUM(i.current_stock * i.unit_price), 0) as total_value
             FROM inventory i
-            WHERE i.status = 'active'
-            AND i.current_stock > 0
+            WHERE 1=1
         ";
-        $params = [];
-
+        
         if ($categoryId) {
             $query .= " AND i.category_id = :category_id";
-            $params[':category_id'] = $categoryId;
         }
-
+        
         $stmt = $pdo->prepare($query);
-        $stmt->execute($params);
+        
+        if ($categoryId) {
+            $stmt->bindParam(':category_id', $categoryId);
+        }
+        
+        $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        error_log("Inventory Value Calculation - Total Value: {$result['total_value']}");
-
+        
         return [
             'status' => 'success',
             'data' => [
                 'total_value' => (float)$result['total_value']
             ]
         ];
-    } catch (PDOException $e) {
-        error_log("Error calculating inventory value: " . $e->getMessage());
+    } catch (Exception $e) {
         return [
             'status' => 'error',
-            'message' => 'Failed to calculate inventory value: ' . $e->getMessage()
+            'message' => $e->getMessage()
         ];
     }
 }

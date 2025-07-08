@@ -88,7 +88,7 @@ $(document).ready(function () {
     $('#confirmDeleteBtn').on('click', function() {
         const id = $('#delete_customer_id').val();
         $.ajax({
-            url: '../model/customer/deleteCustomer.php',
+            url: '../model/customer/deleteCustomerAdmin.php',
             method: 'POST',
             data: { customer_id: id },
             dataType: 'json',
@@ -108,17 +108,6 @@ $(document).ready(function () {
                 showMessage('Failed to delete customer.', 'danger');
             }
         });
-    });
-
-    // Add event listeners for modal hidden events
-    $('#addCustomerModal, #editCustomerModal, #deleteCustomerModal').on('hidden.bs.modal', function () {
-        setTimeout(() => {
-            $('.modal-backdrop').remove();
-            $('body').css({
-                'overflow': '',
-                'padding-right': ''
-            });
-        }, 300);
     });
 });
 

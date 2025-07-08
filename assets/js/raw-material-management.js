@@ -362,16 +362,5 @@ $(document).ready(function () {
         });
     });
 
-    // Add event listeners for modal hidden events
-    $('#addMaterialModal, #editMaterialModal, #deleteMaterialModal, #viewMaterialModal').on('hidden.bs.modal', function () {
-        setTimeout(() => {
-            $('.modal-backdrop').remove();
-            $('body').css({
-                'overflow': '',
-                'padding-right': ''
-            });
-        }, 300);
-    });
-
     loadMaterials();
 });

@@ -1,5 +1,10 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_name('admin_session');
+    session_start();
+}
+require_once __DIR__ . '/../../inc/config/auth.php';
+require_jwt_auth();
 require_once '../../inc/helpers.php';
 require_once '../../inc/config/database.php'; // Ensure $pdo is available
 header('Content-Type: application/json');
@@ -28,13 +33,8 @@ function getUserProfile($user_id, $role_id, $pdo) {
     $user['role_name'] = getRoleName($user['role_id']);
     // Only use role default if no uploaded picture
     if (empty($user['profile_picture']) || strtolower($user['profile_picture']) === 'null') {
-        $role_defaults = [
-            1 => '../assets/images/admin-default.png',
-            2 => '../assets/images/manager-default.png',
-            3 => '../assets/images/sales-default.png',
-            4 => '../assets/images/inventory-default.png',
-        ];
-        $user['profile_picture'] = $role_defaults[$user['role_id']] ?? '../assets/images/logo.png';
+        // Use the logo as the default for all roles
+        $user['profile_picture'] = '../assets/images/logo.png';
     }
     // Otherwise, use the uploaded picture as-is
     return $user;
@@ -42,9 +42,9 @@ function getUserProfile($user_id, $role_id, $pdo) {
 
 function getRolePermissions($role_id) {
     $map = [
-        1 => ['Full Admin Access', 'Manage Users', 'View/Edit All Data', 'Export Data', 'System Settings'],
-        2 => ['Manage Inventory', 'View Reports', 'Export Data'],
-        3 => ['View Sales', 'Export Sales Reports'],
+        1 => ['Full Admin Access', 'Manage Users', 'Manage Orders', 'View/Edit All Data', 'Export Data', 'System Settings'],
+        2 => ['Manage Inventory', 'Manage Orders', 'View Reports', 'Export Data'],
+        3 => ['View Sales', 'Manage Orders', 'Export Sales Reports'],
         4 => ['Manage Inventory', 'View Stock Alerts']
     ];
     return $map[$role_id] ?? ['Basic Access'];

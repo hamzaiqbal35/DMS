@@ -468,17 +468,6 @@ $(document).ready(function () {
         checkDelayedDeliveries();
     });
 
-    // Add event listeners for modal hidden events
-    $('#addPurchaseModal, #editPurchaseModal, #deletePurchaseModal, #viewPurchaseModal').on('hidden.bs.modal', function () {
-        setTimeout(() => {
-            $('.modal-backdrop').remove();
-            $('body').css({
-                'overflow': '',
-                'padding-right': ''
-            });
-        }, 300);
-    });
-
     // Initial loads
     loadDropdowns();
     loadPurchases();

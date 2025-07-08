@@ -1,4 +1,6 @@
 $(document).ready(function() {
+    let originalReportData = [];
+    
     // Function to load customers into the filter dropdown
     function loadCustomers() {
         $.ajax({
@@ -8,8 +10,8 @@ $(document).ready(function() {
             success: function(res) {
                 if (res.status === "success" && res.data) {
                     let options = '<option value="">Select Customer (All)</option>';
-                    res.data.forEach(customer => {
-                        options += `<option value="${customer.customer_id}">${customer.customer_name}</option>`;
+                    res.data.forEach(c => {
+                        options += `<option value="${c.customer_id}">${c.customer_name}</option>`;
                     });
                     $("#customer_id").html(options);
                 } else {
@@ -27,49 +29,83 @@ $(document).ready(function() {
     // Function to fetch and render sales report data
     function fetchReportData() {
         const filters = $("#reportFiltersForm").serialize();
-        $("#reportTable tbody").html('<tr><td colspan="9" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading report data...</td></tr>');
+        $("#reportTable tbody").html('<tr><td colspan="12" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading report data...</td></tr>');
         $("#emptyState").addClass('d-none');
 
         $.ajax({
-            url: "../model/sale/fetchSaleList.php", // Reusing fetchSaleList.php for filtered data
+            url: "../model/sale/fetchSaleList.php",
             method: "GET",
             data: filters,
             dataType: "json",
             success: function(res) {
                 const tbody = $("#reportTable tbody");
                 tbody.empty();
-                $("#recordCount").text(''); // Clear previous count
+                $("#recordCount").text('');
 
                 if (res.status === "success" && res.data && res.data.length > 0) {
                     res.data.forEach(sale => {
+                        // Determine sale type badge
+                        let saleTypeBadge = '';
+                        if (sale.customer_order_id && sale.customer_order_id !== 'N/A') {
+                            saleTypeBadge = `<span class="badge bg-info" title="From Customer Order">
+                                <i class="fas fa-shopping-cart me-1"></i>From Order
+                            </span>`;
+                        } else {
+                            saleTypeBadge = `<span class="badge bg-secondary">
+                                <i class="fas fa-plus me-1"></i>Direct Sale
+                            </span>`;
+                        }
+
+                        // Format items display
+                        let itemsDisplay = '-';
+                        if (sale.items_details) {
+                            const itemsArr = sale.items_details.split(';').map(s => s.trim()).filter(Boolean);
+                            if (itemsArr.length > 1) {
+                                itemsDisplay = `${itemsArr.length} items`;
+                            } else if (itemsArr.length === 1) {
+                                itemsDisplay = itemsArr[0];
+                            }
+                        }
+                        
+                        // Format amounts with proper null handling
+                        const totalAmount = parseFloat(sale.display_total_amount || 0).toFixed(2);
+                        const paidAmount = parseFloat(sale.display_paid_amount || 0).toFixed(2);
+                        const pendingAmount = parseFloat(sale.display_pending_amount || 0).toFixed(2);
+
                         tbody.append(`
                             <tr>
                                 <td>${sale.invoice_number}</td>
                                 <td>${sale.customer_name}</td>
+                                <td>${saleTypeBadge}</td>
                                 <td>${sale.sale_date}</td>
-                                <td>${sale.item_name}</td>
-                                <td>${sale.quantity}</td>
-                                <td>PKR ${parseFloat(sale.unit_price).toFixed(2)}</td>
-                                <td>PKR ${parseFloat(sale.total_price).toFixed(2)}</td>
+                                <td>${itemsDisplay}</td>
+                                <td class="text-end">PKR ${totalAmount}</td>
+                                <td class="text-end">PKR ${paidAmount}</td>
+                                <td class="text-end">PKR ${pendingAmount}</td>
                                 <td><span class="badge bg-${getStatusColor(sale.payment_status)}">${sale.payment_status}</span></td>
+                                <td><span class="badge bg-${getStatusColor(sale.order_status)}">${sale.order_status}</span></td>
+                                <td>${sale.tracking_number && sale.tracking_number !== 'N/A' ? sale.tracking_number : '_'}</td>
                                 <td>${sale.created_by_name || 'N/A'}</td>
                             </tr>
                         `);
                     });
                     $("#recordCount").text(`${res.data.length} Records Found`);
-                    updateSummary(res.data); // Update summary based on filtered data
+                    updateSummary(res.data);
 
                 } else if (res.status === "empty") {
                     $("#emptyState").removeClass('d-none');
-                    updateSummary([]); // Reset summary if no data
-                } 
-                 else {
+                    updateSummary([]);
+                } else if (res.status === "success" && (!res.data || res.data.length === 0)) {
+                    // No error, just show empty state
+                    $("#emptyState").removeClass('d-none');
+                    updateSummary([]);
+                } else {
                     toastr.error(res.message || "Failed to fetch report data.");
                     console.error("Report data fetch error:", res);
                     $("#emptyState").removeClass('d-none');
                     $("#emptyState h5").text('Error Loading Data');
                     $("#emptyState p").text(res.message || 'An error occurred while fetching report data.');
-                    updateSummary([]); // Reset summary on error
+                    updateSummary([]);
                 }
             },
             error: function(xhr, status, error) {
@@ -79,7 +115,7 @@ $(document).ready(function() {
                 $("#emptyState").removeClass('d-none');
                 $("#emptyState h5").text('Network Error');
                 $("#emptyState p").text('Could not connect to the server to fetch report data.');
-                updateSummary([]); // Reset summary on AJAX error
+                updateSummary([]);
             }
         });
     }
@@ -95,15 +131,24 @@ $(document).ready(function() {
             'partial': 0,
             'paid': 0
         };
+        const orderStatusCounts = {
+            'pending': 0,
+            'confirmed': 0,
+            'processing': 0,
+            'shipped': 0,
+            'delivered': 0,
+            'cancelled': 0
+        };
+        const saleTypeCounts = {
+            'Direct Sale': 0,
+            'From Customer Order': 0
+        };
 
         if (salesData && salesData.length > 0) {
             salesData.forEach(sale => {
-                // Use the actual total_amount from sales table
-                totalAmount += parseFloat(sale.total_amount || 0);
-                // Use the paid_amount from sales table
-                totalPaid += parseFloat(sale.paid_amount || 0);
-                // Calculate pending amount
-                totalPending += parseFloat(sale.pending_amount || 0);
+                totalAmount += parseFloat(sale.display_total_amount || 0);
+                totalPaid += parseFloat(sale.display_paid_amount || 0);
+                totalPending += parseFloat(sale.display_pending_amount || 0);
                 
                 uniqueCustomers.add(sale.customer_id);
                 
@@ -111,46 +156,45 @@ $(document).ready(function() {
                 if (sale.payment_status) {
                     paymentStatusCounts[sale.payment_status]++;
                 }
+                
+                // Count order statuses
+                if (sale.order_status) {
+                    orderStatusCounts[sale.order_status]++;
+                }
+                
+                // Count sale types
+                if (sale.customer_order_id && sale.customer_order_id !== 'N/A') {
+                    saleTypeCounts['From Customer Order']++;
+                } else {
+                    saleTypeCounts['Direct Sale']++;
+                }
             });
         }
+
+        const averageSale = salesData && salesData.length > 0 ? totalAmount / salesData.length : 0;
 
         // Update summary cards
         $("#totalRecords").text(salesData ? salesData.length : 0);
         $("#totalAmount").text(`PKR ${totalAmount.toFixed(2)}`);
-        $("#pendingPayments").text(`PKR ${totalPending.toFixed(2)}`);
+        $("#totalPaid").text(`PKR ${totalPaid.toFixed(2)}`);
+        $("#totalPending").text(`PKR ${totalPending.toFixed(2)}`);
         $("#uniqueCustomers").text(uniqueCustomers.size);
-
-        // Update payment status breakdown
-        if ($("#paymentStatusBreakdown").length) {
-            let breakdownHtml = '';
-            for (const [status, count] of Object.entries(paymentStatusCounts)) {
-                const statusAmount = salesData.reduce((sum, sale) => {
-                    if (sale.payment_status === status) {
-                        return sum + parseFloat(sale.total_amount || 0);
-                    }
-                    return sum;
-                }, 0);
-
-                breakdownHtml += `
-                    <div class="status-item ${status}">
-                        <strong>${status.charAt(0).toUpperCase() + status.slice(1)}:</strong><br>
-                        ${count} sales<br>
-                        PKR ${statusAmount.toFixed(2)}
-                    </div>
-                `;
-            }
-            $("#paymentStatusBreakdown").html(breakdownHtml);
-        }
+        $("#averageSale").text(`PKR ${averageSale.toFixed(2)}`);
 
         $("#summaryCards").show();
     }
 
-     // Get status color
+    // Get status color
     function getStatusColor(status) {
         const colors = {
             'pending': 'warning',
             'partial': 'info',
-            'paid': 'success'
+            'paid': 'success',
+            'confirmed': 'info',
+            'processing': 'primary',
+            'shipped': 'info',
+            'delivered': 'success',
+            'cancelled': 'danger'
         };
         return colors[status] || 'secondary';
     }
@@ -165,93 +209,91 @@ $(document).ready(function() {
         const filters = $("#reportFiltersForm").serialize();
         const exportUrl = `../model/sale/exportSales.php`;
         
+        console.log('Export Debug: Starting export with format:', format);
+        console.log('Export Debug: Filters:', filters);
+        
         // Use AJAX POST request to send filters and format
         $.ajax({
             url: exportUrl,
             method: "POST",
-            data: filters + '&export_format=' + format,
+            data: filters + '&format=' + format,
             xhrFields: {
-                responseType: 'blob' // Crucial for handling file downloads
+                responseType: 'blob'
             },
             beforeSend: function() {
-                 // Optional: Show loading indicator
-                 toastr.info('Generating report...');
+                toastr.info('Generating report...');
+                console.log('Export Debug: Request sent');
             },
             success: function(response, status, xhr) {
+                console.log('Export Debug: Response received');
+                console.log('Export Debug: Response size:', response.size);
+                console.log('Export Debug: Response type:', response.type);
+                
                 // Get filename from content-disposition header
                 const disposition = xhr.getResponseHeader('Content-Disposition');
-                let filename = "sales_report." + format; // Default filename
+                let filename = 'Sales_Report_' + new Date().toISOString().slice(0, 10) + '.' + format;
+                
                 if (disposition && disposition.indexOf('attachment') !== -1) {
-                    const filenameRegex = /filename[^;=\r\n]*=((['"]).*?\2|[^;\r\n]*)/;
+                    const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
                     const matches = filenameRegex.exec(disposition);
                     if (matches != null && matches[1]) {
-                        filename = decodeURIComponent(matches[1].replace(/['"]/g, ''));
+                        filename = matches[1].replace(/['"]/g, '');
                     }
                 }
-
-                // Create a blob from the response and trigger download
+                
+                console.log('Export Debug: Filename:', filename);
+                
+                // Create download link
                 const blob = new Blob([response], { type: xhr.getResponseHeader('Content-Type') });
-                const link = document.createElement('a');
-                link.href = window.URL.createObjectURL(blob);
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-                toastr.success('Report generated successfully.');
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                console.log('Export Debug: Download initiated');
+                toastr.success('Report exported successfully!');
             },
             error: function(xhr, status, error) {
-                // Handle errors, especially if the server returns a non-file response (like text error)
-                if (xhr.response) {
-                    const reader = new FileReader();
-                    reader.onload = function() {
-                         try {
-                            const errorRes = JSON.parse(reader.result);
-                            toastr.error(errorRes.message || 'An error occurred during export.');
-                             console.error('Export error response:', errorRes);
-                         } catch (e) {
-                            // If not JSON, display raw response or generic error
-                            toastr.error('An error occurred during export.');
-                             console.error('Export error response:', reader.result);
-                         }
-                    };
-                    reader.readAsText(xhr.response); // Read the error response as text
-                } else {
-                    toastr.error('An unknown error occurred during export.');
-                     console.error('Export AJAX error:', error);
-                }
+                console.error('Export Debug: Error occurred:', error);
+                console.error('Export Debug: Status:', status);
+                console.error('Export Debug: Response:', xhr.responseText);
+                toastr.error("Error exporting report.");
+                console.error("Export error:", error);
             }
         });
     }
 
-    // Event listener for export dropdown items
-    $('.dropdown-menu a[data-export-format]').click(function(e) {
-        e.preventDefault();
-        const format = $(this).data('export-format');
-        exportReport(format);
-    });
-
-    // Handle filter form submission
+    // Event handlers
     $("#reportFiltersForm").submit(function(e) {
         e.preventDefault();
         fetchReportData();
     });
 
-    // Handle reset filters button click
     $("#resetBtn").click(function() {
         $("#reportFiltersForm")[0].reset();
-        fetchReportData(); // Fetch data with no filters
+        fetchReportData();
     });
 
-    // Set default date range (last 30 days)
-    const today = new Date();
-    const thirtyDaysAgo = new Date(today);
-    thirtyDaysAgo.setDate(today.getDate() - 30);
-    
-    $("#date_from").val(thirtyDaysAgo.toISOString().split('T')[0]);
-    $("#date_to").val(today.toISOString().split('T')[0]);
+    // Export button handlers
+    $(document).on('click', '[data-export-format]', function(e) {
+        e.preventDefault();
+        const format = $(this).data('export-format');
+        exportReport(format);
+    });
 
-    // Initial load of customers and report data
+    // Initialize
     loadCustomers();
-    fetchReportData(); // Load report data on page load
+    fetchReportData();
+
+    // Auto-refresh every 5 minutes
+    setInterval(function() {
+        if ($("#reportFiltersForm").is(':visible')) {
+            fetchReportData();
+        }
+    }, 300000); // 5 minutes
 });

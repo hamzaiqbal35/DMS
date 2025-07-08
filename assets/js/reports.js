@@ -104,7 +104,7 @@ $(document).ready(function () {
                     originalReportData = res.data;
                     renderReportTable(res.data);
                     updateSummaryCards(res.data);
-                    updateCharts(res.data);
+                    updateCharts(res);
                 } else if (res.status === "empty") {
                     showEmptyState(res.message || "No data available for the selected criteria");
                 } else {
@@ -216,7 +216,7 @@ $(document).ready(function () {
                     <td>${item.invoice_number || 'N/A'}</td>
                     <td>Sales</td>
                     <td>${item.items_details || 'N/A'}</td>
-                    <td>PKR ${formatNumber(item.total_amount)}</td>
+                    <td>PKR ${formatNumber(item.sale_total_amount)}</td>
                     <td><span class="badge bg-${getStatusColor(item.payment_status)}">${item.payment_status || 'N/A'}</span></td>
                     <td><button class="btn btn-sm btn-info show-details" data-type="sales" data-id="${item.sale_id}"><i class="fas fa-info-circle"></i> Details</button></td>
                 `;
@@ -227,7 +227,7 @@ $(document).ready(function () {
                     <td>${item.purchase_number || 'N/A'}</td>
                     <td>Purchase</td>
                     <td>${item.materials_details || 'N/A'}</td>
-                    <td>PKR ${formatNumber(item.total_amount)}</td>
+                    <td>PKR ${formatNumber(item.purchase_total_amount)}</td>
                     <td><span class="badge bg-${getStatusColor(item.payment_status)}">${item.payment_status || 'N/A'}</span></td>
                     <td><button class="btn btn-sm btn-info show-details" data-type="purchases" data-id="${item.purchase_id}"><i class="fas fa-info-circle"></i> Details</button></td>
                 `;
@@ -363,71 +363,97 @@ $(document).ready(function () {
     }
 
     // Update charts with report data
-    function updateCharts(data) {
-        if (!data) return;
+    function updateCharts(response) {
+        if (!response) {
+            return;
+        }
 
         // Update sales vs purchases trend chart
-        if (data.sales_trend && data.purchases_trend) {
-            updateTrendChart(data.sales_trend, data.purchases_trend);
+        if (response.sales_trend && response.purchases_trend) {
+            updateTrendChart(response.sales_trend, response.purchases_trend);
         }
 
         // Update category distribution chart
-        if (data.category_summary) {
-            updateCategoryChart(data.category_summary);
+        if (response.category_summary) {
+            updateCategoryChart(response.category_summary);
         }
     }
 
     // Update trend chart
     function updateTrendChart(salesTrend, purchasesTrend) {
         const ctx = document.getElementById('salesPurchasesChart');
-        if (!ctx) return;
-
-        if (charts.trendChart) {
-            charts.trendChart.destroy();
-            charts.trendChart = null;
+        if (!ctx) {
+            return;
         }
 
-        charts.trendChart = new Chart(ctx.getContext('2d'), {
-            type: 'line',
-            data: {
-                labels: salesTrend.labels,
-                datasets: [
-                    {
-                        label: 'Sales',
-                        data: salesTrend.data,
-                        borderColor: '#4e73df',
-                        tension: 0.1,
-                        fill: false
-                    },
-                    {
-                        label: 'Purchases',
-                        data: purchasesTrend.data,
-                        borderColor: '#1cc88a',
-                        tension: 0.1,
-                        fill: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top'
-                    }
+        if (window.trendChart) {
+            window.trendChart.destroy();
+            window.trendChart = null;
+        }
+
+        // Ensure we have valid data
+        const salesLabels = salesTrend.labels || [];
+        const salesData = salesTrend.data || [];
+        const purchaseLabels = purchasesTrend.labels || [];
+        const purchaseData = purchasesTrend.data || [];
+
+        // Merge labels to get all unique dates
+        const allLabels = [...new Set([...salesLabels, ...purchaseLabels])].sort();
+
+        // Create datasets with proper data mapping
+        const salesDataset = {
+            label: 'Sales',
+            data: allLabels.map(label => {
+                const index = salesLabels.indexOf(label);
+                return index !== -1 ? salesData[index] : 0;
+            }),
+            borderColor: '#4e73df',
+            backgroundColor: 'rgba(78, 115, 223, 0.1)',
+            tension: 0.1,
+            fill: false
+        };
+
+        const purchaseDataset = {
+            label: 'Purchases',
+            data: allLabels.map(label => {
+                const index = purchaseLabels.indexOf(label);
+                return index !== -1 ? purchaseData[index] : 0;
+            }),
+            borderColor: '#1cc88a',
+            backgroundColor: 'rgba(28, 200, 138, 0.1)',
+            tension: 0.1,
+            fill: false
+        };
+
+        try {
+            window.trendChart = new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: allLabels,
+                    datasets: [salesDataset, purchaseDataset]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return 'PKR ' + formatNumber(value);
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'PKR ' + formatNumber(value);
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
+            });
+        } catch (error) {
+        }
     }
 
     // Update category chart
@@ -435,15 +461,15 @@ $(document).ready(function () {
         const ctx = document.getElementById('categoryChart');
         if (!ctx) return;
 
-        if (charts.categoryChart) {
-            charts.categoryChart.destroy();
-            charts.categoryChart = null;
+        if (window.categoryChart) {
+            window.categoryChart.destroy();
+            window.categoryChart = null;
         }
 
         const labels = Object.keys(categoryData);
         const data = labels.map(label => categoryData[label].count);
 
-        charts.categoryChart = new Chart(ctx.getContext('2d'), {
+        window.categoryChart = new Chart(ctx.getContext('2d'), {
             type: 'doughnut',
             data: {
                 labels: labels,
@@ -620,7 +646,7 @@ $(document).ready(function () {
                 html += `<p><strong>Date:</strong> ${formatDate(item.sale_date)}</p>`;
                 html += `<p><strong>Customer:</strong> ${item.customer_name}</p>`;
                 html += `<p><strong>Items:</strong> ${item.items_details}</p>`;
-                html += `<p><strong>Total Amount:</strong> PKR ${formatNumber(item.total_amount)}</p>`;
+                html += `<p><strong>Total Amount:</strong> PKR ${formatNumber(item.sale_total_amount)}</p>`;
                 html += `<p><strong>Payment Status:</strong> <span class="badge bg-${getStatusColor(item.payment_status)}">${item.payment_status}</span></p>`;
                 html += `<p><strong>Notes:</strong> ${item.notes || '-'}</p>`;
                 break;
@@ -629,7 +655,7 @@ $(document).ready(function () {
                 html += `<p><strong>Date:</strong> ${formatDate(item.purchase_date)}</p>`;
                 html += `<p><strong>Vendor:</strong> ${item.vendor_name}</p>`;
                 html += `<p><strong>Materials:</strong> ${item.materials_details}</p>`;
-                html += `<p><strong>Total Amount:</strong> PKR ${formatNumber(item.total_amount)}</p>`;
+                html += `<p><strong>Total Amount:</strong> PKR ${formatNumber(item.purchase_total_amount)}</p>`;
                 html += `<p><strong>Payment Status:</strong> <span class="badge bg-${getStatusColor(item.payment_status)}">${item.payment_status}</span></p>`;
                 html += `<p><strong>Delivery Status:</strong> ${item.delivery_status || '-'}</p>`;
                 html += `<p><strong>Notes:</strong> ${item.notes || '-'}</p>`;

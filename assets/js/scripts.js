@@ -368,3 +368,25 @@ document.addEventListener("DOMContentLoaded", () => {
       { passive: true },
     ) // Using passive event for better performance
   }
+
+  // === GLOBAL MODAL ACCESSIBILITY & CLEANUP HANDLER ===
+  $(document).on('hide.bs.modal', '.modal', function () {
+      // Blur the focused element if it's inside the modal or the modal itself
+      const active = document.activeElement;
+      if (active && (this === active || this.contains(active))) {
+          active.blur();
+      }
+  });
+
+  $(document).on('hidden.bs.modal', '.modal', function () {
+      // Only reset the form if it exists
+      const form = $(this).find('form')[0];
+      if (form && typeof form.reset === 'function') {
+          form.reset();
+      }
+      // Remove any lingering backdrops and restore body scroll
+      setTimeout(() => {
+          $('.modal-backdrop').remove();
+          $('body').removeClass('modal-open').css({ 'overflow': '', 'padding-right': '' });
+      }, 100);
+  });

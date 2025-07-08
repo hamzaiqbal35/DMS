@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '/../../inc/helpers.php';
-
+session_name('admin_session');
 if (session_status() === PHP_SESSION_NONE) session_start();
+require_once __DIR__ . '/../../inc/helpers.php';
 
 // Set content type for JSON response
 header('Content-Type: application/json');
@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // For AJAX requests, we can be more lenient with CSRF for logout
         // since it's a destructive action that doesn't harm the user
         
-        // Destroy session and JWT
+        // Destroy session and JWT for admin only
         session_unset();
         session_destroy();
         

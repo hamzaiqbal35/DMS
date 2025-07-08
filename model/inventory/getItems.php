@@ -16,7 +16,10 @@ try {
             i.item_name,
             i.unit_of_measure,
             i.unit_price,
+            i.customer_price,
             i.current_stock,
+            i.show_on_website,
+            i.is_featured,
             c.category_name
         FROM inventory i
         LEFT JOIN categories c ON i.category_id = c.category_id

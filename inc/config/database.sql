@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS users (
     FOREIGN KEY (role_id) REFERENCES roles(role_id)
 );
 
--- Insert default admin user (password: admin123)
+-- Insert default admin user (password: admin3535)
 INSERT INTO users (username, password, email, full_name, role_id) VALUES 
 ('Hamza Iqbal', '$2y$10$bKs0cfd5mbV/tMjbvJP6cObn4p6Nz/3QrhnSX0QfcGKtxEWF8H0Ey', 'hamzaiqbalrajpoot35@gmail.com', 'System Administrator', 1);
 
@@ -88,16 +88,21 @@ CREATE TABLE IF NOT EXISTS inventory (
     description TEXT,
     unit_of_measure VARCHAR(20) NOT NULL,
     unit_price DECIMAL(10,2) NOT NULL,
+    customer_price DECIMAL(10,2) DEFAULT NULL,
     current_stock DECIMAL(10,2) DEFAULT 0,
     minimum_stock DECIMAL(10,2) DEFAULT 0,
     status ENUM('active', 'inactive') DEFAULT 'active',
+    is_featured TINYINT(1) DEFAULT 0,
+    show_on_website TINYINT(1) DEFAULT 1,
+    seo_title VARCHAR(200) DEFAULT NULL,
+    seo_description TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES categories(category_id)
 );
 
 -- Media Table for inventory items 
-CREATE TABLE media (
+CREATE TABLE IF NOT EXISTS media (
     media_id INT PRIMARY KEY AUTO_INCREMENT,
     item_id INT NOT NULL,
     file_path VARCHAR(255) NOT NULL,
@@ -182,21 +187,120 @@ CREATE TABLE IF NOT EXISTS purchase_details (
     FOREIGN KEY (material_id) REFERENCES raw_materials(material_id) ON DELETE CASCADE
 );
 
--- Sales table
+-- Password reset table
+CREATE TABLE IF NOT EXISTS password_resets (
+    reset_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    token VARCHAR(64) NOT NULL UNIQUE,
+    expires_at DATETIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- Export History Table
+CREATE TABLE IF NOT EXISTS export_history (
+    export_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    export_type VARCHAR(50) NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    file_path VARCHAR(255) NOT NULL,
+    file_size INT DEFAULT 0,
+    filters_applied JSON DEFAULT NULL,
+    export_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- Customer Users Table (separate from admin users)
+CREATE TABLE IF NOT EXISTS customer_users (
+    customer_user_id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    full_name VARCHAR(150) NOT NULL,
+    phone VARCHAR(20) DEFAULT NULL,
+    address TEXT DEFAULT NULL,
+    city VARCHAR(100) DEFAULT NULL,
+    state VARCHAR(100) DEFAULT NULL,
+    zip_code VARCHAR(20) DEFAULT NULL,
+    status ENUM('active', 'inactive', 'pending') DEFAULT 'pending',
+    email_verified TINYINT(1) DEFAULT 0,
+    profile_picture VARCHAR(255) DEFAULT NULL,
+    admin_customer_id INT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    last_login DATETIME DEFAULT NULL,
+    FOREIGN KEY (admin_customer_id) REFERENCES customers(customer_id) ON DELETE SET NULL
+);
+
+-- Shopping Cart Table
+CREATE TABLE IF NOT EXISTS cart (
+    cart_id INT PRIMARY KEY AUTO_INCREMENT,
+    customer_user_id INT NOT NULL,
+    item_id INT NOT NULL,
+    quantity DECIMAL(10,2) NOT NULL,
+    unit_price DECIMAL(10,2) NOT NULL,
+    total_price DECIMAL(10,2) NOT NULL,
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_user_id) REFERENCES customer_users(customer_user_id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES inventory(item_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_customer_item (customer_user_id, item_id)
+);
+
+-- Customer Orders Table (moved before sales table)
+CREATE TABLE IF NOT EXISTS customer_orders (
+    order_id INT PRIMARY KEY AUTO_INCREMENT,
+    order_number VARCHAR(50) NOT NULL UNIQUE,
+    customer_user_id INT NOT NULL,
+    order_date DATETIME NOT NULL,
+    total_amount DECIMAL(12,2) NOT NULL,
+    tax_amount DECIMAL(10,2) DEFAULT 0,
+    shipping_amount DECIMAL(10,2) DEFAULT 0,
+    discount_amount DECIMAL(10,2) DEFAULT 0,
+    final_amount DECIMAL(12,2) NOT NULL,
+    payment_method ENUM('cod') NOT NULL DEFAULT 'cod',
+    payment_status ENUM('pending', 'partial', 'paid') DEFAULT 'pending',
+    order_status ENUM('pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled') DEFAULT 'pending',
+    tracking_number VARCHAR(50) DEFAULT NULL,
+    completion_date DATETIME DEFAULT NULL,
+    cancellation_date DATETIME DEFAULT NULL,
+    cancellation_reason TEXT DEFAULT NULL,
+    shipping_address TEXT NOT NULL,
+    notes TEXT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    is_deleted_admin TINYINT(1) DEFAULT 0,
+    is_deleted_customer TINYINT(1) DEFAULT 0,
+    FOREIGN KEY (customer_user_id) REFERENCES customer_users(customer_user_id)
+);
+
+-- Sales table (now customer_orders is already created)
 CREATE TABLE IF NOT EXISTS sales (
     sale_id INT PRIMARY KEY AUTO_INCREMENT,
     invoice_number VARCHAR(50) NOT NULL UNIQUE,
     customer_id INT NOT NULL,
+    customer_user_id INT DEFAULT NULL,
     sale_date DATE NOT NULL,
     total_amount DECIMAL(12,2) NOT NULL,
     payment_status ENUM('pending', 'partial', 'paid') DEFAULT 'pending',
+    paid_amount DECIMAL(12,2) DEFAULT 0,
+    order_status ENUM('pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled') DEFAULT 'pending',
+    sale_type ENUM('direct', 'customer_order') NOT NULL DEFAULT 'direct',
+    customer_order_id INT DEFAULT NULL,
+    tracking_number VARCHAR(50) DEFAULT NULL,
+    completion_date DATETIME DEFAULT NULL,
+    cancellation_date DATETIME DEFAULT NULL,
+    cancellation_reason TEXT DEFAULT NULL,
     invoice_file VARCHAR(255) DEFAULT NULL,
     notes TEXT,
     created_by INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customers(customer_id),
-    FOREIGN KEY (created_by) REFERENCES users(user_id)
+    FOREIGN KEY (customer_user_id) REFERENCES customer_users(customer_user_id),
+    FOREIGN KEY (created_by) REFERENCES users(user_id),
+    FOREIGN KEY (customer_order_id) REFERENCES customer_orders(order_id) ON DELETE SET NULL
 );
 
 -- Sale details table
@@ -211,17 +315,6 @@ CREATE TABLE IF NOT EXISTS sale_details (
     FOREIGN KEY (item_id) REFERENCES inventory(item_id)
 );
 
--- Password reset table
-CREATE TABLE IF NOT EXISTS password_resets (
-    reset_id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    email VARCHAR(100) NOT NULL,
-    token VARCHAR(64) NOT NULL UNIQUE,
-    expires_at DATETIME NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
-
 -- Payments Table
 CREATE TABLE IF NOT EXISTS payments (
     payment_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -234,9 +327,102 @@ CREATE TABLE IF NOT EXISTS payments (
     FOREIGN KEY (sale_id) REFERENCES sales(sale_id) ON DELETE CASCADE
 );
 
+-- Customer Order Details Table
+CREATE TABLE IF NOT EXISTS customer_order_details (
+    order_detail_id INT PRIMARY KEY AUTO_INCREMENT,
+    order_id INT NOT NULL,
+    item_id INT NOT NULL,
+    quantity DECIMAL(10,2) NOT NULL,
+    unit_price DECIMAL(10,2) NOT NULL,
+    total_price DECIMAL(12,2) NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES customer_orders(order_id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES inventory(item_id)
+);
+
+-- Customer Payments Table
+CREATE TABLE IF NOT EXISTS customer_payments (
+    payment_id INT PRIMARY KEY AUTO_INCREMENT,
+    order_id INT NOT NULL,
+    transaction_id VARCHAR(100) DEFAULT NULL,
+    payment_method ENUM('cod') NOT NULL DEFAULT 'cod',
+    payment_status ENUM('pending', 'partial', 'paid') DEFAULT 'pending',
+    amount DECIMAL(12,2) NOT NULL,
+    payment_date DATETIME DEFAULT NULL,
+    gateway_response TEXT DEFAULT NULL,
+    notes TEXT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES customer_orders(order_id) ON DELETE CASCADE
+);
+
+-- Customer Password Reset Table
+CREATE TABLE IF NOT EXISTS customer_password_resets (
+    reset_id INT PRIMARY KEY AUTO_INCREMENT,
+    customer_user_id INT NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    token VARCHAR(64) NOT NULL UNIQUE,
+    expires_at DATETIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_user_id) REFERENCES customer_users(customer_user_id) ON DELETE CASCADE
+);
+
+-- Order Status Logs Table
+CREATE TABLE IF NOT EXISTS order_status_logs (
+    log_id INT PRIMARY KEY AUTO_INCREMENT,
+    order_id INT NOT NULL,
+    old_status ENUM('pending','confirmed','processing','shipped','delivered','cancelled') NOT NULL,
+    new_status ENUM('pending','confirmed','processing','shipped','delivered','cancelled') NOT NULL,
+    changed_by INT NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES customer_orders(order_id) ON DELETE CASCADE,
+    FOREIGN KEY (changed_by) REFERENCES users(user_id)
+);
+
+-- Company Information Table (for landing page content)
+CREATE TABLE IF NOT EXISTS company_info (
+    info_id INT PRIMARY KEY AUTO_INCREMENT,
+    company_name VARCHAR(200) NOT NULL,
+    tagline VARCHAR(300) DEFAULT NULL,
+    description TEXT DEFAULT NULL,
+    mission TEXT DEFAULT NULL,
+    vision TEXT DEFAULT NULL,
+    about_us TEXT DEFAULT NULL,
+    contact_email VARCHAR(100) DEFAULT NULL,
+    contact_phone VARCHAR(20) DEFAULT NULL,
+    address TEXT DEFAULT NULL,
+    social_media JSON DEFAULT NULL,
+    logo VARCHAR(255) DEFAULT NULL,
+    favicon VARCHAR(255) DEFAULT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Insert default company info
+INSERT INTO company_info (company_name, tagline, description, contact_email, contact_phone) VALUES 
+('Allied Steel Works', 'Your Trusted Steel Solutions Partner', 'Leading provider of quality steel products and solutions for all your construction and industrial needs.', 'info@alliedsteelworks.com', '+92-XXX-XXXXXXX');
+
+-- Add indexes for better performance
+CREATE INDEX idx_customer_orders_date ON customer_orders(order_date);
+CREATE INDEX idx_customer_orders_status ON customer_orders(order_status);
+CREATE INDEX idx_cart_customer ON cart(customer_user_id);
+CREATE INDEX idx_payments_order ON customer_payments(order_id);
+CREATE INDEX idx_order_status_logs_order ON order_status_logs(order_id);
+CREATE INDEX idx_order_status_logs_changed_by ON order_status_logs(changed_by);
+CREATE INDEX idx_order_status_logs_created_at ON order_status_logs(created_at);
+
+-- Customer Email Verifications Table
+CREATE TABLE IF NOT EXISTS customer_email_verifications (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    customer_user_id INT NOT NULL,
+    token VARCHAR(64) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_user_id) REFERENCES customer_users(customer_user_id) ON DELETE CASCADE
+);
+
+-- Triggers
 DELIMITER //
 
--- Update raw materials stock after purchase (CORRECTED)
+-- Update raw materials stock after purchase
 DROP TRIGGER IF EXISTS after_purchase_detail_insert//
 CREATE TRIGGER after_purchase_detail_insert
 AFTER INSERT ON purchase_details
@@ -258,5 +444,53 @@ BEGIN
     WHERE item_id = NEW.item_id;
 END //
 
+-- Trigger to update cart total when quantity changes
+DROP TRIGGER IF EXISTS update_cart_total//
+CREATE TRIGGER update_cart_total
+BEFORE UPDATE ON cart
+FOR EACH ROW
+BEGIN
+    SET NEW.total_price = NEW.quantity * NEW.unit_price;
+END //
+
+DROP TRIGGER IF EXISTS insert_cart_total//
+CREATE TRIGGER insert_cart_total
+BEFORE INSERT ON cart
+FOR EACH ROW
+BEGIN
+    SET NEW.total_price = NEW.quantity * NEW.unit_price;
+END //
+
 DELIMITER ;
 
+-- MIGRATION: Unified sales/order structure
+-- Run these SQL commands to update your schema:
+--
+-- ALTER TABLE sales 
+--     ADD COLUMN sale_type ENUM('direct', 'customer_order') NOT NULL DEFAULT 'direct' AFTER order_status,
+--     ADD COLUMN customer_user_id INT DEFAULT NULL AFTER customer_id,
+--     ADD CONSTRAINT fk_sales_customer_user_id FOREIGN KEY (customer_user_id) REFERENCES customer_users(customer_user_id);
+--
+-- ALTER TABLE sales 
+--     MODIFY COLUMN customer_order_id INT DEFAULT NULL,
+--     ADD CONSTRAINT fk_sales_customer_order_id FOREIGN KEY (customer_order_id) REFERENCES customer_orders(order_id) ON DELETE SET NULL;
+--
+-- (If you have existing data, you may need to backfill sale_type and customer_user_id for historical records)
+
+-- Updated ENUMs for payment_method and payment_status (COD only, 3 statuses)
+ALTER TABLE customer_orders 
+  MODIFY payment_method ENUM('cod') NOT NULL DEFAULT 'cod',
+  MODIFY payment_status ENUM('pending', 'partial', 'paid') DEFAULT 'pending';
+
+ALTER TABLE customer_payments 
+  MODIFY payment_method ENUM('cod') NOT NULL DEFAULT 'cod',
+  MODIFY payment_status ENUM('pending', 'partial', 'paid') DEFAULT 'pending';
+
+-- To reverse this change, use:
+-- ALTER TABLE customer_orders 
+--   MODIFY payment_method ENUM('cod', 'bank_transfer', 'online') NOT NULL DEFAULT 'cod',
+--   MODIFY payment_status ENUM('pending', 'processing', 'paid', 'failed', 'refunded') DEFAULT 'pending';
+-- 
+-- ALTER TABLE customer_payments 
+--   MODIFY payment_method ENUM('cod', 'bank_transfer', 'online') NOT NULL DEFAULT 'cod',
+--   MODIFY payment_status ENUM('pending', 'processing', 'paid', 'failed', 'refunded') DEFAULT 'pending';

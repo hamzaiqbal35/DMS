@@ -1,7 +1,12 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_name('customer_session');
+    session_start();
+}
+require_once __DIR__ . '/../../inc/customer/customer-auth.php';
+require_customer_jwt_auth();
 require_once '../../inc/config/database.php';
 header('Content-Type: application/json');
-session_start();
 
 try {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

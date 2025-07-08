@@ -1,7 +1,24 @@
 <?php
 require_once '../../inc/config/database.php';
 header('Content-Type: application/json');
+session_name('admin_session');
 session_start();
+
+// Restore JWT from cookie if not set
+if (!isset($_SESSION['jwt_token']) && isset($_COOKIE['jwt_token'])) {
+    $_SESSION['jwt_token'] = $_COOKIE['jwt_token'];
+}
+// Decode JWT and set session variables
+if (isset($_SESSION['jwt_token'])) {
+    require_once '../../inc/helpers.php';
+    $decoded = decode_jwt($_SESSION['jwt_token']);
+    if ($decoded && isset($decoded->data->user_id)) {
+        $_SESSION['user_id'] = $decoded->data->user_id;
+        $_SESSION['username'] = $decoded->data->username;
+        $_SESSION['email'] = $decoded->data->email;
+        $_SESSION['role_id'] = $decoded->data->role_id;
+    }
+}
 
 try {
     // Check if user is logged in

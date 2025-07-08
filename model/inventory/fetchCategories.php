@@ -5,7 +5,7 @@ header('Content-Type: application/json');
 session_start();
 
 try {
-    $stmt = $pdo->prepare("SELECT category_id, category_name FROM categories ORDER BY category_name ASC");
+    $stmt = $pdo->prepare("SELECT category_id, category_name, description, status FROM categories ORDER BY category_id ASC");
     $stmt->execute();
     $categories = $stmt->fetchAll();
 

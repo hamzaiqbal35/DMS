@@ -36,7 +36,7 @@ try {
     }
 
     // Fetch current sale details to check total amount and current paid amount
-    $saleStmt = $pdo->prepare("SELECT total_amount, paid_amount FROM sales WHERE sale_id = ? FOR UPDATE"); // Use FOR UPDATE to lock row
+    $saleStmt = $pdo->prepare("SELECT total_amount, paid_amount, customer_order_id FROM sales WHERE sale_id = ? FOR UPDATE"); // Use FOR UPDATE to lock row
     $saleStmt->execute([$sale_id]);
     $sale = $saleStmt->fetch(PDO::FETCH_ASSOC);
 
@@ -46,7 +46,13 @@ try {
 
     $total_amount = $sale['total_amount'];
     $current_paid_amount = $sale['paid_amount'];
+    $remaining_amount = $total_amount - $current_paid_amount;
     $new_paid_amount = $current_paid_amount + $payment_amount;
+
+    // Validate payment amount doesn't exceed remaining amount
+    if ($payment_amount > $remaining_amount) {
+        throw new Exception('Payment amount (PKR ' . number_format($payment_amount, 2) . ') cannot exceed remaining amount (PKR ' . number_format($remaining_amount, 2) . ').');
+    }
 
     // Determine new payment status
     $new_payment_status = 'pending';
@@ -54,6 +60,17 @@ try {
         $new_payment_status = 'paid';
     } elseif ($new_paid_amount > 0) {
         $new_payment_status = 'partial';
+    }
+
+    // If this is a customer order sale, force payment_method and restrict payment_status
+    if (isset($sale['customer_order_id']) && $sale['customer_order_id']) {
+        $payment_method = 'cod';
+        if (!in_array($new_payment_status, ['pending', 'partial', 'paid'])) {
+            $new_payment_status = 'pending';
+        }
+        // Sync payment_status to customer_orders
+        $stmt = $pdo->prepare('UPDATE customer_orders SET payment_status = ? WHERE order_id = ?');
+        $stmt->execute([$new_payment_status, $sale['customer_order_id']]);
     }
 
     // Start transaction
@@ -71,6 +88,22 @@ try {
         'method'       => $payment_method,
         'notes'        => $payment_notes ?: null
     ]);
+
+    // If this is a customer order sale, also insert into customer_payments
+    if (isset($sale['customer_order_id']) && $sale['customer_order_id']) {
+        $insertCustomerPayment = $pdo->prepare("
+            INSERT INTO customer_payments (order_id, payment_method, payment_status, amount, payment_date, notes)
+            VALUES (:order_id, :payment_method, :payment_status, :amount, :payment_date, :notes)
+        ");
+        $insertCustomerPayment->execute([
+            'order_id' => $sale['customer_order_id'],
+            'payment_method' => $payment_method,
+            'payment_status' => $new_payment_status,
+            'amount' => $payment_amount,
+            'payment_date' => $payment_date,
+            'notes' => $payment_notes ?: null
+        ]);
+    }
 
     // Update sales table with new paid amount and status
     $updateSale = $pdo->prepare("

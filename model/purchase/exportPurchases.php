@@ -108,6 +108,16 @@ try {
         $options->set('isPhpEnabled', true);
         $options->set('defaultFont', 'DejaVu Sans');
         
+        // Add logo as base64 (same as sales report)
+        $company_name = 'Allied Steel Works';
+        $company_address = 'Allied Steel Works (Pvt) Ltd., Service Road, Bhamma, Lahore, Pakistan';
+        $company_email = 'info@alliedsteelworks.pk';
+        $company_phone = '+92-300-1234567';
+        $logo_path = __DIR__ . '/../../assets/images/logo.png';
+        $logo_data = '';
+        if (file_exists($logo_path)) {
+            $logo_data = base64_encode(file_get_contents($logo_path));
+        }
         ob_start();
         ?>
         <!DOCTYPE html>
@@ -116,283 +126,144 @@ try {
             <meta charset="UTF-8">
             <title>Purchase Report</title>
             <style>
-                @page {
-                    margin: 20px;
-                    size: A4 landscape;
-                }
-                
-                body {
-                    font-family: 'DejaVu Sans', Arial, sans-serif;
-                    font-size: 10px;
+                @page { margin: 20px; }
+                body { 
+                    font-family: "Poppins", Arial, sans-serif; 
+                    font-size: 11px; 
+                    color: #222; 
+                    background: #fff; 
+                    margin: 0; 
+                    padding: 0; 
                     line-height: 1.4;
-                    color: #333;
-                    margin: 0;
-                    padding: 0;
                 }
-                
-                .header {
-                    text-align: center;
-                    margin-bottom: 25px;
-                    border-bottom: 3px solid #2c5aa0;
-                    padding-bottom: 15px;
-                }
-                
-                .header h1 {
-                    color: #2c5aa0;
-                    font-size: 24px;
-                    margin: 0 0 10px 0;
-                    font-weight: bold;
-                }
-                
-                .header .company-info {
-                    color: #666;
-                    font-size: 12px;
-                    margin: 5px 0;
-                }
-                
-                .report-meta {
+                .header { 
+                    text-align: left; 
+                    margin-bottom: 20px; 
+                    background: #388e3c;
+                    padding: 18px 20px 14px 20px;
+                    border-radius: 8px 8px 0 0;
+                    color: #fff;
                     display: flex;
-                    justify-content: space-between;
-                    margin-bottom: 20px;
-                    background: #f8f9fa;
-                    padding: 12px;
-                    border-radius: 5px;
-                    border-left: 4px solid #2c5aa0;
+                    align-items: center;
                 }
-                
-                .report-meta .left, .report-meta .right {
-                    width: 48%;
+                .logo { 
+                    width: 60px; 
+                    height: 60px; 
+                    margin-right: 18px; 
+                    border-radius: 8px; 
+                    border: 2px solid #fff; 
+                    background: #fff; 
+                    object-fit: cover;
                 }
-                
-                .report-meta strong {
-                    color: #2c5aa0;
-                }
-                
-                .summary-section {
-                    margin-bottom: 20px;
-                    background: #f1f3f4;
-                    padding: 15px;
-                    border-radius: 8px;
-                }
-                
-                .summary-title {
-                    color: #2c5aa0;
-                    font-size: 14px;
-                    font-weight: bold;
-                    margin-bottom: 10px;
-                    border-bottom: 1px solid #ddd;
-                    padding-bottom: 5px;
-                }
-                
-                .summary-grid {
-                    display: grid;
-                    grid-template-columns: repeat(4, 1fr);
-                    gap: 15px;
-                    margin-bottom: 15px;
-                }
-                
-                .summary-item {
-                    text-align: center;
-                    background: white;
-                    padding: 10px;
-                    border-radius: 5px;
-                    border: 1px solid #e0e0e0;
-                }
-                
-                .summary-item .label {
-                    font-size: 9px;
-                    color: #666;
-                    margin-bottom: 5px;
-                }
-                
-                .summary-item .value {
+                .company-info { font-size: 13px; color: #fff; }
+                .company-info h1 { margin: 0 0 2px 0; font-size: 22px; color: #fff; letter-spacing: 1px; font-weight: 700; }
+                .company-info p { margin: 0; color: #e3e3e3; font-size: 12px; }
+                .report-title { text-align: right; font-size: 20px; color: #fff; font-weight: 700; margin-left: auto; }
+                .report-info {
+                    margin-bottom: 16px;
                     font-size: 12px;
-                    font-weight: bold;
-                    color: #2c5aa0;
+                    color: #222;
+                    background: #e3f2fd;
+                    padding: 10px 14px;
+                    border-radius: 6px;
+                    border-left: 4px solid #388e3c;
                 }
-                
-                .payment-status-summary {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                    gap: 10px;
+                .summary {
+                    margin: 16px 0;
+                    padding: 10px 14px;
+                    background: #e3f2fd;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    border-left: 4px solid #388e3c;
+                    color: #222;
                 }
-                
-                .status-item {
-                    background: white;
-                    padding: 8px;
-                    border-radius: 4px;
-                    border-left: 3px solid #28a745;
-                    font-size: 9px;
-                }
-                
-                .status-item.pending { border-left-color: #ffc107; }
-                .status-item.paid { border-left-color: #28a745; }
-                .status-item.overdue { border-left-color: #dc3545; }
-                
-                .main-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-top: 10px;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                    border-radius: 8px;
-                    overflow: hidden;
-                }
-                
-                .main-table th {
-                    background: linear-gradient(135deg, #2c5aa0 0%, #1e3d72 100%);
-                    color: white;
-                    padding: 12px 8px;
-                    font-weight: bold;
-                    font-size: 9px;
-                    text-align: center;
-                    border: none;
-                }
-                
-                .main-table td {
-                    padding: 8px 6px;
-                    border-bottom: 1px solid #e0e0e0;
-                    font-size: 9px;
-                    vertical-align: middle;
-                }
-                
-                .main-table tbody tr:nth-child(even) {
-                    background-color: #f8f9fa;
-                }
-                
-                .main-table tbody tr:hover {
-                    background-color: #e3f2fd;
-                }
-                
-                .currency {
-                    text-align: right;
-                    font-weight: 600;
-                    color: #2c5aa0;
-                }
-                
-                .number {
-                    text-align: center;
-                    font-weight: 500;
-                }
-                
+                .summary h3 { margin: 0 0 6px 0; font-size: 15px; color: #388e3c; }
+                .summary p { margin: 4px 0; color: #222; }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 18px; background: #fff; border-radius: 8px; overflow: hidden; }
+                th, td { border: 1px solid #e0e0e0; padding: 7px 5px; text-align: left; font-size: 10px; }
+                th { background: #388e3c; color: #fff; font-weight: 700; font-size: 11px; text-transform: uppercase; }
+                tr:nth-child(even) { background: #f6f8fa; }
+                tr:nth-child(odd) { background: #fff; }
                 .status-badge {
+                    display: inline-block;
                     padding: 3px 8px;
                     border-radius: 12px;
-                    font-size: 8px;
-                    font-weight: bold;
+                    font-size: 9px;
+                    font-weight: 600;
                     text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    color: #fff;
                     text-align: center;
+                    min-width: 60px;
                 }
-                
-                .status-paid {
-                    background-color: #d4edda;
-                    color: #155724;
-                }
-                
-                .status-pending {
-                    background-color: #fff3cd;
-                    color: #856404;
-                }
-                
-                .status-overdue {
-                    background-color: #f8d7da;
-                    color: #721c24;
-                }
-                
-                .status-delivered {
-                    background-color: #d1ecf1;
-                    color: #0c5460;
-                }
-                
-                .total-row {
-                    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-                    font-weight: bold;
-                    border-top: 2px solid #2c5aa0;
-                }
-                
-                .total-row td {
-                    padding: 12px 8px;
-                    font-size: 10px;
-                }
-                
-                .footer {
-                    margin-top: 20px;
-                    text-align: center;
-                    color: #666;
+                .status-paid { background: #27ae60; }
+                .status-pending { background: #f39c12; }
+                .status-partial { background: #3498db; }
+                .status-confirmed { background: #3498db; }
+                .status-processing { background: #9b59b6; }
+                .status-shipped { background: #e67e22; }
+                .status-delivered { background: #27ae60; }
+                .status-cancelled { background: #e74c3c; }
+                .sale-type-badge {
+                    display: inline-block;
+                    padding: 2px 6px;
+                    border-radius: 8px;
                     font-size: 8px;
-                    border-top: 1px solid #ddd;
-                    padding-top: 10px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.3px;
+                    color: #fff;
                 }
-                
-                .page-break {
-                    page-break-before: always;
-                }
+                .sale-type-direct { background: #95a5a6; }
+                .sale-type-order { background: #3498db; }
+                .amount-cell { font-weight: 600; color: #2c3e50; }
+                .footer { text-align: center; font-size: 11px; color: #7f8c8d; margin-top: 20px; padding-top: 10px; border-top: 1px solid #ecf0f1; }
             </style>
         </head>
         <body>
             <div class="header">
-                <h1>Purchase Report</h1>
+                <?php if ($logo_data): ?>
+                    <img src="data:image/png;base64,<?php echo $logo_data; ?>" class="logo" alt="Allied Steel Works Logo">
+                <?php endif; ?>
                 <div class="company-info">
-                    <strong>Allied Steel Works</strong><br>
-                    Complete Purchase Analysis & Summary
+                    <h1><?php echo htmlspecialchars($company_name); ?></h1>
+                    <p><?php echo htmlspecialchars($company_address); ?></p>
+                    <p><?php echo htmlspecialchars($company_email); ?> | <?php echo htmlspecialchars($company_phone); ?></p>
                 </div>
+                <div class="report-title">Purchase Report</div>
             </div>
 
-            <div class="report-meta">
-                <div class="left">
-                    <strong>Report Generated:</strong> <?php echo date('d M Y, H:i:s'); ?><br>
-                    <strong>Date Range:</strong> 
-                    <?php 
-                    if ($date_from && $date_to) {
-                        echo date('d M Y', strtotime($date_from)) . ' to ' . date('d M Y', strtotime($date_to));
-                    } else {
-                        echo 'All Dates';
-                    }
-                    ?>
-                </div>
-                <div class="right">
-                    <strong>Total Records:</strong> <?php echo number_format($totalRecords); ?><br>
-                    <strong>Filters Applied:</strong> 
-                    <?php 
-                    $filters = [];
-                    if ($vendor_id) $filters[] = 'Vendor';
-                    if ($payment_status) $filters[] = 'Payment Status';
-                    if ($min_amount || $max_amount) $filters[] = 'Amount Range';
-                    echo $filters ? implode(', ', $filters) : 'None';
-                    ?>
-                </div>
+            <div class="report-info">
+                <span><strong>Report Generated:</strong> <?php echo date('d M Y, H:i:s'); ?></span><br>
+                <strong>Date Range:</strong> 
+                <?php 
+                if ($date_from && $date_to) {
+                    echo date('d M Y', strtotime($date_from)) . ' to ' . date('d M Y', strtotime($date_to));
+                } else {
+                    echo 'All Dates';
+                }
+                ?>
+                <br><strong>Total Records:</strong> <?php echo number_format($totalRecords); ?><br>
+                <strong>Filters Applied:</strong> 
+                <?php 
+                $filters = [];
+                if ($vendor_id) $filters[] = 'Vendor';
+                if ($payment_status) $filters[] = 'Payment Status';
+                if ($min_amount || $max_amount) $filters[] = 'Amount Range';
+                echo $filters ? implode(', ', $filters) : 'None';
+                ?>
             </div>
 
-            <div class="summary-section">
-                <div class="summary-title">📊 Summary Statistics</div>
-                <div class="summary-grid">
-                    <div class="summary-item">
-                        <div class="label">Total Amount</div>
-                        <div class="value">PKR <?php echo number_format($totalAmount, 2); ?></div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="label">Total Records</div>
-                        <div class="value"><?php echo number_format($totalRecords); ?></div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="label">Average Amount</div>
-                        <div class="value">PKR <?php echo number_format($avgAmount, 2); ?></div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="label">Highest Purchase</div>
-                        <div class="value">PKR <?php echo number_format(max(array_column($purchases, 'total_price')), 2); ?></div>
-                    </div>
-                </div>
-                
-                <div class="summary-title">💳 Payment Status Breakdown</div>
-                <div class="payment-status-summary">
-                    <?php foreach ($paymentSummary as $status => $data): ?>
-                        <div class="status-item <?php echo strtolower($status); ?>">
-                            <strong><?php echo ucfirst($status); ?>:</strong><br>
-                            <?php echo $data['count']; ?> orders<br>
-                            PKR <?php echo number_format($data['amount'], 2); ?>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
+            <div class="summary">
+                <h3>Summary Statistics</h3>
+                <p><strong>Total Amount:</strong> PKR <?php echo number_format($totalAmount, 2); ?></p>
+                <p><strong>Total Records:</strong> <?php echo number_format($totalRecords); ?></p>
+                <p><strong>Average Amount:</strong> PKR <?php echo number_format($avgAmount, 2); ?></p>
+                <p><strong>Highest Purchase:</strong> PKR <?php echo number_format(max(array_column($purchases, 'total_price')), 2); ?></p>
+                <h3>Payment Status Breakdown</h3>
+                <?php foreach ($paymentSummary as $status => $data): ?>
+                    <p><strong><?php echo ucfirst($status); ?>:</strong> <?php echo $data['count']; ?> orders, PKR <?php echo number_format($data['amount'], 2); ?></p>
+                <?php endforeach; ?>
             </div>
 
             <table class="main-table">

@@ -277,13 +277,6 @@ $(document).ready(function () {
         toastr.info('Export data refreshed.');
     });
 
-    // --- Sample Template Download ---
-    $('#downloadSample').click(function (e) {
-        e.preventDefault();
-        // Download a real sample file
-        window.open('../assets/sample-export-template.csv', '_blank');
-    });
-
     // --- Export History Table (real API implementation) ---
     function loadExportHistory() {
         $.ajax({
@@ -313,7 +306,7 @@ $(document).ready(function () {
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end">
                                             <li><a class="dropdown-item view-export-details" href="#" data-id="${hist.id}"><i class="fas fa-info-circle me-2"></i>Details</a></li>
-                                            ${hasDownload ? `<li><a class="dropdown-item download-export-file" href="${hist.file_path.replace('..','..')}" download><i class="fas fa-download me-2"></i>Download</a></li>` : ''}
+                                            ${hasDownload ? `<li><a class="dropdown-item download-export-file" href="${hist.file_path}"><i class="fas fa-download me-2"></i>Download</a></li>` : ''}
                                             <li><a class="dropdown-item delete-export-record" href="#" data-id="${hist.id}"><i class="fas fa-trash-alt me-2 text-danger"></i>Delete</a></li>
                                         </ul>
                                     </div>

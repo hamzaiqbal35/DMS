@@ -36,6 +36,15 @@ $(document).ready(function () {
 
                 if (response.status === 'success') {
                     response.data.forEach(item => {
+                        // Determine display price (customer price if set, otherwise admin price)
+                        const displayPrice = item.customer_price ? item.customer_price : item.unit_price;
+                        const priceLabel = item.customer_price ? 'Customer' : 'Admin';
+                        
+                        // Create status badges
+                        const statusBadge = `<span class="badge bg-${item.status === 'active' ? 'success' : 'secondary'}">${item.status}</span>`;
+                        const websiteBadge = item.show_on_website ? '<span class="badge bg-info me-1"><i class="fas fa-globe"></i> Website</span>' : '';
+                        const featuredBadge = item.is_featured ? '<span class="badge bg-warning me-1"><i class="fas fa-star"></i> Featured</span>' : '';
+                        
                         tbody.append(`
                             <tr 
                                 data-category="${item.category_name.toLowerCase()}" 
@@ -49,9 +58,14 @@ $(document).ready(function () {
                                 <td>${item.category_name}</td>
                                 <td>${item.unit_of_measure}</td>
                                 <td>PKR ${parseFloat(item.unit_price).toFixed(2)}</td>
+                                <td>${item.customer_price ? `PKR ${parseFloat(item.customer_price).toFixed(2)}` : '<span class="text-muted">—</span>'}</td>
                                 <td>${item.current_stock}</td>
                                 <td>${item.minimum_stock}</td>
-                                <td><span class="badge bg-${item.status === 'active' ? 'success' : 'secondary'}">${item.status}</span></td>
+                                <td>
+                                    ${statusBadge}
+                                    ${websiteBadge}
+                                    ${featuredBadge}
+                                </td>
                                 <td>
                                     <div class="dropdown">
                                         <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -66,9 +80,14 @@ $(document).ready(function () {
                                                     data-category="${item.category_id}"
                                                     data-unit="${item.unit_of_measure}"
                                                     data-price="${item.unit_price}"
+                                                    data-customer-price="${item.customer_price || ''}"
                                                     data-min="${item.minimum_stock}"
                                                     data-desc="${item.description || ''}"
-                                                    data-status="${item.status}">
+                                                    data-status="${item.status}"
+                                                    data-show-website="${item.show_on_website}"
+                                                    data-featured="${item.is_featured}"
+                                                    data-seo-title="${item.seo_title || ''}"
+                                                    data-seo-desc="${item.seo_description || ''}">
                                                     <i class="fas fa-edit me-2"></i> Edit
                                                 </a>
                                             </li>
@@ -110,42 +129,108 @@ $(document).ready(function () {
 
     // Apply filters
     function applyFilters() {
-        const category = $('#filterCategory').val();
-        const status = $('#filterStatus').val();
+        const searchTerm = $('#searchInput').val().toLowerCase();
+        const categoryFilter = $('#filterCategory').val().toLowerCase();
+        const statusFilter = $('#filterStatus').val().toLowerCase();
+        const websiteFilter = $('#filterWebsite').val();
+        const featuredFilter = $('#filterFeatured').val();
         const minPrice = parseFloat($('#filterMinPrice').val()) || 0;
         const maxPrice = parseFloat($('#filterMaxPrice').val()) || Infinity;
         const minStock = parseFloat($('#filterMinStock').val()) || 0;
 
-        $('#inventoryTable tbody tr').each(function () {
+        let visibleCount = 0;
+
+        $('#inventoryTable tbody tr').each(function() {
             const row = $(this);
-            const rowCategory = row.data('category');
-            const rowStatus = row.data('status');
-            const rowPrice = parseFloat(row.data('price'));
-            const rowStock = parseFloat(row.data('stock'));
+            const itemName = row.find('td:eq(2)').text().toLowerCase();
+            const itemNumber = row.find('td:eq(1)').text().toLowerCase();
+            const category = row.data('category');
+            const status = row.data('status');
+            const price = row.data('price');
+            const stock = row.data('stock');
+            
+            // Get customer panel control data
+            const showWebsite = row.find('td:eq(9) .badge.bg-info').length > 0;
+            const isFeatured = row.find('td:eq(9) .badge.bg-warning').length > 0;
 
-            const matchCategory = !category || rowCategory === category;
-            const matchStatus = !status || rowStatus === status;
-            const matchPrice = rowPrice >= minPrice && rowPrice <= maxPrice;
-            const matchStock = rowStock >= minStock;
+            // Search filter
+            const matchesSearch = !searchTerm || 
+                itemName.includes(searchTerm) || 
+                itemNumber.includes(searchTerm);
+            
+            // Category filter
+            const matchesCategory = !categoryFilter || category === categoryFilter;
+            
+            // Status filter
+            const matchesStatus = !statusFilter || status === statusFilter;
+            
+            // Website filter
+            const matchesWebsite = websiteFilter === '' || 
+                (websiteFilter === '1' && showWebsite) || 
+                (websiteFilter === '0' && !showWebsite);
+            
+            // Featured filter
+            const matchesFeatured = featuredFilter === '' || 
+                (featuredFilter === '1' && isFeatured) || 
+                (featuredFilter === '0' && !isFeatured);
+            
+            // Price filter
+            const matchesPrice = price >= minPrice && price <= maxPrice;
+            
+            // Stock filter
+            const matchesStock = stock >= minStock;
 
-            row.toggle(matchCategory && matchStatus && matchPrice && matchStock);
+            const shouldShow = matchesSearch && matchesCategory && matchesStatus && 
+                             matchesWebsite && matchesFeatured && matchesPrice && matchesStock;
+            
+            if (shouldShow) {
+                row.show();
+                visibleCount++;
+            } else {
+                row.hide();
+            }
         });
+
+        // Show/hide empty state
+        if (visibleCount === 0) {
+            $('#emptyState').removeClass('d-none');
+            $('#inventoryTable').addClass('d-none');
+        } else {
+            $('#emptyState').addClass('d-none');
+            $('#inventoryTable').removeClass('d-none');
+        }
     }
 
-    $('#filterCategory, #filterStatus, #filterMinPrice, #filterMaxPrice, #filterMinStock').on('change keyup', applyFilters);
+    $('#searchInput, #filterCategory, #filterStatus, #filterWebsite, #filterFeatured, #filterMinPrice, #filterMaxPrice, #filterMinStock').on('change keyup', applyFilters);
 
-    $('#resetFilters').on('click', function () {
-        $('#filterCategory, #filterStatus, #filterMinPrice, #filterMaxPrice, #filterMinStock').val('');
-        $('#inventoryTable tbody tr').show();
+    // Reset filters
+    $('#resetFilters').click(function() {
+        $('#searchInput').val('');
+        $('#filterCategory').val('');
+        $('#filterStatus').val('');
+        $('#filterWebsite').val('');
+        $('#filterFeatured').val('');
+        $('#filterMinPrice').val('');
+        $('#filterMaxPrice').val('');
+        $('#filterMinStock').val('');
+        applyFilters();
     });
 
     // Add Item
     $('#addItemForm').submit(function (e) {
         e.preventDefault();
+        
+        // Handle checkbox values for form submission
+        const formData = new FormData(this);
+        formData.set('show_on_website', $('#show_on_website').is(':checked') ? '1' : '0');
+        formData.set('is_featured', $('#is_featured').is(':checked') ? '1' : '0');
+        
         $.ajax({
             url: '../model/inventory/insertItem.php',
             method: 'POST',
-            data: $(this).serialize(),
+            data: formData,
+            processData: false,
+            contentType: false,
             dataType: 'json',
             success: function (response) {
                 showMessage(response.message, response.status);
@@ -171,19 +256,37 @@ $(document).ready(function () {
         $('#edit_category_id').val($(this).data('category'));
         $('#edit_unit_of_measure').val($(this).data('unit'));
         $('#edit_unit_price').val($(this).data('price'));
+        $('#edit_customer_price').val($(this).data('customer-price'));
         $('#edit_minimum_stock').val($(this).data('min'));
         $('#edit_description').val($(this).data('desc'));
         $('#edit_status').val($(this).data('status'));
+        
+        // Handle checkboxes
+        $('#edit_show_on_website').prop('checked', $(this).data('show-website') == 1);
+        $('#edit_is_featured').prop('checked', $(this).data('featured') == 1);
+        
+        // Handle SEO fields
+        $('#edit_seo_title').val($(this).data('seo-title'));
+        $('#edit_seo_description').val($(this).data('seo-desc'));
+        
         $('#editItemModal').modal('show');
     });
 
     // Update item
     $('#editItemForm').submit(function (e) {
         e.preventDefault();
+        
+        // Handle checkbox values for form submission
+        const formData = new FormData(this);
+        formData.set('show_on_website', $('#edit_show_on_website').is(':checked') ? '1' : '0');
+        formData.set('is_featured', $('#edit_is_featured').is(':checked') ? '1' : '0');
+        
         $.ajax({
             url: '../model/inventory/updateItemDetails.php',
             method: 'POST',
-            data: $(this).serialize(),
+            data: formData,
+            processData: false,
+            contentType: false,
             dataType: 'json',
             success: function (response) {
                 showMessage(response.message, response.status);

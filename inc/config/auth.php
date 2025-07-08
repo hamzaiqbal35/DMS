@@ -1,5 +1,8 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_name('admin_session');
+    session_start();
+}
 
 require_once __DIR__ . '/../helpers.php';
 
@@ -71,14 +74,10 @@ function require_jwt_auth() {
         }
 
     } catch (Exception $e) {
-        // Log the error (you should implement proper logging)
-        error_log("JWT Authentication Error: " . $e->getMessage());
-        
         // Clear session and redirect to login
         session_unset();
         session_destroy();
         header("Location: /DMS/views/login.php");
-        exit();
     }
 }
 

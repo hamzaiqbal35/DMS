@@ -1,9 +1,10 @@
 <?php
+session_name('admin_session');
+session_start();
 require_once '../../inc/config/database.php';
 require_once '../../inc/helpers.php';
 
 header('Content-Type: application/json');
-session_start();
 
 try {
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
@@ -60,7 +61,6 @@ try {
     ]);
 
 } catch (Exception $e) {
-    error_log("Login Error: " . $e->getMessage(), 3, "../../error_log.log");
     echo json_encode([
         "status"  => "error",
         "message" => $e->getMessage()

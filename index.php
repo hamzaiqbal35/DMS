@@ -1,5 +1,8 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_name('admin_session');
+    session_start();
+}
 require_once 'inc/config/auth.php';  
 require_once 'inc/helpers.php';      
 

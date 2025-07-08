@@ -3,77 +3,75 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once "../inc/config/database.php";
-require_once "../inc/helpers.php";
+// Fix path issues by checking if we're in the api directory or root
+$basePath = file_exists("../inc/config/database.php") ? "../" : "";
+require_once $basePath . "inc/config/database.php";
+require_once $basePath . "inc/helpers.php";
 
 function saveExportHistory($exportData) {
     try {
+        global $pdo;
+        
         // Get current user ID
         $userId = $_SESSION['user_id'] ?? null;
-        if (!$userId) return false;
-
-        // File to store export history
-        $historyFile = '../uploads/export_history.json';
-        
-        // Create directory if it doesn't exist
-        if (!is_dir('../uploads')) {
-            mkdir('../uploads', 0755, true);
+        if (!$userId) {
+            error_log("Export History Error: No user ID in session. Session data: " . json_encode($_SESSION));
+            return false;
         }
         
-        // Read existing history or create empty array
-        if (file_exists($historyFile)) {
-            $history = json_decode(file_get_contents($historyFile), true) ?? [];
+        error_log("Export History Debug: Attempting to save export for user_id: $userId, export_type: " . ($exportData['export_type'] ?? 'unknown'));
+
+        // Check for duplicate export records (same user_id, export_type, and filters_applied in last 2 minutes)
+        $now = date('Y-m-d H:i:s');
+        $twoMinutesAgo = date('Y-m-d H:i:s', strtotime('-2 minutes'));
+        
+        $filtersJson = json_encode($exportData['filters'] ?? []);
+        
+        $checkDuplicate = $pdo->prepare("
+            SELECT export_id FROM export_history 
+            WHERE user_id = ? 
+            AND export_type = ? 
+            AND filters_applied = ? 
+            AND export_date > ?
+        ");
+        $checkDuplicate->execute([$userId, $exportData['export_type'], $filtersJson, $twoMinutesAgo]);
+        
+        if ($checkDuplicate->rowCount() > 0) {
+            // Duplicate found, return true to avoid error
+            return true;
+        }
+
+        // Insert new export record
+        $stmt = $pdo->prepare("
+            INSERT INTO export_history (
+                user_id, 
+                export_type, 
+                file_name, 
+                file_path, 
+                file_size, 
+                filters_applied, 
+                export_date
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        ");
+        
+        $result = $stmt->execute([
+            $userId,
+            $exportData['export_type'],
+            $exportData['file_name'],
+            $exportData['file_path'],
+            $exportData['file_size'] ?? 0,
+            $filtersJson,
+            $now
+        ]);
+        
+        if ($result) {
+            error_log("Export history saved successfully for user $userId: " . $exportData['file_name']);
+            return true;
         } else {
-            $history = [];
+            error_log("Failed to save export history for user $userId");
+            return false;
         }
         
-        // Prevent duplicate export records (same user_id, export_type, export_format, and filters_applied in last 2 minutes)
-        $now = time();
-        $duplicate = false;
-        $newFilters = json_encode($exportData['filters'] ?? []);
-        foreach (array_reverse($history) as $record) {
-            if (
-                $record['user_id'] == $userId &&
-                $record['export_type'] == $exportData['export_type'] &&
-                $record['export_format'] == $exportData['export_format'] &&
-                $record['filters_applied'] == $newFilters
-            ) {
-                $recordTime = strtotime($record['export_date']);
-                if (abs($now - $recordTime) < 120) { // 2 minutes
-                    $duplicate = true;
-                    break;
-                }
-            }
-        }
-        if ($duplicate) return true;
-
-        // Add new export record
-        $newExport = [
-            'id' => uniqid(),
-            'user_id' => $userId,
-            'export_type' => $exportData['export_type'],
-            'export_format' => $exportData['export_format'],
-            'date_range' => $exportData['date_range'] ?? '',
-            'filters_applied' => json_encode($exportData['filters'] ?? []),
-            'file_name' => $exportData['file_name'],
-            'file_size' => $exportData['file_size'] ?? null,
-            'file_path' => $exportData['file_path'] ?? null,
-            'export_date' => date('Y-m-d H:i:s'),
-            'exported_by' => $_SESSION['full_name'] ?? $_SESSION['username'] ?? 'Unknown User'
-        ];
-        
-        // Add to history
-        $history[] = $newExport;
-        
-        // Keep only last 1000 exports to prevent file from getting too large
-        if (count($history) > 1000) {
-            $history = array_slice($history, -1000);
-        }
-        
-        // Save back to file
-        file_put_contents($historyFile, json_encode($history, JSON_PRETTY_PRINT));
-        
-        return true;
     } catch (Exception $e) {
         error_log("Error saving export history: " . $e->getMessage());
         return false;

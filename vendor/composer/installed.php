@@ -3,7 +3,7 @@
         'name' => 'hamza/dms',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'd345bbb21d91877ab3a2b9d07e0b4920ab6ba254',
+        'reference' => '79f6e778bd0cc75b38256538966cdb789a2f4f6e',
         'type' => 'no',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -49,7 +49,7 @@
         'hamza/dms' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'd345bbb21d91877ab3a2b9d07e0b4920ab6ba254',
+            'reference' => '79f6e778bd0cc75b38256538966cdb789a2f4f6e',
             'type' => 'no',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

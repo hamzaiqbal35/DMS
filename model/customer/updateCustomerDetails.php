@@ -59,6 +59,10 @@ try {
         $customer_id
     ]);
 
+    // Also update status in customer_users table for all users linked to this customer
+    $stmt2 = $pdo->prepare("UPDATE customer_users SET status = ? WHERE admin_customer_id = ?");
+    $stmt2->execute([$status, $customer_id]);
+
     if ($result) {
         echo json_encode(["status" => "success", "message" => "Customer updated successfully."]);
     } else {

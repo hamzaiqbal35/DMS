@@ -1,7 +1,6 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+session_name('admin_session');
+session_start();
 require_once "../inc/config/auth.php"; // Ensure user authentication
 require_jwt_auth(); // Enforce JWT authentication
 require_once "../inc/header.php"; // Include header
@@ -20,12 +19,9 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                         </button>
                     </div>
                     
-                    <div class="row mb-3 g-3 filter-container">
-                        <div class="col-md-4">
-                            <div class="search-container">
-                                <i class="fas fa-search search-icon"></i>
-                                <input type="text" id="searchInput" class="form-control" placeholder="Search Product Name or Item Number ...">
-                            </div>
+                    <div class="row mb-3 g-3">
+                        <div class="col-md-3">
+                            <input type="text" id="searchInput" class="form-control" placeholder="Search items...">
                         </div>
                         <div class="col-md-3">
                             <select id="filterCategory" class="form-select">
@@ -33,7 +29,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                                 <!-- Categories loaded via AJAX -->
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <select id="filterStatus" class="form-select">
                                 <option value="">Filter by Status</option>
                                 <option value="active">Active</option>
@@ -41,19 +37,33 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <button class="btn btn-secondary w-100" id="resetFilters">Reset Filters</button>
+                            <select id="filterWebsite" class="form-select">
+                                <option value="">Website Status</option>
+                                <option value="1">Show on Website</option>
+                                <option value="0">Hidden</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select id="filterFeatured" class="form-select">
+                                <option value="">Featured Status</option>
+                                <option value="1">Featured</option>
+                                <option value="0">Not Featured</option>
+                            </select>
                         </div>
                     </div>
                     
                     <div class="row mb-3 g-3">
-                        <div class="col-md-4">
-                            <input type="number" id="filterMinPrice" class="form-control" placeholder="Min Price">
+                        <div class="col-md-3">
+                            <input type="number" id="filterMinPrice" class="form-control" placeholder="Min Admin Price">
                         </div>
-                        <div class="col-md-4">
-                            <input type="number" id="filterMaxPrice" class="form-control" placeholder="Max Price">
+                        <div class="col-md-3">
+                            <input type="number" id="filterMaxPrice" class="form-control" placeholder="Max Admin Price">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <input type="number" id="filterMinStock" class="form-control" placeholder="Min Stock">
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-secondary w-100" id="resetFilters">Reset Filters</button>
                         </div>
                     </div>
 
@@ -65,16 +75,17 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                                 <table class="table table-hover" id="inventoryTable">
                                     <thead>
                                         <tr>
-                                            <th width="5%">ID</th>
-                                            <th width="10%">Item Number</th>
-                                            <th width="15%">Item Name</th>
-                                            <th width="10%">Category</th>
-                                            <th width="8%">Unit</th>
-                                            <th width="10%">Unit Price</th>
-                                            <th width="10%">Current Stock</th>
-                                            <th width="8%">Min Stock</th>
-                                            <th width="10%">Status</th>
-                                            <th width="14%">Actions</th>
+                                            <th width="4%">ID</th>
+                                            <th width="8%">Item Number</th>
+                                            <th width="12%">Item Name</th>
+                                            <th width="16%">Category</th>
+                                            <th width="6%">Unit</th>
+                                            <th width="8%">Admin Price</th>
+                                            <th width="12%">Customer Price</th>
+                                            <th width="8%">Current Stock</th>
+                                            <th width="6%">Min Stock</th>
+                                            <th width="12%">Status & Controls</th>
+                                            <th width="8%">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -128,16 +139,17 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                                 <input type="text" name="unit_of_measure" id="unit_of_measure" class="form-control" required placeholder="Enter unit (e.g., kg, pcs)">
                             </div>
                             <div class="col-md-6">
-                                <label for="unit_price" class="form-label"><i class="fas fa-rupee-sign me-1"></i> Unit Price</label>
+                                <label for="unit_price" class="form-label"><i class="fas fa-rupee-sign me-1"></i> Unit Price (Admin)</label>
                                 <input type="number" step="0.01" name="unit_price" id="unit_price" class="form-control" min="0" required placeholder="Enter unit price">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="customer_price" class="form-label"><i class="fas fa-tag me-1"></i> Customer Price</label>
+                                <input type="number" step="0.01" name="customer_price" id="customer_price" class="form-control" min="0" placeholder="Enter customer price (optional)">
+                                <small class="text-muted">Leave empty to use admin price</small>
                             </div>
                             <div class="col-md-6">
                                 <label for="minimum_stock" class="form-label"><i class="fas fa-level-down-alt me-1"></i> Minimum Stock</label>
                                 <input type="number" step="0.01" name="minimum_stock" id="minimum_stock" class="form-control" min="0" required placeholder="Enter minimum stock level">
-                            </div>
-                            <div class="col-12">
-                                <label for="description" class="form-label"><i class="fas fa-info-circle me-1"></i> Description</label>
-                                <textarea name="description" id="description" class="form-control" rows="3" placeholder="Enter description"></textarea>
                             </div>
                             <div class="col-md-6">
                                 <label for="status" class="form-label"><i class="fas fa-toggle-on me-1"></i> Status</label>
@@ -146,6 +158,41 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
                                 </select>
+                            </div>
+                            <div class="col-12">
+                                <label for="description" class="form-label"><i class="fas fa-info-circle me-1"></i> Description</label>
+                                <textarea name="description" id="description" class="form-control" rows="3" placeholder="Enter description"></textarea>
+                            </div>
+                            
+                            <!-- Customer Panel Control Section -->
+                            <div class="col-12">
+                                <hr>
+                                <h6 class="text-primary"><i class="fas fa-globe me-2"></i>Customer Panel Settings</h6>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="show_on_website" id="show_on_website" value="1" checked>
+                                    <label class="form-check-label" for="show_on_website">
+                                        <i class="fas fa-eye me-1"></i> Show on Customer Website
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="is_featured" id="is_featured" value="1">
+                                    <label class="form-check-label" for="is_featured">
+                                        <i class="fas fa-star me-1"></i> Featured Product
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="seo_title" class="form-label"><i class="fas fa-search me-1"></i> SEO Title</label>
+                                <input type="text" name="seo_title" id="seo_title" class="form-control" placeholder="Enter SEO title (optional)">
+                                <small class="text-muted">For search engine optimization</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="seo_description" class="form-label"><i class="fas fa-search me-1"></i> SEO Description</label>
+                                <textarea name="seo_description" id="seo_description" class="form-control" rows="2" placeholder="Enter SEO description (optional)"></textarea>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -190,16 +237,17 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                                 <input type="text" name="unit_of_measure" id="edit_unit_of_measure" class="form-control" required placeholder="Enter unit (e.g., kg, pcs)">
                             </div>
                             <div class="col-md-6">
-                                <label for="edit_unit_price" class="form-label"><i class="fas fa-dollar-sign me-1"></i> Unit Price</label>
+                                <label for="edit_unit_price" class="form-label"><i class="fas fa-dollar-sign me-1"></i> Unit Price (Admin)</label>
                                 <input type="number" step="0.01" name="unit_price" id="edit_unit_price" class="form-control" min="0" required placeholder="Enter unit price">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_customer_price" class="form-label"><i class="fas fa-tag me-1"></i> Customer Price</label>
+                                <input type="number" step="0.01" name="customer_price" id="edit_customer_price" class="form-control" min="0" placeholder="Enter customer price (optional)">
+                                <small class="text-muted">Leave empty to use admin price</small>
                             </div>
                             <div class="col-md-6">
                                 <label for="edit_minimum_stock" class="form-label"><i class="fas fa-level-down-alt me-1"></i> Minimum Stock</label>
                                 <input type="number" step="0.01" name="minimum_stock" id="edit_minimum_stock" class="form-control" min="0" required placeholder="Enter minimum stock level">
-                            </div>
-                            <div class="col-12">
-                                <label for="edit_description" class="form-label"><i class="fas fa-info-circle me-1"></i> Description</label>
-                                <textarea name="description" id="edit_description" class="form-control" rows="3" placeholder="Enter description"></textarea>
                             </div>
                             <div class="col-md-6">
                                 <label for="edit_status" class="form-label"><i class="fas fa-toggle-on me-1"></i> Status</label>
@@ -208,6 +256,41 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
                                 </select>
+                            </div>
+                            <div class="col-12">
+                                <label for="edit_description" class="form-label"><i class="fas fa-info-circle me-1"></i> Description</label>
+                                <textarea name="description" id="edit_description" class="form-control" rows="3" placeholder="Enter description"></textarea>
+                            </div>
+                            
+                            <!-- Customer Panel Control Section -->
+                            <div class="col-12">
+                                <hr>
+                                <h6 class="text-primary"><i class="fas fa-globe me-2"></i>Customer Panel Settings</h6>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="show_on_website" id="edit_show_on_website" value="1">
+                                    <label class="form-check-label" for="edit_show_on_website">
+                                        <i class="fas fa-eye me-1"></i> Show on Customer Website
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="is_featured" id="edit_is_featured" value="1">
+                                    <label class="form-check-label" for="edit_is_featured">
+                                        <i class="fas fa-star me-1"></i> Featured Product
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_seo_title" class="form-label"><i class="fas fa-search me-1"></i> SEO Title</label>
+                                <input type="text" name="seo_title" id="edit_seo_title" class="form-control" placeholder="Enter SEO title (optional)">
+                                <small class="text-muted">For search engine optimization</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_seo_description" class="form-label"><i class="fas fa-search me-1"></i> SEO Description</label>
+                                <textarea name="seo_description" id="edit_seo_description" class="form-control" rows="2" placeholder="Enter SEO description (optional)"></textarea>
                             </div>
                         </div>
                         <div class="modal-footer">

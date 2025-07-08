@@ -1,4 +1,5 @@
 <?php
+session_name('admin_session');
 session_start();
 $base_url = "http://localhost/DMS/"; 
 
@@ -94,8 +95,10 @@ $roles = [
                     dataType: "json",
                     success: function (response) {
                         if (response.status === "success") {
-                            // Store JWT token in localStorage - THIS WAS MISSING
+                            // Store JWT token in localStorage 
                             localStorage.setItem("jwt_token", response.token);
+                            // Also set as a cookie for PHP session restoration
+                            document.cookie = "jwt_token=" + response.token + "; path=/; max-age=" + (60 * 60 * 3) + ";";
                             
                             $("#alertBox")
                                 .removeClass("d-none alert-danger")

@@ -1,4 +1,6 @@
 <?php
+session_name('admin_session');
+session_start();
 require_once '../inc/config/database.php';
 require_once '../inc/helpers.php';
 

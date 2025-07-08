@@ -97,7 +97,7 @@ $(document).ready(function () {
     $('#addVendorForm').on('submit', function (e) {
         e.preventDefault();
         $.ajax({
-            url: '../model/vendor/addVendor.php',
+            url: '../model/vendor/insertVendor.php',
             method: 'POST',
             data: $(this).serialize(),
             dataType: 'json',
@@ -138,7 +138,7 @@ $(document).ready(function () {
     $('#editVendorForm').on('submit', function (e) {
         e.preventDefault();
         $.ajax({
-            url: '../model/vendor/updateVendor.php',
+            url: '../model/vendor/updateVendorDetails.php',
             method: 'POST',
             data: $(this).serialize(),
             dataType: 'json',
@@ -217,17 +217,6 @@ $(document).ready(function () {
                 showMessage('danger', 'Error deleting vendor.');
             }
         });
-    });
-
-    // Add event listeners for modal hidden events
-    $('#addVendorModal, #editVendorModal, #deleteVendorModal').on('hidden.bs.modal', function () {
-        setTimeout(() => {
-            $('.modal-backdrop').remove();
-            $('body').css({
-                'overflow': '',
-                'padding-right': ''
-            });
-        }, 300);
     });
 
     // Utility function

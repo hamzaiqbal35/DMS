@@ -1,7 +1,6 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+session_name('admin_session');
+session_start();
 require_once "../inc/config/auth.php"; // Ensure user authentication
 require_jwt_auth(); // Enforce JWT authentication
 require_once "../inc/header.php"; // Include header
@@ -30,7 +29,6 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
                     <div class="card shadow mb-4">
                         <div class="card-header bg-white d-flex justify-content-between align-items-center">
                             <h5 class="card-title mb-0"><i class="fas fa-filter me-2 text-primary"></i>Export Filters</h5>
-                            <a href="#" id="downloadSample" class="btn btn-link btn-sm text-decoration-none" title="Download sample template"><i class="fas fa-download me-1"></i>Sample Template</a>
                         </div>
                         <div class="card-body bg-light-subtle rounded-bottom">
                             <form id="exportFilters" class="row g-3">

@@ -16,7 +16,7 @@ $(document).ready(function () {
                         options += `<option value="${c.customer_id}">${c.customer_name}</option>`;
                         filterOptions += `<option value="${c.customer_name}">${c.customer_name}</option>`;
                     });
-                    $("#customer_id, #edit_customer_id").html(options);
+                    $("#customer_id, #edit_customer_id, #order_customer_id").html(options);
                     $("#filterCustomer").html(filterOptions);
                 } else {
                     toastr.error("Failed to load customers");
@@ -51,6 +51,39 @@ $(document).ready(function () {
             error: function(xhr, status, error) {
                 toastr.error("Error loading items");
                 console.error("Item load error:", error);
+            }
+        });
+    }
+
+    // Load customer orders for sale from order
+    function loadCustomerOrders(customerId) {
+        if (!customerId) {
+            $("#customer_order_id").html('<option value="">Select Order</option>');
+            return;
+        }
+        
+        $.ajax({
+            url: "../api/admin/get-orders.php",
+            method: "GET",
+            data: { customer_id: customerId },
+            dataType: "json",
+            success: function(res) {
+                if (res.status === "success" && res.data) {
+                    let options = '<option value="">Select Order</option>';
+                    res.data.forEach(order => {
+                        // Only show orders not pending/cancelled
+                        if (!['pending', 'cancelled'].includes(order.order_status)) {
+                            options += `<option value="${order.order_id}" data-order='${JSON.stringify(order)}'>${order.order_number} - ${order.order_date}</option>`;
+                        }
+                    });
+                    $("#customer_order_id").html(options);
+                } else {
+                    $("#customer_order_id").html('<option value="">No orders found</option>');
+                }
+            },
+            error: function(xhr, status, error) {
+                toastr.error("Error loading customer orders");
+                console.error("Order load error:", error);
             }
         });
     }
@@ -91,52 +124,80 @@ $(document).ready(function () {
 
         $("#emptyState").addClass('d-none');
         sales.forEach(sale => {
-            const totalPrice = parseFloat(sale.total_price || 0);
-            const paidAmount = parseFloat(sale.paid_amount || 0);
-            const unitPrice = parseFloat(sale.unit_price || 0);
+            // Determine sale type badge
+            let saleTypeBadge = '';
+            if (sale.customer_order_id && sale.customer_order_id !== 'N/A') {
+                saleTypeBadge = `<span class="badge bg-info" title="From Customer Order: ${sale.order_number || 'N/A'}">
+                    <i class="fas fa-shopping-cart me-1"></i>From Order
+                </span>`;
+            } else {
+                saleTypeBadge = `<span class="badge bg-secondary">
+                    <i class="fas fa-plus me-1"></i>Direct Sale
+                </span>`;
+            }
+
+            // Format items display
+            let itemsDisplay = sale.total_items > 1 ? `${sale.total_items} items` : sale.items_details || 'N/A';
+            
+            // Format amounts with proper null handling
+            const totalAmount = parseFloat(sale.display_total_amount || 0).toFixed(2);
+            const paidAmount = parseFloat(sale.display_paid_amount || 0).toFixed(2);
+            const pendingAmount = parseFloat(sale.display_pending_amount || 0).toFixed(2);
+
+            // Build action menu, hiding Edit for customer order sales
+            let actionMenu = `<div class="dropdown">
+                <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item viewSaleBtn" href="#" data-id="${sale.sale_id}">
+                            <i class="fas fa-eye me-2"></i> View
+                        </a>
+                    </li>`;
+            if (!sale.customer_order_id || sale.customer_order_id === 'N/A') {
+                actionMenu += `<li>
+                    <a class="dropdown-item editSaleBtn" href="#" data-id="${sale.sale_id}">
+                        <i class="fas fa-edit me-2"></i> Edit
+                    </a>
+                </li>`;
+            }
+            actionMenu += `<li>
+                    <a class="dropdown-item recordPaymentBtn" href="#" data-id="${sale.sale_id}">
+                        <i class="fas fa-credit-card me-2"></i> Record Payment
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item text-danger deleteSaleBtn" href="#" data-id="${sale.sale_id}">
+                        <i class="fas fa-trash-alt me-2"></i> Delete
+                    </a>
+                </li>
+            </ul>
+        </div>`;
 
             tbody.append(`
-                <tr data-customer-name="${sale.customer_name}" data-payment-status="${sale.payment_status}">
+                <tr data-customer-name="${sale.customer_name}" data-payment-status="${sale.payment_status}" data-order-status="${sale.order_status}" data-sale-type="${sale.customer_order_id && sale.customer_order_id !== 'N/A' ? 'from_order' : 'direct'}">
                     <td>${sale.invoice_number}</td>
                     <td>${sale.customer_name}</td>
-                    <td>${sale.item_name}</td>
-                    <td>${sale.quantity}</td>
-                    <td>PKR ${unitPrice.toFixed(2)}</td>
-                    <td>PKR ${totalPrice.toFixed(2)}</td>
-                    <td>PKR ${paidAmount.toFixed(2)}</td>
+                    <td>${saleTypeBadge}</td>
+                    <td>${itemsDisplay}</td>
+                    <td>PKR ${totalAmount}</td>
+                    <td>PKR ${paidAmount}</td>
+                    <td>PKR ${pendingAmount}</td>
                     <td>${sale.sale_date}</td>
-                    <td><span class="badge bg-${getStatusColor(sale.payment_status)}">${sale.payment_status}</span></td>
+                    <td><span class="badge bg-${getPaymentStatusColor(sale.payment_status)}">${sale.payment_status}</span></td>
+                    <td><span class="badge bg-${getOrderStatusColor(sale.order_status)}">${sale.order_status}</span></td>
+                    <td>${sale.tracking_number && sale.tracking_number !== 'N/A' ? sale.tracking_number : '_'}</td>
                     <td>
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-ellipsis-v"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <a class="dropdown-item viewSaleBtn" href="#" data-id="${sale.sale_id}">
-                                        <i class="fas fa-eye me-2"></i> View
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item editSaleBtn" href="#" data-id="${sale.sale_id}">
-                                        <i class="fas fa-edit me-2"></i> Edit
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item text-danger deleteSaleBtn" href="#" data-id="${sale.sale_id}">
-                                        <i class="fas fa-trash-alt me-2"></i> Delete
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
+                        ${actionMenu}
                     </td>
                 </tr>
             `);
         });
     }
 
-    // Get status color
-    function getStatusColor(status) {
+    // Get payment status color
+    function getPaymentStatusColor(status) {
         const colors = {
             'pending': 'warning',
             'partial': 'info',
@@ -145,103 +206,163 @@ $(document).ready(function () {
         return colors[status] || 'secondary';
     }
 
-    // FIXED: Search and filter functionality
-    function applyFilters() {
-        const searchText = $("#searchInput").val().toLowerCase().trim();
-        const customerFilter = $("#filterCustomer").val().trim();
-        const statusFilter = $("#filterPaymentStatus").val().trim();
-
-        console.log("Applying filters - Status:", statusFilter);
-
-        let visibleCount = 0;
-
-        $("#salesTable tbody tr").each(function() {
-            const row = $(this);
-            const invoiceNumber = row.find('td:eq(0)').text().toLowerCase();
-            const customerName = row.find('td:eq(1)').text().toLowerCase();
-            const itemName = row.find('td:eq(2)').text().toLowerCase();
-            
-            // FIXED: Get payment status from data attribute instead of badge text
-            const paymentStatus = row.data('payment-status') || row.find('td:eq(8) .badge').text().toLowerCase();
-            
-            // Get the actual customer name from data attribute
-            const rowCustomerName = row.data('customer-name') || row.find('td:eq(1)').text();
-
-            // Search filter
-            const matchesSearch = !searchText || 
-                                invoiceNumber.includes(searchText) || 
-                                customerName.includes(searchText) || 
-                                itemName.includes(searchText);
-            
-            // Customer filter - exact match with customer name
-            const matchesCustomer = !customerFilter || rowCustomerName === customerFilter;
-            
-            // FIXED: Status filter - compare with original status value
-            const matchesStatus = !statusFilter || paymentStatus === statusFilter;
-
-            const shouldShow = matchesSearch && matchesCustomer && matchesStatus;
-            
-            console.log(`Row payment status: "${paymentStatus}", Filter: "${statusFilter}", Match: ${matchesStatus}`);
-            
-            if (shouldShow) {
-                row.show();
-                visibleCount++;
-            } else {
-                row.hide();
-            }
-        });
-
-        // Show/hide empty state based on visible rows
-        if (visibleCount === 0 && originalSalesData.length > 0) {
-            $("#emptyState").removeClass('d-none');
-            $("#emptyState h5").text('No Matching Sales Found');
-            $("#emptyState p").text('Try adjusting your search or filter criteria.');
-        } else if (originalSalesData.length === 0) {
-            $("#emptyState").removeClass('d-none');
-            $("#emptyState h5").text('No Sales Found');
-            $("#emptyState p").text('Start by adding a sale or try searching differently.');
-        } else {
-            $("#emptyState").addClass('d-none');
-        }
+    // Get order status color
+    function getOrderStatusColor(status) {
+        const colors = {
+            'pending': 'warning',
+            'confirmed': 'info',
+            'processing': 'primary',
+            'shipped': 'info',
+            'delivered': 'success',
+            'cancelled': 'danger'
+        };
+        return colors[status] || 'secondary';
     }
 
-    // Handle search input
-    $("#searchInput").on('input', applyFilters);
+    // Apply filters
+    function applyFilters() {
+        const searchTerm = $("#searchInput").val().toLowerCase();
+        const customerFilter = $("#filterCustomer").val().toLowerCase();
+        const paymentStatusFilter = $("#filterPaymentStatus").val();
+        const orderStatusFilter = $("#filterOrderStatus").val();
+        const saleTypeFilter = $("#filterSaleType").val();
 
-    // Handle filter changes
-    $("#filterCustomer").on('change', applyFilters);
-    $("#filterPaymentStatus").on('change', applyFilters);
+        const filteredData = originalSalesData.filter(sale => {
+            const matchesSearch = !searchTerm || 
+                sale.invoice_number.toLowerCase().includes(searchTerm) ||
+                sale.customer_name.toLowerCase().includes(searchTerm) ||
+                sale.items_details.toLowerCase().includes(searchTerm) ||
+                sale.tracking_number.toLowerCase().includes(searchTerm);
 
-    // Handle reset filters
+            const matchesCustomer = !customerFilter || 
+                sale.customer_name.toLowerCase().includes(customerFilter);
+
+            const matchesPaymentStatus = !paymentStatusFilter || 
+                sale.payment_status === paymentStatusFilter;
+
+            const matchesOrderStatus = !orderStatusFilter || (sale.order_status === orderStatusFilter);
+
+            const matchesSaleType = !saleTypeFilter || 
+                (saleTypeFilter === 'direct' && (!sale.customer_order_id || sale.customer_order_id === 'N/A')) ||
+                (saleTypeFilter === 'from_order' && sale.customer_order_id && sale.customer_order_id !== 'N/A');
+
+            return matchesSearch && matchesCustomer && matchesPaymentStatus && matchesOrderStatus && matchesSaleType;
+        });
+
+        renderSalesTable(filteredData);
+        updateSummary(filteredData);
+    }
+
+    // Update summary
+    function updateSummary(salesData) {
+        const totalSales = salesData.length;
+        const totalAmount = salesData.reduce((sum, sale) => sum + parseFloat(sale.display_total_amount || 0), 0);
+        const totalPaid = salesData.reduce((sum, sale) => sum + parseFloat(sale.display_paid_amount || 0), 0);
+        const totalPending = salesData.reduce((sum, sale) => sum + parseFloat(sale.display_pending_amount || 0), 0);
+        const uniqueCustomers = new Set(salesData.map(sale => sale.customer_name)).size;
+        const averageSale = totalSales > 0 ? totalAmount / totalSales : 0;
+
+        $("#totalSalesCount span").text(totalSales);
+        $("#totalAmount").text(`PKR ${totalAmount.toFixed(2)}`);
+        $("#totalPaid").text(`PKR ${totalPaid.toFixed(2)}`);
+        $("#totalPending").text(`PKR ${totalPending.toFixed(2)}`);
+        $("#uniqueCustomers").text(uniqueCustomers);
+        $("#averageSale").text(`PKR ${averageSale.toFixed(2)}`);
+    }
+
+    // Initialize
+    loadCustomers();
+    loadItems();
+    loadSales();
+
+    // Set default dates
+    $("#sale_date, #order_sale_date").val(new Date().toISOString().split('T')[0]);
+
+    // Event listeners
+    $("#searchInput, #filterCustomer, #filterPaymentStatus, #filterOrderStatus, #filterSaleType").on('input change', applyFilters);
+
     $("#resetFilters").click(function() {
-        $("#searchInput").val('');
-        $("#filterCustomer").val('');
-        $("#filterPaymentStatus").val('');
-        renderSalesTable(originalSalesData);
+        $("#searchInput, #filterCustomer, #filterPaymentStatus, #filterOrderStatus, #filterSaleType").val('');
+        applyFilters();
     });
 
-    // Handle item selection
-    $(document).on('change', '#item_id, #edit_item_id', function() {
+    // Customer order selection
+    $("#order_customer_id").change(function() {
+        const customerId = $(this).val();
+        loadCustomerOrders(customerId);
+    });
+
+    $("#customer_order_id").change(function() {
         const selectedOption = $(this).find('option:selected');
-        const unitPrice = selectedOption.data('price') || 0;
-        const formPrefix = $(this).attr('id').startsWith('edit_') ? 'edit_' : '';
-        $(`#${formPrefix}unit_price`).val(unitPrice);
-        calculateTotals(formPrefix);
+        const orderData = selectedOption.data('order');
+        
+        if (orderData) {
+            // Populate order details preview
+            let previewHtml = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Order Number:</strong> ${orderData.order_number}</p>
+                        <p><strong>Order Date:</strong> ${orderData.order_date}</p>
+                        <p><strong>Total Amount:</strong> PKR ${parseFloat(orderData.final_amount).toFixed(2)}</p>
+                        <p><strong>Payment Method:</strong> ${orderData.payment_method}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Items:</strong></p>
+                        <ul>`;
+            
+            if (orderData.items && orderData.items.length > 0) {
+                orderData.items.forEach(item => {
+                    previewHtml += `<li>${item.item_name} - ${item.quantity} x PKR ${parseFloat(item.unit_price).toFixed(2)}</li>`;
+                });
+            }
+            
+            previewHtml += `</ul></div></div>`;
+            
+            $("#orderDetailsContent").html(previewHtml);
+            $("#orderDetailsPreview").show();
+            
+            // Auto-populate tracking number if available
+            if (orderData.tracking_number) {
+                $("#order_tracking_number").val(orderData.tracking_number);
+            }
+        } else {
+            $("#orderDetailsPreview").hide();
+        }
     });
 
-    // Handle quantity/price changes
-    $(document).on('input', '#quantity, #unit_price, #edit_quantity, #edit_unit_price', function() {
-        const formPrefix = $(this).attr('id').startsWith('edit_') ? 'edit_' : '';
-        calculateTotals(formPrefix);
+    // Calculate totals on input change
+    $("#quantity, #unit_price").on('input', function() {
+        calculateTotals();
     });
 
-    // Handle add sale form submission
+    $("#edit_quantity, #edit_unit_price").on('input', function() {
+        calculateTotals('edit_');
+    });
+
+    // Item selection - auto-populate price
+    $("#item_id").change(function() {
+        const selectedOption = $(this).find('option:selected');
+        const price = selectedOption.data('price');
+        if (price) {
+            $("#unit_price").val(price);
+            calculateTotals();
+        }
+    });
+
+    $("#edit_item_id").change(function() {
+        const selectedOption = $(this).find('option:selected');
+        const price = selectedOption.data('price');
+        if (price) {
+            $("#edit_unit_price").val(price);
+            calculateTotals('edit_');
+        }
+    });
+
+    // Add direct sale form submission
     $("#addSaleForm").submit(function(e) {
         e.preventDefault();
-        const formData = new FormData(this);
-        const totals = calculateTotals();
         
-        formData.append('total_amount', totals.total);
+        const formData = new FormData(this);
         
         $.ajax({
             url: "../model/sale/insertSale.php",
@@ -251,34 +372,216 @@ $(document).ready(function () {
             contentType: false,
             success: function(res) {
                 if (res.status === "success") {
-                    // Properly remove modal and backdrop
-                    const modal = bootstrap.Modal.getInstance($("#addSaleModal"));
-                    modal.hide();
-                    $('body').removeClass('modal-open');
-                    $('.modal-backdrop').remove();
-                    
-                    // Reset form and reload data
+                    toastr.success(res.message);
+                    $("#addSaleModal").modal('hide');
                     $("#addSaleForm")[0].reset();
                     loadSales();
-                    toastr.success(res.message);
                 } else {
                     toastr.error(res.message);
                 }
             },
-            error: function(xhr, status, error) {
+            error: function() {
                 toastr.error("Error adding sale");
-                console.error("Add sale error:", error);
             }
         });
     });
 
-    // Handle edit sale form submission
+    // View sale details
+    $(document).on('click', '.viewSaleBtn', function() {
+        const saleId = $(this).data('id');
+        console.log('[DEBUG] Viewing sale ID:', saleId);
+        
+        $.get("../model/sale/getSaleDetails.php", { sale_id: saleId }, function(res) {
+            if (res.status === "success") {
+                const sale = res.data;
+                
+                // Populate customer information
+                $("#view_customer_name").text(sale.customer_name);
+                $("#view_customer_phone").text(sale.customer_phone);
+                $("#view_customer_email").text(sale.customer_email);
+                $("#view_customer_address").text(sale.customer_address);
+                $("#view_customer_city").text(sale.customer_city);
+                $("#view_customer_state").text(sale.customer_state);
+                $("#view_customer_zip_code").text(sale.customer_zip_code);
+                
+                // Populate sale information
+                $("#view_invoice_number").text(sale.invoice_number);
+                $("#view_sale_date").text(sale.sale_date);
+                $("#view_payment_status").text(sale.payment_status);
+                $("#view_sale_type").text(sale.sale_type);
+                $("#view_tracking_number").text(sale.tracking_number && sale.tracking_number !== 'N/A' ? sale.tracking_number : '-');
+                $("#view_created_by_name").text(sale.created_by_name);
+                $("#view_created_at").text(sale.created_at);
+                
+                // Hide Order Status for Direct Sales
+                if (sale.sale_type === 'Direct Sale') {
+                    $("#view_order_status").parent().hide();
+                } else {
+                    $("#view_order_status").parent().show();
+                    $("#view_order_status").text(sale.order_status);
+                }
+                
+                // Show/hide order information based on sale type
+                if (sale.customer_order_id && sale.customer_order_id !== 'N/A') {
+                    $("#view_order_info").show();
+                    $("#view_order_number").text(sale.order_number);
+                    $("#view_order_date").text(sale.order_date);
+                    $("#view_order_payment_method").text(sale.order_payment_method);
+                    $("#view_order_payment_status").text(sale.order_payment_status);
+                    $("#view_shipping_address").text(sale.shipping_address);
+                    $("#view_billing_address").text(sale.billing_address);
+                    $("#view_customer_user_name").text(sale.customer_user_name);
+                    $("#view_customer_user_email").text(sale.customer_user_email);
+                } else {
+                    $("#view_order_info").hide();
+                }
+                
+                // Populate items
+                const tbody = $("#view_items_tbody");
+                tbody.empty();
+                sale.items.forEach(item => {
+                    tbody.append(`
+                        <tr>
+                            <td>${item.item_name}</td>
+                            <td>${item.item_number}</td>
+                            <td>${item.description || 'N/A'}</td>
+                            <td>${item.unit_of_measure}</td>
+                            <td>${item.quantity}</td>
+                            <td>PKR ${item.unit_price}</td>
+                            <td>PKR ${item.total_price}</td>
+                        </tr>
+                    `);
+                });
+
+                // --- Invoice-style total summary (matches sale-invoices.js) ---
+                let subtotal = 0;
+                sale.items.forEach(item => {
+                    subtotal += parseFloat(item.total_price || 0);
+                });
+                function parseAmount(val) {
+                    let n = parseFloat(val);
+                    return isNaN(n) ? 0 : n;
+                }
+                let shipping, discount, tax, total;
+                if (sale.customer_order_id && sale.customer_order_id !== 'N/A') {
+                    shipping = parseAmount(sale.order_shipping_amount);
+                    discount = parseAmount(sale.order_discount_amount);
+                    tax = parseAmount(sale.order_tax_amount);
+                    total = parseAmount(sale.order_final_amount);
+                } else {
+                    shipping = parseAmount(sale.shipping_amount);
+                    discount = parseAmount(sale.discount_amount);
+                    tax = parseAmount(sale.tax_amount);
+                    total = subtotal + shipping + tax - discount;
+                }
+                const paid = parseAmount(sale.paid_amount);
+                const pending = parseAmount(sale.pending_amount) || (total - paid);
+                let summaryHtml = `
+                    <div class="row">
+                        <div class="col-md-6"></div>
+                        <div class="col-md-6">
+                            <table class="table table-sm invoice-summary-table mb-0">
+                                <tbody>
+                                    <tr>
+                                        <th class="text-end">Subtotal:</th>
+                                        <td class="text-end">PKR ${subtotal.toFixed(2)}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-end">Shipping:</th>
+                                        <td class="text-end">PKR ${shipping.toFixed(2)}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-end">Tax:</th>
+                                        <td class="text-end">PKR ${tax.toFixed(2)}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-end">Discount:</th>
+                                        <td class="text-end">- PKR ${discount.toFixed(2)}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-end">Total:</th>
+                                        <td class="text-end fw-bold">PKR ${total.toFixed(2)}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-end">Paid:</th>
+                                        <td class="text-end text-success">PKR ${paid.toFixed(2)}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-end">Remaining:</th>
+                                        <td class="text-end text-danger">PKR ${pending.toFixed(2)}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                $("#view_total_summary").html(summaryHtml);
+
+                // Populate notes
+                $("#view_notes").text(sale.notes);
+                
+                // Show correct totals
+                const displayTotal = sale.display_total_amount || sale.order_final_amount || sale.total_amount;
+                const displayPaid = sale.display_paid_amount || sale.paid_amount;
+                const displayPending = sale.display_pending_amount || (displayTotal - displayPaid);
+                $("#view_total_amount").text(displayTotal);
+                $("#view_paid_amount").text(displayPaid);
+                $("#view_pending_amount").text(displayPending);
+                
+                $("#viewSaleModal").modal('show');
+            } else {
+                toastr.error(res.message);
+            }
+        });
+    });
+
+    // Edit sale
+    $(document).on('click', '.editSaleBtn', function() {
+        const saleId = $(this).data('id');
+        
+        $.get("../model/sale/getSaleDetails.php", { sale_id: saleId }, function(res) {
+            if (res.status === "success") {
+                const sale = res.data;
+                // Populate form fields
+                $("#edit_sale_id").val(sale.sale_id);
+                $("#edit_customer_id").val(sale.customer_id);
+                $("#edit_item_id").val(sale.items[0].item_id);
+                $("#edit_quantity").val(sale.items[0].quantity);
+                $("#edit_unit_price").val(sale.items[0].unit_price);
+                $("#edit_sale_date").val(sale.sale_date);
+                $("#edit_payment_status").val(sale.payment_status);
+                var $editOrderStatus = $('#edit_order_status');
+                $editOrderStatus.prop('disabled', false).prop('readonly', false);
+                $editOrderStatus.val(sale.order_status);
+                $("#edit_tracking_number").val(sale.tracking_number);
+                $("#edit_notes").val(sale.notes);
+                
+                // Disable editing for customer order sales
+                if (sale.customer_order_id && sale.customer_order_id !== 'N/A') {
+                    $('#editSaleForm input, #editSaleForm select, #editSaleForm textarea').prop('disabled', true);
+                    $('#editSaleForm button[type="submit"]').hide();
+                    if ($('#editSaleForm .alert-customer-order').length === 0) {
+                        $('#editSaleForm').prepend('<div class="alert alert-info alert-customer-order">Customer order sales cannot be edited.</div>');
+                    }
+                } else {
+                    $('#editSaleForm input, #editSaleForm select, #editSaleForm textarea').prop('disabled', false);
+                    $('#editSaleForm button[type="submit"]').show();
+                    $('#editSaleForm .alert-customer-order').remove();
+                }
+                calculateTotals('edit_');
+                $("#editSaleModal").modal('show');
+            } else {
+                toastr.error(res.message);
+            }
+        });
+    });
+
+    // Update sale form submission
     $("#editSaleForm").submit(function(e) {
         e.preventDefault();
-        const formData = new FormData(this);
-        const totals = calculateTotals('edit_');
         
-        formData.append('total_amount', totals.total);
+        const formData = new FormData(this);
+        formData.append('sale_id', $("#edit_sale_id").val());
         
         $.ajax({
             url: "../model/sale/updateSale.php",
@@ -288,270 +591,139 @@ $(document).ready(function () {
             contentType: false,
             success: function(res) {
                 if (res.status === "success") {
-                    // Properly remove modal and backdrop
-                    const modal = bootstrap.Modal.getInstance($("#editSaleModal"));
-                    modal.hide();
-                    $('body').removeClass('modal-open');
-                    $('.modal-backdrop').remove();
-                    
-                    loadSales();
                     toastr.success(res.message);
+                    $("#editSaleModal").modal('hide');
+                    loadSales();
                 } else {
                     toastr.error(res.message);
                 }
             },
-            error: function(xhr, status, error) {
+            error: function() {
                 toastr.error("Error updating sale");
-                console.error("Update sale error:", error);
             }
         });
     });
 
-    // Handle view sale button click - UPDATED WITH MISSING FIELDS
-    $(document).on('click', '.viewSaleBtn', function() {
-        const saleId = $(this).data('id');
-        // Clear previous sale ID and disable generate button initially
-        $("#view_sale_id").val('');
-        $("#generateInvoiceBtn").prop('disabled', true).text('Generate Invoice'); // Disable and reset text
-
-        $.get("../model/sale/getSaleDetails.php", { sale_id: saleId }, function(res) {
-            if (res.status === "success" && res.data) {
-                const sale = res.data;
-                // Set the sale ID for invoice generation ONLY if successful
-                $("#view_sale_id").val(sale.sale_id);
-                // Enable generate button
-                $("#generateInvoiceBtn").prop('disabled', false).text('Generate Invoice');
-                
-                // Customer Information
-                $("#view_customer_name").text(sale.customer_name);
-                $("#view_customer_phone").text(sale.customer_phone || 'N/A');
-                $("#view_customer_email").text(sale.customer_email || 'N/A');
-                $("#view_customer_address").text(sale.customer_address || 'N/A');
-                
-                // Sale Information
-                $("#view_invoice_number").text(sale.invoice_number);
-                $("#view_sale_date").text(sale.sale_date);
-                $("#view_payment_status").text(sale.payment_status);
-                $("#view_created_by_name").text(sale.created_by_name);
-                
-                // Item Details
-                $("#view_item_name").text(sale.item_name);
-                $("#view_item_number").text(sale.item_number || 'N/A');
-                $("#view_quantity").text(sale.quantity);
-                $("#view_unit_price").text(`PKR ${parseFloat(sale.unit_price).toFixed(2)}`);
-                $("#view_total_price").text(`PKR ${parseFloat(sale.total_price).toFixed(2)}`);
-                
-                // Notes
-                $("#view_notes").text(sale.notes || 'No notes available');
-                
-                $("#viewSaleModal").modal("show");
-            } else {
-                toastr.error(res.message || "Failed to load sale details.");
-                console.error("View sale error:", res);
-                $("#viewSaleModal").modal("hide"); // Hide modal if details fail to load
-            }
-        }).fail(function(xhr, status, error) {
-             toastr.error("Error fetching sale details.");
-             console.error("View sale AJAX error:", error);
-             $("#viewSaleModal").modal("hide"); // Hide modal on AJAX error
-        });
-    });
-
-    // Handle edit sale button click
-    $(document).on('click', '.editSaleBtn', function() {
-        const saleId = $(this).data('id');
-        $.get("../model/sale/getSaleDetails.php", { sale_id: saleId }, function(res) {
-            if (res.status === "success") {
-                const sale = res.data;
-                $("#edit_sale_id").val(sale.sale_id);
-                $("#edit_customer_id").val(sale.customer_id);
-                $("#edit_item_id").val(sale.item_id);
-                $("#edit_quantity").val(sale.quantity);
-                $("#edit_unit_price").val(sale.unit_price);
-                $("#edit_sale_date").val(sale.sale_date);
-                $("#edit_payment_status").val(sale.payment_status);
-                $("#edit_notes").val(sale.notes);
-                calculateTotals('edit_');
-                $("#editSaleModal").modal("show");
-            }
-        });
-    });
-
-    // Handle delete sale button click
+    // Delete sale
     $(document).on('click', '.deleteSaleBtn', function() {
         const saleId = $(this).data('id');
         $("#delete_sale_id").val(saleId);
-        $("#deleteSaleModal").modal("show");
+        $("#deleteSaleModal").modal('show');
     });
 
-    // Handle delete confirmation
     $("#confirmDeleteBtn").click(function() {
         const saleId = $("#delete_sale_id").val();
+        
         $.post("../model/sale/deleteSale.php", { sale_id: saleId }, function(res) {
             if (res.status === "success") {
-                // Properly remove modal and backdrop
-                const modal = bootstrap.Modal.getInstance($("#deleteSaleModal"));
-                modal.hide();
-                $('body').removeClass('modal-open');
-                $('.modal-backdrop').remove();
-                
-                loadSales();
                 toastr.success(res.message);
+                $("#deleteSaleModal").modal('hide');
+                loadSales();
             } else {
                 toastr.error(res.message);
             }
-        }).fail(function(xhr, status, error) {
-            toastr.error("Error deleting sale");
-            console.error("Delete sale error:", error);
         });
     });
 
-    // Handle generate invoice button click
-    $("#generateInvoiceBtn").on("click", function() {
-        const saleId = parseInt($("#view_sale_id").val()); // Ensure it's an integer
-        if (isNaN(saleId) || saleId <= 0) {
-            toastr.error("Cannot generate invoice: Invalid sale ID.");
-            console.error("Generate invoice clicked with invalid sale ID:", $("#view_sale_id").val());
+    // Record payment
+    $(document).on('click', '.recordPaymentBtn', function() {
+        const saleId = $(this).data('id');
+        // Fetch sale details to get amounts
+        $.get("../model/sale/getSaleDetails.php", { sale_id: saleId }, function(res) {
+            if (res.status === "success") {
+                const sale = res.data;
+                const total = parseFloat(sale.display_total_amount || sale.order_final_amount || sale.total_amount || 0);
+                const paid = parseFloat(sale.display_paid_amount || sale.paid_amount || 0);
+                const remaining = (total - paid).toFixed(2);
+                $("#payment_total_amount").text(total.toFixed(2));
+                $("#payment_paid_amount").text(paid.toFixed(2));
+                $("#payment_remaining_amount").text(remaining);
+                
+                // Set max value for payment amount input
+                const paymentAmountInput = $("#payment_amount");
+                paymentAmountInput.attr('max', remaining);
+                paymentAmountInput.attr('placeholder', `Max: PKR ${remaining}`);
+                
+                // Add validation on input change
+                paymentAmountInput.off('input.paymentValidation').on('input.paymentValidation', function() {
+                    const inputAmount = parseFloat($(this).val()) || 0;
+                    const remainingAmount = parseFloat(remaining);
+                    
+                    if (inputAmount > remainingAmount) {
+                        $(this).addClass('is-invalid');
+                        if ($(this).next('.invalid-feedback').length === 0) {
+                            $(this).after('<div class="invalid-feedback">Payment amount cannot exceed remaining amount (PKR ' + remaining + ')</div>');
+                        }
+                    } else {
+                        $(this).removeClass('is-invalid');
+                        $(this).next('.invalid-feedback').remove();
+                    }
+                });
+            } else {
+                $("#payment_total_amount, #payment_paid_amount, #payment_remaining_amount").text('0.00');
+            }
+            $("#payment_invoice_id").val(saleId);
+            $("#payment_date").val(new Date().toISOString().split('T')[0]);
+            $("#paymentModal").modal('show');
+        });
+    });
+
+    $("#paymentForm").submit(function(e) {
+        e.preventDefault();
+        
+        // Get payment amount and remaining amount
+        const paymentAmount = parseFloat($("#payment_amount").val()) || 0;
+        const remainingAmount = parseFloat($("#payment_remaining_amount").text()) || 0;
+        
+        // Validate payment amount
+        if (paymentAmount <= 0) {
+            toastr.error("Payment amount must be greater than 0");
             return;
         }
-
-        $("#generateInvoiceBtn").prop('disabled', true).text('Generating...'); // Indicate processing
-
+        
+        if (paymentAmount > remainingAmount) {
+            toastr.error("Payment amount cannot exceed remaining amount (PKR " + remainingAmount.toFixed(2) + ")");
+            return;
+        }
+        
+        const formData = new FormData(this);
+        
         $.ajax({
-            url: "../model/sale/generateInvoice.php",
+            url: "../model/sale/recordPayment.php",
             method: "POST",
-            data: {
-                sale_id: saleId,
-                invoice_date: new Date().toISOString().split('T')[0],
-                due_date: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0]
-            },
-            dataType: "json",
+            data: formData,
+            processData: false,
+            contentType: false,
             success: function(res) {
                 if (res.status === "success") {
                     toastr.success(res.message);
-                    // Update the download link if available
-                    if (res.data && res.data.invoice_file) {
-                        // Note: The download link is in the View Invoice Modal, not this one.
-                        // The generateInvoice function is triggered from the View Invoice modal.
-                        // Let's make sure the file path is correctly handled in the View modal after generation.
-
-                        // We need to update the href of the download link in the view modal
-                        // Let's find the relevant element in the view modal. It has id 'downloadInvoice'
-                         $("#viewInvoiceModal #downloadInvoice").attr("href", "../" + res.data.invoice_file);
-                         // It might also be useful to update the invoice preview in the view modal
-                         // This would require fetching the updated sale details after generation, or updating the view modal content directly
-                         // For now, let's just ensure the download link is updated.
-
-                    }
-                     // Optionally, reload sales table to show updated status/invoice file link if table shows it
-                    // loadSales(); // This might be too disruptive, let's rely on the View modal's download link
-
-                    // Close the generate modal
-                    $("#generateInvoiceModal").modal("hide");
-
+                    $("#paymentModal").modal('hide');
+                    $("#paymentForm")[0].reset();
+                    loadSales();
                 } else {
                     toastr.error(res.message);
                 }
             },
-            error: function(xhr, status, error) {
-                toastr.error("Error generating invoice");
-                console.error("Generate invoice error:", error);
-            },
-            complete: function() {
-                 $("#generateInvoiceBtn").prop('disabled', false).text('Generate Invoice'); // Re-enable button
+            error: function() {
+                toastr.error("Error recording payment");
             }
         });
     });
 
-    // Add modal open handler
-    $("#addSaleModal").on("show.bs.modal", function() {
-        // Reload customers and items when modal opens
-        loadCustomers();
-        loadItems();
-        // Reset form
-        $("#addSaleForm")[0].reset();
-        // Set today's date
-        $("#sale_date").val(new Date().toISOString().split('T')[0]);
-        // Reset calculations
-        calculateTotals();
-    });
-
-    // Initialize date inputs with today's date
-    $("#sale_date, #edit_sale_date").val(new Date().toISOString().split('T')[0]);
-
-    // Initialize tooltips
-    $('[data-bs-toggle="tooltip"]').tooltip();
-
-    // Initial loads
-    loadCustomers();
-    loadItems();
-    loadSales();
-
-    // Function to update summary cards
-    function updateSummary(salesData) {
-        let totalAmount = 0;
-        let totalPaid = 0;
-        const uniqueCustomers = new Set();
-
-        if (salesData && salesData.length > 0) {
-            salesData.forEach(sale => {
-                totalAmount += parseFloat(sale.total_price || 0);
-                totalPaid += parseFloat(sale.paid_amount || 0);
-                uniqueCustomers.add(sale.customer_id);
-            });
+    // Add sale modal show event
+    $('#addSaleModal').on('show.bs.modal', function() {
+        // If direct sale (no customer order selected), set order status to 'delivered' only if not already set
+        var $orderStatus = $('#order_status');
+        if ((!$('#customer_order_id').val() || $('#customer_order_id').val() === 'N/A') && ($orderStatus.val() === '' || $orderStatus.val() === 'pending')) {
+            $orderStatus.val('delivered');
         }
-
-        $("#totalRecords").text(salesData ? salesData.length : 0);
-        $("#totalAmount").text(`PKR ${totalAmount.toFixed(2)}`);
-        $("#pendingPayments").text(`PKR ${(totalAmount - totalPaid).toFixed(2)}`);
-        $("#uniqueCustomers").text(uniqueCustomers.size);
-        $("#summaryCards").show();
-    }
-
-    // Add event listeners for modal hidden events
-    $('#addSaleModal, #editSaleModal, #deleteSaleModal, #viewSaleModal').on('hidden.bs.modal', function () {
-        setTimeout(() => {
-            $('.modal-backdrop').remove();
-            $('body').css({
-                'overflow': '',
-                'padding-right': ''
-            });
-        }, 300);
     });
 
-    // Add payment
-    $('#addPaymentForm').on('submit', function (e) {
-        e.preventDefault();
-        $.ajax({
-            url: '../model/sales/addPayment.php',
-            method: 'POST',
-            data: $(this).serialize(),
-            dataType: 'json',
-            success: function (response) {
-                $('#addPaymentModal').modal('hide');
-                $('#addPaymentForm')[0].reset();
-                showMessage(response.status, response.message);
-                loadSales();
-                $('.modal-backdrop').remove();
-                $('body').css({
-                    'overflow': '',
-                    'padding-right': ''
-                });
-            },
-            error: function () {
-                showMessage('danger', 'Error adding payment.');
-            }
-        });
-    });
-
-    // Add event listeners for payment modal hidden events
-    $('#addPaymentModal, #viewPaymentModal').on('hidden.bs.modal', function () {
-        setTimeout(() => {
-            $('.modal-backdrop').remove();
-            $('body').css({
-                'overflow': '',
-                'padding-right': ''
-            });
-        }, 300);
+    // Clear payment validation when modal is closed
+    $('#paymentModal').on('hidden.bs.modal', function() {
+        const paymentAmountInput = $("#payment_amount");
+        paymentAmountInput.removeClass('is-invalid');
+        paymentAmountInput.next('.invalid-feedback').remove();
+        paymentAmountInput.off('input.paymentValidation');
     });
 });

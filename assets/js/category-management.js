@@ -3,7 +3,7 @@ $(document).ready(function () {
     // Load category data
     function loadCategories() {
         $.ajax({
-            url: '../model/category/fetchCategories.php',
+            url: '../model/inventory/fetchCategories.php',
             method: 'GET',
             dataType: 'json',
             success: function (data) {
@@ -217,18 +217,7 @@ $(document).ready(function () {
         });
     });
 
-    // Add event listeners for modal hidden events
-    $('#addCategoryModal, #editCategoryModal, #deleteCategoryModal').on('hidden.bs.modal', function () {
-        setTimeout(() => {
-            $('.modal-backdrop').remove();
-            $('body').css({
-                'overflow': '',
-                'padding-right': ''
-            });
-        }, 300);
-    });
-
-    function showMessage(msg, type = 'success') {
+    function showMessage(type, msg) {
         // Use toastr for better looking notifications
         toastr.options = {
             "closeButton": true,
@@ -236,11 +225,14 @@ $(document).ready(function () {
             "positionClass": "toast-top-right",
             "timeOut": "3000"
         };
-        
         if (type === 'success') {
             toastr.success(msg);
-        } else {
+        } else if (type === 'error' || type === 'danger') {
             toastr.error(msg);
+        } else if (type === 'warning') {
+            toastr.warning(msg);
+        } else {
+            toastr.info(msg);
         }
     }
 

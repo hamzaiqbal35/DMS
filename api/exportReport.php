@@ -1,4 +1,8 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_name('admin_session');
+    session_start();
+}
 require_once '../inc/config/database.php';
 require_once '../vendor/autoload.php';
 require_once 'saveExportHistory.php';
@@ -25,6 +29,13 @@ $date_from = $_POST['date_from'] ?? '';
 $date_to = $_POST['date_to'] ?? '';
 $min_amount = $_POST['min_amount'] ?? '';
 $max_amount = $_POST['max_amount'] ?? '';
+$max_export_rows = 1000; // Hard row limit for export
+
+// If no date range is provided, default to last 30 days
+if (empty($date_from) && empty($date_to)) {
+    $date_from = date('Y-m-d', strtotime('-30 days'));
+    $date_to = date('Y-m-d');
+}
 
 // Get specific filters
 $customer_id = $_POST['customer_id'] ?? '';
@@ -42,22 +53,76 @@ try {
         case 'sales':
             $query = "
                 SELECT 
+                    s.sale_id,
                     s.invoice_number,
                     c.customer_name,
+                    c.phone as customer_phone,
+                    c.email as customer_email,
+                    c.address as customer_address,
+                    c.city as customer_city,
+                    c.state as customer_state,
+                    c.zip_code as customer_zip_code,
                     s.sale_date,
-                    i.item_name,
-                    sd.quantity,
-                    sd.unit_price,
-                    sd.total_price,
+                    s.total_amount,
+                    s.paid_amount,
+                    (s.total_amount - s.paid_amount) as pending_amount,
                     s.payment_status,
+                    s.order_status,
+                    COALESCE(s.tracking_number, 'N/A') as tracking_number,
+                    COALESCE(s.completion_date, 'N/A') as completion_date,
+                    COALESCE(s.cancellation_date, 'N/A') as cancellation_date,
+                    COALESCE(s.cancellation_reason, 'N/A') as cancellation_reason,
+                    COALESCE(s.notes, 'N/A') as notes,
+                    s.created_at,
                     u.full_name as created_by_name,
+                    COALESCE(co.order_number, 'N/A') as order_number,
+                    COALESCE(co.order_date, 'N/A') as order_date,
+                    COALESCE(co.total_amount, 'N/A') as order_total_amount,
+                    COALESCE(co.tax_amount, 'N/A') as order_tax_amount,
+                    COALESCE(co.shipping_amount, 'N/A') as order_shipping_amount,
+                    COALESCE(co.discount_amount, 'N/A') as order_discount_amount,
+                    COALESCE(co.final_amount, 'N/A') as order_final_amount,
+                    COALESCE(co.payment_method, 'N/A') as order_payment_method,
+                    COALESCE(co.payment_status, 'N/A') as order_payment_status,
+                    COALESCE(co.order_status, 'N/A') as order_status_original,
+                    COALESCE(co.tracking_number, 'N/A') as order_tracking_number,
+                    COALESCE(co.shipping_address, 'N/A') as shipping_address,
+                    COALESCE(cu.full_name, 'N/A') as customer_user_name,
+                    COALESCE(cu.email, 'N/A') as customer_user_email,
+                    COALESCE(cu.phone, 'N/A') as customer_user_phone,
+                    CASE 
+                        WHEN s.customer_order_id IS NOT NULL THEN 'From Customer Order'
+                        ELSE 'Direct Sale'
+                    END as sale_type,
+                    (
+                        SELECT GROUP_CONCAT(
+                            CONCAT(
+                                i2.item_name, ' (', 
+                                sd2.quantity, ' x ', 
+                                FORMAT(sd2.unit_price, 2), ' = ', 
+                                FORMAT(sd2.total_price, 2), ')'
+                            ) SEPARATOR '; '
+                        )
+                        FROM sale_details sd2
+                        JOIN inventory i2 ON sd2.item_id = i2.item_id
+                        WHERE sd2.sale_id = s.sale_id
+                    ) as items_details,
+                    (
+                        SELECT COUNT(DISTINCT sd3.item_id)
+                        FROM sale_details sd3
+                        WHERE sd3.sale_id = s.sale_id
+                    ) as items_count,
                     'sale' as record_type
                 FROM sales s
                 JOIN customers c ON s.customer_id = c.customer_id
-                JOIN sale_details sd ON s.sale_id = sd.sale_id
-                JOIN inventory i ON sd.item_id = i.item_id
                 JOIN users u ON s.created_by = u.user_id
+                LEFT JOIN customer_orders co ON s.customer_order_id = co.order_id
+                LEFT JOIN customer_users cu ON co.customer_user_id = cu.customer_user_id
                 WHERE 1=1
+                AND (
+                    s.customer_order_id IS NULL
+                    OR (s.customer_order_id IS NOT NULL AND (co.order_status NOT IN ('pending', 'cancelled')))
+                )
             ";
             break;
 
@@ -283,6 +348,11 @@ try {
             $query .= " ORDER BY $orderColumn DESC";
         }
     }
+    
+    // Add hard row limit for export
+    if ($reportType === 'sales') {
+        $query .= " LIMIT $max_export_rows";
+    }
 
     $stmt = $pdo->prepare($query);
     $stmt->execute($params);
@@ -294,11 +364,20 @@ try {
     }
 
     // Calculate summary statistics
-    $summary = [
-        'total_records' => count($records),
-        'total_amount' => array_sum(array_column($records, 'total_price')),
-        'average_amount' => count($records) > 0 ? array_sum(array_column($records, 'total_price')) / count($records) : 0
-    ];
+    if ($reportType === 'inventory') {
+        $summary = [
+            'total_records' => count($records),
+            'total_amount' => array_sum(array_column($records, 'total_value')),
+            'average_amount' => count($records) > 0 ? array_sum(array_column($records, 'total_value')) / count($records) : 0
+        ];
+    } else {
+        $total_amount_field = ($reportType === 'sales') ? 'total_amount' : 'total_price';
+        $summary = [
+            'total_records' => count($records),
+            'total_amount' => array_sum(array_column($records, $total_amount_field)),
+            'average_amount' => count($records) > 0 ? array_sum(array_column($records, $total_amount_field)) / count($records) : 0
+        ];
+    }
 
     // Group by record type for combined reports
     if ($reportType === 'all') {
@@ -312,7 +391,7 @@ try {
                 ];
             }
             $typeSummary[$type]['count']++;
-            $typeSummary[$type]['amount'] += $record['total_price'];
+            $typeSummary[$type]['amount'] += $record[$total_amount_field];
         }
         $summary['type_breakdown'] = $typeSummary;
     }
@@ -322,8 +401,8 @@ try {
     $tableKeys = [];
     switch ($reportType) {
         case 'sales':
-            $tableHeaders = ['Invoice #', 'Customer', 'Date', 'Item', 'Qty', 'Unit Price', 'Total', 'Payment Status', 'Created By', 'Type'];
-            $tableKeys = ['invoice_number', 'customer_name', 'sale_date', 'item_name', 'quantity', 'unit_price', 'total_price', 'payment_status', 'created_by_name', 'record_type'];
+            $tableHeaders = ['Invoice #', 'Customer', 'Sale Date', 'Sale Type', 'Total Amount', 'Payment Status', 'Order Status', 'Items Count', 'Created By'];
+            $tableKeys = ['invoice_number', 'customer_name', 'sale_date', 'sale_type', 'total_amount', 'payment_status', 'order_status', 'items_count', 'created_by_name'];
             break;
         case 'purchases':
             $tableHeaders = ['Purchase #', 'Vendor', 'Date', 'Material', 'Qty', 'Unit Price', 'Total', 'Payment Status', 'Delivery Status', 'Type'];
@@ -356,14 +435,17 @@ try {
     }
 
     // Ensure export directory exists for all formats
-    if (!is_dir('../uploads/exports')) {
-        mkdir('../uploads/exports', 0775, true);
+    $exportDir = realpath(__DIR__ . '/../uploads/exports');
+    if (!$exportDir) {
+        mkdir(__DIR__ . '/../uploads/exports', 0775, true);
+        $exportDir = realpath(__DIR__ . '/../uploads/exports');
     }
 
     // EXPORT AS PDF
     if ($exportFormat === 'pdf') {
         $filename = ucfirst($reportType) . "_Report_" . date('Y-m-d_H-i-s') . ".pdf";
-        $filePath = '../uploads/exports/' . $filename;
+        $filePath = $exportDir . DIRECTORY_SEPARATOR . $filename; // absolute path for PHP
+        $webPath = (isset($_SERVER['SCRIPT_NAME']) && strpos($_SERVER['SCRIPT_NAME'], '/DMS/') !== false ? '/DMS' : '') . '/uploads/exports/' . $filename; // web path for browser
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
         $options->set('isPhpEnabled', true);
@@ -384,7 +466,7 @@ try {
             echo "Failed to generate PDF file. Please try again.";
             exit;
         }
-        // Save export history with file size and path
+        // Save export history with file size and web path
         saveExportHistory([
             'export_type' => $reportType,
             'export_format' => $exportFormat,
@@ -392,7 +474,7 @@ try {
             'filters' => $_POST,
             'file_name' => $filename,
             'file_size' => filesize($filePath),
-            'file_path' => $filePath
+            'file_path' => $webPath
         ]);
         // Stream to browser
         header('Content-Type: application/pdf');
@@ -403,12 +485,15 @@ try {
 
     // EXPORT AS CSV
     if ($exportFormat === 'csv') {
+        // Set timezone to Pakistan
+        date_default_timezone_set('Asia/Karachi');
         $filename = ucfirst($reportType) . "_Report_" . date('Y-m-d_H-i-s') . ".csv";
-        $filePath = '../uploads/exports/' . $filename;
+        $filePath = $exportDir . DIRECTORY_SEPARATOR . $filename; // absolute path for PHP
+        $webPath = (isset($_SERVER['SCRIPT_NAME']) && strpos($_SERVER['SCRIPT_NAME'], '/DMS/') !== false ? '/DMS' : '') . '/uploads/exports/' . $filename; // web path for browser
         $output = fopen($filePath, 'w');
         // Add report header
         fputcsv($output, [ucfirst($reportType) . " Report"]);
-        fputcsv($output, ["Generated on: " . date('d M Y H:i:s')]);
+        fputcsv($output, ["Generated on: " . date('d M Y H:i:s') . " (PKT)"]);
         fputcsv($output, ["Total records: " . $summary['total_records']]);
         fputcsv($output, ["Total amount: PKR " . number_format($summary['total_amount'], 2)]);
         fputcsv($output, []);
@@ -416,9 +501,16 @@ try {
         // Add column headers based on report type
         $headers = [];
         switch ($reportType) {
-            case 'sales':
-                $headers = ['Invoice #', 'Customer', 'Date', 'Item', 'Qty', 'Unit Price', 'Total', 'Payment Status', 'Created By'];
-                break;
+                    case 'sales':
+            $headers = [
+                'Invoice #', 'Customer Name', 'Customer Phone', 'Customer Email', 'Customer Address', 'Customer City', 'Customer State', 'Customer Zip Code',
+                'Sale Date', 'Sale Type', 'Total Amount', 'Paid Amount', 'Pending Amount', 'Payment Status', 'Order Status', 'Tracking Number',
+                'Completion Date', 'Cancellation Date', 'Cancellation Reason', 'Notes', 'Created By', 'Created At', 'Order Number', 'Order Date',
+                'Order Total Amount', 'Order Tax Amount', 'Order Shipping Amount', 'Order Discount Amount', 'Order Final Amount', 'Order Payment Method',
+                'Order Payment Status', 'Order Status (Original)', 'Order Tracking Number', 'Shipping Address', 'Customer User Name', 'Customer User Email',
+                'Customer User Phone', 'Items Details', 'Items Count'
+            ];
+            break;
             case 'purchases':
                 $headers = ['Purchase #', 'Vendor', 'Date', 'Material', 'Qty', 'Unit Price', 'Total', 'Payment Status', 'Delivery Status'];
                 break;
@@ -449,13 +541,43 @@ try {
                     $csvRow = [
                         $row['invoice_number'],
                         $row['customer_name'],
+                        $row['customer_phone'],
+                        $row['customer_email'],
+                        $row['customer_address'],
+                        $row['customer_city'],
+                        $row['customer_state'],
+                        $row['customer_zip_code'],
                         $row['sale_date'],
-                        $row['item_name'],
-                        $row['quantity'],
-                        number_format($row['unit_price'], 2),
-                        number_format($row['total_price'], 2),
+                        $row['sale_type'],
+                        number_format($row['total_amount'], 2),
+                        number_format($row['paid_amount'], 2),
+                        number_format($row['pending_amount'], 2),
                         ucfirst($row['payment_status']),
-                        $row['created_by_name']
+                        ucfirst($row['order_status']),
+                        $row['tracking_number'],
+                        $row['completion_date'],
+                        $row['cancellation_date'],
+                        $row['cancellation_reason'],
+                        $row['notes'],
+                        $row['created_by_name'],
+                        $row['created_at'],
+                        $row['order_number'],
+                        $row['order_date'],
+                        $row['order_total_amount'],
+                        $row['order_tax_amount'],
+                        $row['order_shipping_amount'],
+                        $row['order_discount_amount'],
+                        $row['order_final_amount'],
+                        $row['order_payment_method'],
+                        $row['order_payment_status'],
+                        $row['order_status_original'],
+                        $row['order_tracking_number'],
+                        $row['shipping_address'],
+                        $row['customer_user_name'],
+                        $row['customer_user_email'],
+                        $row['customer_user_phone'],
+                        $row['items_details'],
+                        $row['items_count']
                     ];
                     break;
                 case 'purchases':
@@ -560,7 +682,7 @@ try {
             echo "Failed to generate CSV file. Please try again.";
             exit;
         }
-        // Save export history with file size and path
+        // Save export history with file size and web path
         saveExportHistory([
             'export_type' => $reportType,
             'export_format' => $exportFormat,
@@ -568,7 +690,7 @@ try {
             'filters' => $_POST,
             'file_name' => $filename,
             'file_size' => filesize($filePath),
-            'file_path' => $filePath
+            'file_path' => $webPath
         ]);
         // Stream to browser
         header("Content-Type: text/csv; charset=utf-8");

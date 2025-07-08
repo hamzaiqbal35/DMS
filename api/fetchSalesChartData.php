@@ -14,7 +14,9 @@ try {
             COUNT(DISTINCT s.sale_id) as total_sales,
             SUM(s.total_amount) as total_amount
         FROM sales s
+        LEFT JOIN customer_orders co ON s.customer_order_id = co.order_id
         WHERE sale_date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+        AND (co.order_status IS NULL OR co.order_status NOT IN ('cancelled'))
         GROUP BY DATE_FORMAT(sale_date, '%Y-%m')
         ORDER BY month ASC
     ";

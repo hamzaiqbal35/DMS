@@ -1,46 +1,107 @@
 <?php
-date_default_timezone_set('Asia/Karachi');
-require_once '../../inc/config/database.php';
-require_once '../../vendor/autoload.php';
+session_name('admin_session');
+session_start();
 
+require_once '../../inc/config/database.php';
+require_once '../../inc/helpers.php';
+require_once __DIR__ . '/../../inc/config/auth.php';
+require_jwt_auth();
+
+require_once '../../vendor/autoload.php';
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo "Method Not Allowed";
-    exit;
+// Get filter parameters
+$customer_id = $_REQUEST['customer_id'] ?? '';
+$date_from = $_REQUEST['date_from'] ?? '';
+$date_to = $_REQUEST['date_to'] ?? '';
+$min_amount = $_REQUEST['min_amount'] ?? '';
+$max_amount = $_REQUEST['max_amount'] ?? '';
+$payment_status = $_REQUEST['payment_status'] ?? '';
+$order_status = $_REQUEST['order_status'] ?? '';
+$sale_type = $_REQUEST['sale_type'] ?? '';
+$export_format = $_REQUEST['format'] ?? 'csv';
+$max_export_rows = 1000; 
+
+// If no date range is provided, default to last 30 days
+if (empty($date_from) && empty($date_to)) {
+    $date_from = date('Y-m-d', strtotime('-30 days'));
+    $date_to = date('Y-m-d');
 }
 
-$exportFormat = $_POST['export_format'] ?? 'csv';
-
-// Get filters from POST
-$customer_id = $_POST['customer_id'] ?? '';
-$date_from = $_POST['date_from'] ?? '';
-$date_to = $_POST['date_to'] ?? '';
-$min_amount = $_POST['min_amount'] ?? '';
-$max_amount = $_POST['max_amount'] ?? '';
-$payment_status = $_POST['payment_status'] ?? '';
-
-// Fetch filtered data from DB
 try {
     $query = "
         SELECT 
+            s.sale_id,
             s.invoice_number,
             c.customer_name,
+            COALESCE(c.phone, 'N/A') as customer_phone,
+            COALESCE(c.email, 'N/A') as customer_email,
+            COALESCE(c.address, 'N/A') as customer_address,
+            COALESCE(c.city, 'N/A') as customer_city,
+            COALESCE(c.state, 'N/A') as customer_state,
+            COALESCE(c.zip_code, 'N/A') as customer_zip_code,
             s.sale_date,
-            i.item_name,
-            sd.quantity,
-            sd.unit_price,
-            sd.total_price,
+            s.total_amount,
             s.payment_status,
-            u.full_name as created_by_name
+            COALESCE(s.paid_amount, 0) as paid_amount,
+            (s.total_amount - COALESCE(s.paid_amount, 0)) as pending_amount,
+            s.order_status,
+            s.customer_order_id,
+            COALESCE(s.tracking_number, 'N/A') as tracking_number,
+            COALESCE(s.completion_date, 'N/A') as completion_date,
+            COALESCE(s.cancellation_date, 'N/A') as cancellation_date,
+            COALESCE(s.cancellation_reason, 'N/A') as cancellation_reason,
+            COALESCE(s.notes, 'N/A') as notes,
+            s.created_at,
+            u.full_name as created_by_name,
+            COALESCE(co.order_number, 'N/A') as order_number,
+            COALESCE(co.order_date, 'N/A') as order_date,
+            COALESCE(co.total_amount, 'N/A') as order_total_amount,
+            COALESCE(co.tax_amount, 'N/A') as order_tax_amount,
+            COALESCE(co.shipping_amount, 'N/A') as order_shipping_amount,
+            COALESCE(co.discount_amount, 'N/A') as order_discount_amount,
+            COALESCE(co.final_amount, 'N/A') as order_final_amount,
+            COALESCE(co.payment_method, 'N/A') as order_payment_method,
+            COALESCE(co.payment_status, 'N/A') as order_payment_status,
+            COALESCE(co.order_status, 'N/A') as order_status_original,
+            COALESCE(co.tracking_number, 'N/A') as order_tracking_number,
+            COALESCE(co.shipping_address, 'N/A') as shipping_address,
+            COALESCE(cu.full_name, 'N/A') as customer_user_name,
+            COALESCE(cu.email, 'N/A') as customer_user_email,
+            COALESCE(cu.phone, 'N/A') as customer_user_phone,
+            CASE 
+                WHEN s.customer_order_id IS NOT NULL THEN 'From Customer Order'
+                ELSE 'Direct Sale'
+            END as sale_type,
+            (
+                SELECT GROUP_CONCAT(
+                    CONCAT(
+                        i2.item_name, ' (', 
+                        sd2.quantity, ' x ', 
+                        FORMAT(sd2.unit_price, 2), ' = ', 
+                        FORMAT(sd2.total_price, 2), ')'
+                    ) SEPARATOR '; '
+                )
+                FROM sale_details sd2
+                JOIN inventory i2 ON sd2.item_id = i2.item_id
+                WHERE sd2.sale_id = s.sale_id
+            ) as items_details,
+            (
+                SELECT COUNT(DISTINCT sd3.item_id)
+                FROM sale_details sd3
+                WHERE sd3.sale_id = s.sale_id
+            ) as items_count
         FROM sales s
         JOIN customers c ON s.customer_id = c.customer_id
-        JOIN sale_details sd ON s.sale_id = sd.sale_id
-        JOIN inventory i ON sd.item_id = i.item_id
         JOIN users u ON s.created_by = u.user_id
+        LEFT JOIN customer_orders co ON s.customer_order_id = co.order_id
+        LEFT JOIN customer_users cu ON co.customer_user_id = cu.customer_user_id
         WHERE 1=1
+        AND (
+            s.customer_order_id IS NULL
+            OR (s.customer_order_id IS NOT NULL AND (co.order_status NOT IN ('pending', 'cancelled')))
+        )
     ";
 
     $params = [];
@@ -61,12 +122,12 @@ try {
     }
 
     if (!empty($min_amount)) {
-        $query .= " AND sd.total_price >= :min_amount";
+        $query .= " AND s.total_amount >= :min_amount";
         $params[':min_amount'] = $min_amount;
     }
 
     if (!empty($max_amount)) {
-        $query .= " AND sd.total_price <= :max_amount";
+        $query .= " AND s.total_amount <= :max_amount";
         $params[':max_amount'] = $max_amount;
     }
 
@@ -75,513 +136,360 @@ try {
         $params[':payment_status'] = $payment_status;
     }
 
-    $query .= " ORDER BY s.sale_date DESC";
+    if (!empty($order_status)) {
+        $query .= " AND s.order_status = :order_status";
+        $params[':order_status'] = $order_status;
+    }
+
+    if (!empty($sale_type)) {
+        if ($sale_type === 'direct') {
+            $query .= " AND s.customer_order_id IS NULL";
+        } elseif ($sale_type === 'from_order') {
+            $query .= " AND s.customer_order_id IS NOT NULL";
+        }
+    }
+
+    $query .= " ORDER BY s.sale_date DESC, s.sale_id DESC";
+    // Add hard row limit for export
+    $query .= " LIMIT $max_export_rows";
 
     $stmt = $pdo->prepare($query);
     $stmt->execute($params);
     $sales = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    if (!$sales) {
-        echo "No data found for export.";
-        exit;
-    }
-
-    // Calculate totals and statistics
-    $totalAmount = array_sum(array_column($sales, 'total_price'));
-    $totalRecords = count($sales);
-    $avgAmount = $totalAmount / $totalRecords;
-    
-    // Group by payment status for summary
-    $paymentSummary = [];
+    // Process data to ensure no null values
+    $processed_sales = [];
     foreach ($sales as $sale) {
-        $status = $sale['payment_status'];
-        if (!isset($paymentSummary[$status])) {
-            $paymentSummary[$status] = ['count' => 0, 'amount' => 0];
+        $processed_sale = $sale; // Create a copy to avoid reference issues
+        
+        // Format numeric values
+        $processed_sale['total_amount'] = number_format(floatval($sale['total_amount']), 2, '.', '');
+        $processed_sale['paid_amount'] = number_format(floatval($sale['paid_amount']), 2, '.', '');
+        $processed_sale['pending_amount'] = number_format(floatval($sale['pending_amount']), 2, '.', '');
+        
+        // Format order amounts if not N/A
+        if ($sale['order_total_amount'] !== 'N/A') {
+            $processed_sale['order_total_amount'] = number_format(floatval($sale['order_total_amount']), 2, '.', '');
         }
-        $paymentSummary[$status]['count']++;
-        $paymentSummary[$status]['amount'] += $sale['total_price'];
+        if ($sale['order_tax_amount'] !== 'N/A') {
+            $processed_sale['order_tax_amount'] = number_format(floatval($sale['order_tax_amount']), 2, '.', '');
+        }
+        if ($sale['order_shipping_amount'] !== 'N/A') {
+            $processed_sale['order_shipping_amount'] = number_format(floatval($sale['order_shipping_amount']), 2, '.', '');
+        }
+        if ($sale['order_discount_amount'] !== 'N/A') {
+            $processed_sale['order_discount_amount'] = number_format(floatval($sale['order_discount_amount']), 2, '.', '');
+        }
+        if ($sale['order_final_amount'] !== 'N/A') {
+            $processed_sale['order_final_amount'] = number_format(floatval($sale['order_final_amount']), 2, '.', '');
+        }
+        
+        // Format dates
+        if ($sale['sale_date'] !== 'N/A') {
+            $processed_sale['sale_date'] = date('Y-m-d', strtotime($sale['sale_date']));
+        }
+        if ($sale['completion_date'] !== 'N/A') {
+            $processed_sale['completion_date'] = date('Y-m-d H:i:s', strtotime($sale['completion_date']));
+        }
+        if ($sale['cancellation_date'] !== 'N/A') {
+            $processed_sale['cancellation_date'] = date('Y-m-d H:i:s', strtotime($sale['cancellation_date']));
+        }
+        if ($sale['order_date'] !== 'N/A') {
+            $processed_sale['order_date'] = date('Y-m-d H:i:s', strtotime($sale['order_date']));
+        }
+        if ($sale['created_at'] !== 'N/A') {
+            $processed_sale['created_at'] = date('Y-m-d H:i:s', strtotime($sale['created_at']));
+        }
+        
+        $processed_sales[] = $processed_sale;
     }
+    
+    // Use the processed sales array
+    $sales = $processed_sales;
 
-    // EXPORT AS PDF
-    if ($exportFormat === 'pdf') {
-        $options = new Options();
-        $options->set('isHtml5ParserEnabled', true);
-        $options->set('isPhpEnabled', true);
-        $options->set('defaultFont', 'DejaVu Sans');
-        
-        ob_start();
-        ?>
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Sales Report</title>
-            <style>
-                @page {
-                    margin: 20px;
-                    size: A4 landscape;
-                }
-                
-                body {
-                    font-family: 'DejaVu Sans', Arial, sans-serif;
-                    font-size: 10px;
-                    line-height: 1.4;
-                    color: #333;
-                    margin: 0;
-                    padding: 0;
-                }
-                
-                .header {
-                    text-align: center;
-                    margin-bottom: 25px;
-                    border-bottom: 3px solid #28a745;
-                    padding-bottom: 15px;
-                }
-                
-                .header h1 {
-                    color: #28a745;
-                    font-size: 24px;
-                    margin: 0 0 10px 0;
-                    font-weight: bold;
-                }
-                
-                .header .company-info {
-                    color: #666;
-                    font-size: 12px;
-                    margin: 5px 0;
-                }
-                
-                .report-meta {
-                    display: flex;
-                    justify-content: space-between;
-                    margin-bottom: 20px;
-                    background: #f8f9fa;
-                    padding: 12px;
-                    border-radius: 5px;
-                    border-left: 4px solid #28a745;
-                }
-                
-                .report-meta .left, .report-meta .right {
-                    width: 48%;
-                }
-                
-                .report-meta strong {
-                    color: #28a745;
-                }
-                
-                .summary-section {
-                    margin-bottom: 20px;
-                    background: #f1f8f3;
-                    padding: 15px;
-                    border-radius: 8px;
-                }
-                
-                .summary-title {
-                    color: #28a745;
-                    font-size: 14px;
-                    font-weight: bold;
-                    margin-bottom: 10px;
-                    border-bottom: 1px solid #ddd;
-                    padding-bottom: 5px;
-                }
-                
-                .summary-grid {
-                    display: grid;
-                    grid-template-columns: repeat(4, 1fr);
-                    gap: 15px;
-                    margin-bottom: 15px;
-                }
-                
-                .summary-item {
-                    text-align: center;
-                    background: white;
-                    padding: 10px;
-                    border-radius: 5px;
-                    border: 1px solid #e0e0e0;
-                }
-                
-                .summary-item .label {
-                    font-size: 9px;
-                    color: #666;
-                    margin-bottom: 5px;
-                }
-                
-                .summary-item .value {
-                    font-size: 12px;
-                    font-weight: bold;
-                    color: #28a745;
-                }
-                
-                .payment-status-summary {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                    gap: 10px;
-                }
-                
-                .status-item {
-                    background: white;
-                    padding: 8px;
-                    border-radius: 4px;
-                    border-left: 3px solid #28a745;
-                    font-size: 9px;
-                }
-                
-                .status-item.pending { border-left-color: #ffc107; }
-                .status-item.paid { border-left-color: #28a745; }
-                .status-item.overdue { border-left-color: #dc3545; }
-                
-                .main-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-top: 10px;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                    border-radius: 8px;
-                    overflow: hidden;
-                }
-                
-                .main-table th {
-                    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
-                    color: white;
-                    padding: 12px 8px;
-                    font-weight: bold;
-                    font-size: 9px;
-                    text-align: center;
-                    border: none;
-                }
-                
-                .main-table td {
-                    padding: 8px 6px;
-                    border-bottom: 1px solid #e0e0e0;
-                    font-size: 9px;
-                    vertical-align: middle;
-                }
-                
-                .main-table tbody tr:nth-child(even) {
-                    background-color: #f8f9fa;
-                }
-                
-                .main-table tbody tr:hover {
-                    background-color: #e3f2fd;
-                }
-                
-                .currency {
-                    text-align: right;
-                    font-weight: 600;
-                    color: #28a745;
-                }
-                
-                .number {
-                    text-align: center;
-                    font-weight: 500;
-                }
-                
-                .status-badge {
-                    padding: 3px 8px;
-                    border-radius: 12px;
-                    font-size: 8px;
-                    font-weight: bold;
-                    text-transform: uppercase;
-                    text-align: center;
-                }
-                
-                .status-paid {
-                    background-color: #d4edda;
-                    color: #155724;
-                }
-                
-                .status-pending {
-                    background-color: #fff3cd;
-                    color: #856404;
-                }
-                
-                .status-overdue {
-                    background-color: #f8d7da;
-                    color: #721c24;
-                }
-                
-                .total-row {
-                    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-                    font-weight: bold;
-                    border-top: 2px solid #28a745;
-                }
-                
-                .total-row td {
-                    padding: 12px 8px;
-                    font-size: 10px;
-                }
-                
-                .footer {
-                    margin-top: 20px;
-                    text-align: center;
-                    color: #666;
-                    font-size: 8px;
-                    border-top: 1px solid #ddd;
-                    padding-top: 10px;
-                }
-                
-                .page-break {
-                    page-break-before: always;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h1>Sales Report</h1>
-                <div class="company-info">
-                    <strong>Allied Steel Works</strong><br>
-                    Complete Sales Analysis & Summary
-                </div>
-            </div>
-
-            <div class="report-meta">
-                <div class="left">
-                    <strong>Report Generated:</strong> <?php echo date('d M Y, H:i:s'); ?><br>
-                    <strong>Date Range:</strong> 
-                    <?php 
-                    if ($date_from && $date_to) {
-                        echo date('d M Y', strtotime($date_from)) . ' to ' . date('d M Y', strtotime($date_to));
-                    } else {
-                        echo 'All Dates';
-                    }
-                    ?>
-                </div>
-                <div class="right">
-                    <strong>Total Records:</strong> <?php echo number_format($totalRecords); ?><br>
-                    <strong>Filters Applied:</strong> 
-                    <?php 
-                    $filters = [];
-                    if ($customer_id) $filters[] = 'Customer';
-                    if ($payment_status) $filters[] = 'Payment Status';
-                    if ($min_amount || $max_amount) $filters[] = 'Amount Range';
-                    echo $filters ? implode(', ', $filters) : 'None';
-                    ?>
-                </div>
-            </div>
-
-            <div class="summary-section">
-                <div class="summary-title">📊 Summary Statistics</div>
-                <div class="summary-grid">
-                    <div class="summary-item">
-                        <div class="label">Total Revenue</div>
-                        <div class="value">PKR <?php echo number_format($totalAmount, 2); ?></div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="label">Total Sales</div>
-                        <div class="value"><?php echo number_format($totalRecords); ?></div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="label">Average Sale</div>
-                        <div class="value">PKR <?php echo number_format($avgAmount, 2); ?></div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="label">Highest Sale</div>
-                        <div class="value">PKR <?php echo number_format(max(array_column($sales, 'total_price')), 2); ?></div>
-                    </div>
-                </div>
-                
-                <div class="summary-title">💳 Payment Status Breakdown</div>
-                <div class="payment-status-summary">
-                    <?php foreach ($paymentSummary as $status => $data): ?>
-                        <div class="status-item <?php echo strtolower($status); ?>">
-                            <strong><?php echo ucfirst($status); ?>:</strong><br>
-                            <?php echo $data['count']; ?> sales<br>
-                            PKR <?php echo number_format($data['amount'], 2); ?>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-
-            <table class="main-table">
-                <thead>
-                    <tr>
-                        <th style="width: 12%;">Invoice #</th>
-                        <th style="width: 15%;">Customer</th>
-                        <th style="width: 10%;">Date</th>
-                        <th style="width: 18%;">Item</th>
-                        <th style="width: 8%;">Qty</th>
-                        <th style="width: 12%;">Unit Price</th>
-                        <th style="width: 12%;">Total</th>
-                        <th style="width: 8%;">Payment</th>
-                        <th style="width: 12%;">Created By</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($sales as $row): ?>
-                        <tr>
-                            <td style="font-weight: 600;"><?= htmlspecialchars($row['invoice_number']) ?></td>
-                            <td><?= htmlspecialchars($row['customer_name']) ?></td>
-                            <td><?= date('d-M-y', strtotime($row['sale_date'])) ?></td>
-                            <td><?= htmlspecialchars($row['item_name']) ?></td>
-                            <td class="number"><?= number_format($row['quantity']) ?></td>
-                            <td class="currency">PKR <?= number_format($row['unit_price'], 2) ?></td>
-                            <td class="currency"><strong>PKR <?= number_format($row['total_price'], 2) ?></strong></td>
-                            <td>
-                                <span class="status-badge status-<?= strtolower($row['payment_status']) ?>">
-                                    <?= ucfirst($row['payment_status']) ?>
-                                </span>
-                            </td>
-                            <td><?= htmlspecialchars($row['created_by_name']) ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-                <tfoot>
-                    <tr class="total-row">
-                        <td colspan="6" style="text-align: right; font-weight: bold;">GRAND TOTAL:</td>
-                        <td class="currency" style="font-size: 12px; color: #28a745;">
-                            <strong>PKR <?= number_format($totalAmount, 2) ?></strong>
-                        </td>
-                        <td colspan="2"></td>
-                    </tr>
-                </tfoot>
-            </table>
-
-            <div class="footer">
-                <p>This is a computer-generated report. Generated on <?php echo date('d M Y \a\t H:i:s'); ?> | Total Records: <?php echo $totalRecords; ?></p>
-            </div>
-        </body>
-        </html>
-        <?php
-        $html = ob_get_clean();
-
-        $dompdf = new Dompdf($options);
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'landscape');
-        $dompdf->render();
-        
-        // Generate filename with timestamp
-        $filename = "Sales_Report_" . date('Y-m-d_H-i-s') . ".pdf";
-        $dompdf->stream($filename, ["Attachment" => true]);
-        exit;
-    }
-
-    // EXPORT AS CSV (Enhanced)
-    if ($exportFormat === 'csv') {
-        $filename = "Sales_Report_" . date('Y-m-d_H-i-s') . ".csv";
-        
-        header("Content-Type: text/csv; charset=utf-8");
-        header("Content-Disposition: attachment; filename=" . $filename);
-        header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
-        header("Pragma: public");
-
-        $output = fopen("php://output", "w");
-        
-        // Add BOM for proper UTF-8 encoding
-        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-        
-        // Add report header information
-        fputcsv($output, ["Sales Report"]);
-        fputcsv($output, ["Generated on: " . date('d M Y H:i:s')]);
-        fputcsv($output, ["Total records: " . $totalRecords]);
-        fputcsv($output, ["Total revenue: PKR " . number_format($totalAmount, 2)]);
-        fputcsv($output, []); // Empty line
-        
-        // Add column headers
+    if ($export_format === 'csv') {
+        // Export as CSV (streaming, not loading all rows into memory)
+        $filename = 'sales_export_' . date('Y-m-d_H-i-s') . '.csv';
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: no-cache, must-revalidate');
+        header('Expires: Sat, 26 Jul 1997 05:00:00 GMT');
+        $output = fopen('php://output', 'w');
         $headers = [
-            'Invoice Number',
-            'Customer Name', 
-            'Sale Date',
-            'Item Name',
-            'Quantity',
-            'Unit Price (PKR)',
-            'Total Price (PKR)',
-            'Payment Status',
-            'Created By'
+            'Invoice Number', 'Customer Name', 'Customer Phone', 'Customer Email', 'Customer Address', 'Customer City', 'Customer State', 'Customer Zip Code',
+            'Sale Date', 'Sale Type', 'Total Amount', 'Paid Amount', 'Pending Amount', 'Payment Status', 'Order Status', 'Tracking Number',
+            'Completion Date', 'Cancellation Date', 'Cancellation Reason', 'Notes', 'Created By', 'Created At', 'Order Number', 'Order Date',
+            'Order Total Amount', 'Order Tax Amount', 'Order Shipping Amount', 'Order Discount Amount', 'Order Final Amount', 'Order Payment Method',
+            'Order Payment Status', 'Order Status (Original)', 'Order Tracking Number', 'Shipping Address', 'Customer User Name', 'Customer User Email',
+            'Customer User Phone', 'Items Details', 'Items Count'
         ];
         fputcsv($output, $headers);
-
-        // Add data rows
-        foreach ($sales as $row) {
-            $csvRow = [
-                $row['invoice_number'],
-                $row['customer_name'],
-                $row['sale_date'],
-                $row['item_name'],
-                $row['quantity'],
-                number_format($row['unit_price'], 2),
-                number_format($row['total_price'], 2),
-                ucfirst($row['payment_status']),
-                $row['created_by_name']
+        $record_count = 0;
+        $total_amount = 0;
+        $total_paid = 0;
+        $total_pending = 0;
+        while ($sale = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $record_count++;
+            // Format/clean values as before
+            foreach ($sale as $k => $v) {
+                if ($v === 'N/A') $sale[$k] = '-';
+            }
+            $sale['total_amount'] = number_format(floatval($sale['total_amount']), 2, '.', '');
+            $sale['paid_amount'] = number_format(floatval($sale['paid_amount']), 2, '.', '');
+            $sale['pending_amount'] = number_format(floatval($sale['pending_amount']), 2, '.', '');
+            $total_amount += floatval($sale['total_amount']);
+            $total_paid += floatval($sale['paid_amount']);
+            $total_pending += floatval($sale['pending_amount']);
+            $row = [
+                $sale['invoice_number'], $sale['customer_name'], $sale['customer_phone'], $sale['customer_email'], $sale['customer_address'],
+                $sale['customer_city'], $sale['customer_state'], $sale['customer_zip_code'], $sale['sale_date'], $sale['sale_type'],
+                $sale['total_amount'], $sale['paid_amount'], $sale['pending_amount'], $sale['payment_status'], $sale['order_status'],
+                $sale['tracking_number'], $sale['completion_date'], $sale['cancellation_date'], $sale['cancellation_reason'], $sale['notes'],
+                $sale['created_by_name'], $sale['created_at'], $sale['order_number'], $sale['order_date'], $sale['order_total_amount'],
+                $sale['order_tax_amount'], $sale['order_shipping_amount'], $sale['order_discount_amount'], $sale['order_final_amount'],
+                $sale['order_payment_method'], $sale['order_payment_status'], $sale['order_status_original'], $sale['order_tracking_number'],
+                $sale['shipping_address'], $sale['customer_user_name'], $sale['customer_user_email'], $sale['customer_user_phone'],
+                $sale['items_details'], $sale['items_count']
             ];
-            fputcsv($output, $csvRow);
+            fputcsv($output, $row);
         }
-        
-        // Add summary at the end
-        fputcsv($output, []); // Empty line
-        fputcsv($output, ["SUMMARY"]);
-        fputcsv($output, ["Total Records", $totalRecords]);
-        fputcsv($output, ["Grand Total", "PKR " . number_format($totalAmount, 2)]);
-        fputcsv($output, ["Average Amount", "PKR " . number_format($avgAmount, 2)]);
-
+        // Add summary row
+        $summary = array_fill(0, count($headers), '-');
+        $summary[0] = 'TOTAL SUMMARY';
+        $summary[1] = 'Total Records: ' . $record_count;
+        $summary[9] = 'Totals:';
+        $summary[10] = number_format($total_amount, 2);
+        $summary[11] = number_format($total_paid, 2);
+        $summary[12] = number_format($total_pending, 2);
+        fputcsv($output, []); // blank line
+        fputcsv($output, $summary);
         fclose($output);
         exit;
-    }
+    } elseif ($export_format === 'pdf') {
+        // Export as PDF using Dompdf
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', true);
+        $dompdf = new Dompdf($options);
 
-    // EXPORT AS EXCEL (New feature)
-    if ($exportFormat === 'excel') {
-        require_once '../../vendor/phpoffice/phpspreadsheet/src/Bootstrap.php';
+        // Set timezone to Pakistan
+        date_default_timezone_set('Asia/Karachi');
+        $generated_date = date('F j, Y \a\t g:i A');
+        $company_name = 'Allied Steel Works';
+        $company_address = 'Allied Steel Works (Pvt) Ltd., Service Road, Bhamma, Lahore, Pakistan';
+        $company_email = 'info@alliedsteelworks.pk';
+        $company_phone = '+92-300-1234567';
+        $logo_path = __DIR__ . '/../../assets/images/logo.png';
+        $logo_data = '';
+        if (file_exists($logo_path)) {
+            $logo_data = base64_encode(file_get_contents($logo_path));
+        }
+
+        $html = '<!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <title>Sales Report - Allied Steel Works</title>
+            <style>
+                @page { margin: 20px; }
+                body { 
+                    font-family: "Poppins", Arial, sans-serif; 
+                    font-size: 11px; 
+                    color: #222; 
+                    background: #fff; 
+                    margin: 0; 
+                    padding: 0; 
+                    line-height: 1.4;
+                }
+                .header { 
+                    text-align: left; 
+                    margin-bottom: 20px; 
+                    background: #1976d2;
+                    padding: 18px 20px 14px 20px;
+                    border-radius: 8px 8px 0 0;
+                    color: #fff;
+                    display: flex;
+                    align-items: center;
+                }
+                .logo { 
+                    width: 60px; 
+                    height: 60px; 
+                    margin-right: 18px; 
+                    border-radius: 8px; 
+                    border: 2px solid #fff; 
+                    background: #fff; 
+                    object-fit: cover;
+                }
+                .company-info { font-size: 13px; color: #fff; }
+                .company-info h1 { margin: 0 0 2px 0; font-size: 22px; color: #fff; letter-spacing: 1px; font-weight: 700; }
+                .company-info p { margin: 0; color: #e3e3e3; font-size: 12px; }
+                .report-title { text-align: right; font-size: 20px; color: #fff; font-weight: 700; margin-left: auto; }
+                .report-info {
+                    margin-bottom: 16px;
+                    font-size: 12px;
+                    color: #222;
+                    background: #e3f2fd;
+                    padding: 10px 14px;
+                    border-radius: 6px;
+                    border-left: 4px solid #1976d2;
+                }
+                .summary {
+                    margin: 16px 0;
+                    padding: 10px 14px;
+                    background: #e3f2fd;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    border-left: 4px solid #1976d2;
+                    color: #222;
+                }
+                .summary h3 { margin: 0 0 6px 0; font-size: 15px; color: #1976d2; }
+                .summary p { margin: 4px 0; color: #222; }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 18px; background: #fff; border-radius: 8px; overflow: hidden; }
+                th, td { border: 1px solid #e0e0e0; padding: 7px 5px; text-align: left; font-size: 10px; }
+                th { background: #1976d2; color: #fff; font-weight: 700; font-size: 11px; text-transform: uppercase; }
+                tr:nth-child(even) { background: #f6f8fa; }
+                tr:nth-child(odd) { background: #fff; }
+                .status-badge {
+                    display: inline-block;
+                    padding: 3px 8px;
+                    border-radius: 12px;
+                    font-size: 9px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    color: #fff;
+                    text-align: center;
+                    min-width: 60px;
+                }
+                .status-paid { background: #27ae60; }
+                .status-pending { background: #f39c12; }
+                .status-partial { background: #3498db; }
+                .status-confirmed { background: #3498db; }
+                .status-processing { background: #9b59b6; }
+                .status-shipped { background: #e67e22; }
+                .status-delivered { background: #27ae60; }
+                .status-cancelled { background: #e74c3c; }
+                .sale-type-badge {
+                    display: inline-block;
+                    padding: 2px 6px;
+                    border-radius: 8px;
+                    font-size: 8px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.3px;
+                    color: #fff;
+                }
+                .sale-type-direct { background: #95a5a6; }
+                .sale-type-order { background: #3498db; }
+                .amount-cell { font-weight: 600; color: #2c3e50; }
+                .footer { text-align: center; font-size: 11px; color: #7f8c8d; margin-top: 20px; padding-top: 10px; border-top: 1px solid #ecf0f1; }
+            </style>
+        </head>
+        <body>';
+
+        // Header with logo and company info
+        $html .= '<div class="header">';
+        if ($logo_data) {
+            $html .= '<img src="data:image/png;base64,' . $logo_data . '" class="logo" alt="Allied Steel Works Logo">';
+        }
+        $html .= '<div class="company-info">
+            <h1>' . htmlspecialchars($company_name) . '</h1>
+            <p>' . htmlspecialchars($company_address) . '</p>
+            <p>' . htmlspecialchars($company_email) . ' | ' . htmlspecialchars($company_phone) . '</p>
+        </div>';
+        $html .= '<div class="report-title">Sales Report</div>';
+        $html .= '</div>';
+
+        // Report info
+        $html .= '<div class="report-info">';
+        $html .= '<span><strong>Generated on:</strong> ' . $generated_date . '</span>';
+        if ($date_from || $date_to) {
+            $html .= '<br><strong>Date Range:</strong> ' . ($date_from ?: 'Start') . ' to ' . ($date_to ?: 'End');
+        }
+        if ($payment_status) {
+            $html .= '<br><strong>Payment Status:</strong> ' . ucfirst($payment_status);
+        }
+        if ($order_status) {
+            $html .= '<br><strong>Order Status:</strong> ' . ucfirst($order_status);
+        }
+        if ($sale_type) {
+            $html .= '<br><strong>Sale Type:</strong> ' . ($sale_type === 'direct' ? 'Direct Sale' : 'From Customer Order');
+        }
+        $html .= '</div>';
+
+        // Add summary
+        $total_amount = array_sum(array_column($sales, 'total_amount'));
+        $total_paid = array_sum(array_column($sales, 'paid_amount'));
+        $total_pending = array_sum(array_column($sales, 'pending_amount'));
+        $html .= '<div class="summary">';
+        $html .= '<h3>Report Summary</h3>';
+        $html .= '<p><strong>Total Records:</strong> ' . count($sales) . '</p>';
+        $html .= '<p><strong>Total Amount:</strong> PKR ' . number_format($total_amount, 2) . '</p>';
+        $html .= '<p><strong>Total Paid:</strong> PKR ' . number_format($total_paid, 2) . '</p>';
+        $html .= '<p><strong>Total Pending:</strong> PKR ' . number_format($total_pending, 2) . '</p>';
+        $html .= '</div>';
+
+        // Add table
+        $html .= '<table>';
+        $html .= '<thead><tr>';
+        $html .= '<th>Invoice #</th>';
+        $html .= '<th>Customer</th>';
+        $html .= '<th>Sale Type</th>';
+        $html .= '<th>Date</th>';
+        $html .= '<th>Total</th>';
+        $html .= '<th>Paid</th>';
+        $html .= '<th>Pending</th>';
+        $html .= '<th>Payment Status</th>';
+        $html .= '<th>Order Status</th>';
+        $html .= '<th>Items</th>';
+        $html .= '</tr></thead><tbody>';
         
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        
-        // Set document properties
-        $spreadsheet->getProperties()
-            ->setCreator("Sales Management System")
-            ->setTitle("Sales Report")
-            ->setDescription("Detailed sales report with summary");
-        
-        // Add headers and data
-        $headers = ['Invoice #', 'Customer', 'Date', 'Item', 'Qty', 'Unit Price', 'Total', 'Payment', 'Created By'];
-        $sheet->fromArray($headers, null, 'A1');
-        
-        // Style headers
-        $headerStyle = [
-            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'color' => ['rgb' => '28a745']],
-            'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER]
-        ];
-        $sheet->getStyle('A1:I1')->applyFromArray($headerStyle);
-        
-        // Add data
-        $row = 2;
+        $record_count = 0;
         foreach ($sales as $sale) {
-            $sheet->setCellValue('A' . $row, $sale['invoice_number']);
-            $sheet->setCellValue('B' . $row, $sale['customer_name']);
-            $sheet->setCellValue('C' . $row, $sale['sale_date']);
-            $sheet->setCellValue('D' . $row, $sale['item_name']);
-            $sheet->setCellValue('E' . $row, $sale['quantity']);
-            $sheet->setCellValue('F' . $row, $sale['unit_price']);
-            $sheet->setCellValue('G' . $row, $sale['total_price']);
-            $sheet->setCellValue('H' . $row, ucfirst($sale['payment_status']));
-            $sheet->setCellValue('I' . $row, $sale['created_by_name']);
-            $row++;
+            $record_count++;
+            $sale_type_class = ($sale['sale_type'] === 'Direct Sale') ? 'sale-type-direct' : 'sale-type-order';
+            $payment_status_class = 'status-' . strtolower($sale['payment_status']);
+            $order_status_class = 'status-' . strtolower($sale['order_status']);
+            $html .= '<tr>';
+            $html .= '<td><strong>' . htmlspecialchars($sale['invoice_number']) . '</strong></td>';
+            $html .= '<td>' . htmlspecialchars($sale['customer_name']) . '</td>';
+            $html .= '<td><span class="sale-type-badge ' . $sale_type_class . '">' . htmlspecialchars($sale['sale_type']) . '</span></td>';
+            $html .= '<td>' . htmlspecialchars($sale['sale_date']) . '</td>';
+            $html .= '<td class="amount-cell">PKR ' . htmlspecialchars($sale['total_amount']) . '</td>';
+            $html .= '<td class="amount-cell">PKR ' . htmlspecialchars($sale['paid_amount']) . '</td>';
+            $html .= '<td class="amount-cell">PKR ' . htmlspecialchars($sale['pending_amount']) . '</td>';
+            $html .= '<td><span class="status-badge ' . $payment_status_class . '">' . ucfirst(htmlspecialchars($sale['payment_status'])) . '</span></td>';
+            $html .= '<td><span class="status-badge ' . $order_status_class . '">' . ucfirst(htmlspecialchars($sale['order_status'])) . '</span></td>';
+            $html .= '<td style="max-width: 200px; word-wrap: break-word;">' . htmlspecialchars($sale['items_details']) . '</td>';
+            $html .= '</tr>';
         }
-        
-        // Auto-fit columns
-        foreach (range('A', 'I') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
-        
-        $filename = "Sales_Report_" . date('Y-m-d_H-i-s') . ".xlsx";
-        
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="' . $filename . '"');
-        header('Cache-Control: max-age=0');
-        
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $writer->save('php://output');
-        exit;
+        $html .= '</tbody></table>';
+
+        $html .= '<div class="footer">Report generated by Allied Steel Works &mdash; Powered by DMS | ' . $generated_date . '</div>';
+        $html .= '</body></html>';
+
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $filename = 'sales_report_' . date('Y-m-d_H-i-s') . '.pdf';
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+        $dompdf->stream($filename, ['Attachment' => true]);
     }
 
-    echo "Invalid export format. Supported formats: csv, pdf, excel";
-    exit;
-
-} catch (PDOException $e) {
-    error_log("Export Sales Report Error: " . $e->getMessage(), 3, "../../error_log.log");
-    echo "Database error. Please try again later.";
-    exit;
 } catch (Exception $e) {
-    error_log("Export Error: " . $e->getMessage(), 3, "../../error_log.log");
-    echo "An error occurred while generating the report. Please try again.";
-    exit;
+    error_log("Export Sales Error: " . $e->getMessage(), 3, "../../error_log.log");
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Export failed: ' . $e->getMessage()
+    ]);
+} catch (PDOException $e) {
+    error_log("Export Sales DB Error: " . $e->getMessage(), 3, "../../error_log.log");
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Database error occurred during export.'
+    ]);
 }
 ?>

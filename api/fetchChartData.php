@@ -55,9 +55,11 @@ function getSalesTrend($period) {
     $query = "
         SELECT 
             DATE(sale_date) as date,
-            SUM(total_amount) as amount
-        FROM sales
+            SUM(s.total_amount) as amount
+        FROM sales s
+        LEFT JOIN customer_orders co ON s.customer_order_id = co.order_id
         WHERE sale_date >= DATE_SUB(CURRENT_DATE, INTERVAL :period DAY)
+        AND (co.order_status IS NULL OR co.order_status NOT IN ('cancelled'))
         GROUP BY DATE(sale_date)
         ORDER BY date ASC
     ";
@@ -75,8 +77,8 @@ function getPurchaseTrend($period) {
     $query = "
         SELECT 
             DATE(purchase_date) as date,
-            SUM(total_amount) as amount
-        FROM purchases
+            SUM(p.total_amount) as amount
+        FROM purchases p
         WHERE purchase_date >= DATE_SUB(CURRENT_DATE, INTERVAL :period DAY)
         GROUP BY DATE(purchase_date)
         ORDER BY date ASC
@@ -159,11 +161,13 @@ function getPaymentStatusSummary() {
     if ($source === 'sales' || $source === 'combined') {
         // Get all unique payment statuses from sales
         $salesStatusQuery = "
-            SELECT DISTINCT payment_status
-            FROM sales
-            WHERE sale_date >= DATE_SUB(CURRENT_DATE, INTERVAL :period DAY)
-            AND payment_status IS NOT NULL
-            AND payment_status != ''
+            SELECT DISTINCT s.payment_status
+            FROM sales s
+            LEFT JOIN customer_orders co ON s.customer_order_id = co.order_id
+            WHERE s.sale_date >= DATE_SUB(CURRENT_DATE, INTERVAL :period DAY)
+            AND s.payment_status IS NOT NULL
+            AND s.payment_status != ''
+            AND (co.order_status IS NULL OR co.order_status NOT IN ('cancelled', 'pending'))
         ";
         $stmt = $pdo->prepare($salesStatusQuery);
         $stmt->execute([':period' => $period]);
@@ -172,14 +176,16 @@ function getPaymentStatusSummary() {
         // Get sales data for each status
         $salesQuery = "
             SELECT 
-                payment_status,
+                s.payment_status,
                 COUNT(*) as count,
-                SUM(total_amount) as amount
-            FROM sales
-            WHERE sale_date >= DATE_SUB(CURRENT_DATE, INTERVAL :period DAY)
-            AND payment_status IS NOT NULL
-            AND payment_status != ''
-            GROUP BY payment_status
+                SUM(s.total_amount) as amount
+            FROM sales s
+            LEFT JOIN customer_orders co ON s.customer_order_id = co.order_id
+            WHERE s.sale_date >= DATE_SUB(CURRENT_DATE, INTERVAL :period DAY)
+            AND s.payment_status IS NOT NULL
+            AND s.payment_status != ''
+            AND (co.order_status IS NULL OR co.order_status NOT IN ('cancelled', 'pending'))
+            GROUP BY s.payment_status
         ";
         $stmt = $pdo->prepare($salesQuery);
         $stmt->execute([':period' => $period]);

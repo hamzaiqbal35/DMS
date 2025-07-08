@@ -1,7 +1,6 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+session_name('admin_session');
+session_start();
 require_once "../inc/config/auth.php"; // Ensure user authentication
 require_jwt_auth(); // Enforce JWT authentication
 require_once "../inc/header.php"; // Include header
@@ -134,6 +133,7 @@ $email = $_SESSION['email'] ?? '';
                                             'Media Catalog' => [1,2,4],
                                             'Categories' => [1,2,4],
                                             'Sales' => [1,2,3],
+                                            'Manage Orders' => [1,2,3],
                                             'Sale Reports' => [1,2,3],
                                             'Sale Invoices' => [1,2,3],
                                             'Purchases' => [1,2,4],

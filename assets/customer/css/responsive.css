@@ -1,0 +1,402 @@
+/* Responsive Design for Customer Panel */
+
+/* Extra Large Devices (1400px and up) */
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1320px;
+    }
+    
+    .hero-content h1 {
+        font-size: 3.5rem;
+    }
+    
+    .product-card .card-img-top {
+        height: 250px;
+    }
+}
+
+/* Large Devices (1200px and up) */
+@media (min-width: 1200px) {
+    .hero-content h1 {
+        font-size: 3rem;
+    }
+    
+    .product-card .card-img-top {
+        height: 220px;
+    }
+}
+
+/* Medium Devices (992px and up) */
+@media (min-width: 992px) {
+    .hero-content h1 {
+        font-size: 2.5rem;
+    }
+    
+    .product-card .card-img-top {
+        height: 200px;
+    }
+    
+    .customer-content {
+        padding: 2rem 0;
+    }
+}
+
+/* Small Devices (768px and up) */
+@media (min-width: 768px) {
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+    
+    .hero-content p {
+        font-size: 1.1rem;
+    }
+    
+    .product-card .card-img-top {
+        height: 180px;
+    }
+    
+    .customer-content {
+        padding: 1.5rem 0;
+    }
+}
+
+/* Extra Small Devices (576px and up) */
+@media (min-width: 576px) {
+    .hero-content h1 {
+        font-size: 1.8rem;
+    }
+    
+    .product-card .card-img-top {
+        height: 160px;
+    }
+}
+
+/* Mobile Devices (less than 576px) */
+@media (max-width: 575.98px) {
+    .customer-body {
+        padding-top: 60px;
+    }
+    
+    .hero-section {
+        padding: 2rem 0;
+    }
+    
+    .hero-content h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .hero-content p {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .hero-buttons .btn {
+        display: block;
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .section-title h2 {
+        font-size: 1.8rem;
+    }
+    
+    .section-title p {
+        font-size: 1rem;
+    }
+    
+    .product-card .card-img-top {
+        height: 140px;
+    }
+    
+    .product-card .card-body {
+        padding: 1rem;
+    }
+    
+    .product-card .card-title {
+        font-size: 1rem;
+    }
+    
+    .product-card .card-text {
+        font-size: 0.9rem;
+    }
+    
+    .product-price {
+        font-size: 1.1rem;
+    }
+    
+    .service-card {
+        padding: 1.5rem;
+    }
+    
+    .service-card i {
+        font-size: 2.5rem;
+    }
+    
+    .service-card h4 {
+        font-size: 1.1rem;
+    }
+    
+    .service-card p {
+        font-size: 0.9rem;
+    }
+    
+    .contact-form {
+        padding: 1.5rem;
+    }
+    
+    .customer-content {
+        padding: 1rem 0;
+    }
+    
+    /* Navigation adjustments */
+    .navbar-brand span {
+        display: none;
+    }
+    
+    .navbar-brand img {
+        height: 30px;
+    }
+    
+    /* Card adjustments */
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .card-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    /* Form adjustments */
+    .form-control {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+    
+    /* Table adjustments */
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.5rem;
+    }
+    
+    /* Modal adjustments */
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    .modal-header {
+        padding: 1rem;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+    }
+    
+    .modal-footer {
+        padding: 1rem;
+    }
+}
+
+/* Very Small Devices (less than 400px) */
+@media (max-width: 399.98px) {
+    .hero-content h1 {
+        font-size: 1.3rem;
+    }
+    
+    .hero-content p {
+        font-size: 0.9rem;
+    }
+    
+    .section-title h2 {
+        font-size: 1.5rem;
+    }
+    
+    .product-card .card-img-top {
+        height: 120px;
+    }
+    
+    .product-card .card-body {
+        padding: 0.75rem;
+    }
+    
+    .product-card .card-title {
+        font-size: 0.9rem;
+    }
+    
+    .product-card .card-text {
+        font-size: 0.8rem;
+    }
+    
+    .product-price {
+        font-size: 1rem;
+    }
+    
+    .service-card {
+        padding: 1rem;
+    }
+    
+    .service-card i {
+        font-size: 2rem;
+    }
+    
+    .service-card h4 {
+        font-size: 1rem;
+    }
+    
+    .service-card p {
+        font-size: 0.8rem;
+    }
+    
+    .contact-form {
+        padding: 1rem;
+    }
+    
+    /* Button adjustments */
+    .btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+    
+    .btn-lg {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Form adjustments */
+    .form-control {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+    }
+    
+    .form-label {
+        font-size: 0.9rem;
+    }
+    
+    /* Table adjustments */
+    .table-responsive {
+        font-size: 0.8rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.4rem;
+    }
+}
+
+/* Landscape orientation adjustments */
+@media (max-height: 500px) and (orientation: landscape) {
+    .hero-section {
+        padding: 1rem 0;
+    }
+    
+    .hero-content h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .hero-content p {
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+    
+    .customer-content {
+        padding: 0.5rem 0;
+    }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .product-card .card-img-top {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+}
+
+/* Print styles */
+@media print {
+    .navbar,
+    .customer-footer,
+    .btn,
+    .alert {
+        display: none !important;
+    }
+    
+    .customer-body {
+        padding-top: 0;
+    }
+    
+    .customer-content {
+        padding: 0;
+    }
+    
+    .card {
+        border: 1px solid #000;
+        box-shadow: none;
+    }
+    
+    .product-card {
+        break-inside: avoid;
+    }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Dark mode support (if implemented) */
+@media (prefers-color-scheme: dark) {
+    /* Dark mode styles can be added here */
+}
+
+/* Focus styles for better accessibility */
+@media (any-hover: hover) {
+    .btn:hover,
+    .nav-link:hover,
+    .product-card:hover {
+        transform: translateY(-2px);
+        transition: transform 0.2s ease;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .btn,
+    .nav-link,
+    .product-card {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    .form-control {
+        min-height: 44px;
+    }
+    
+    .dropdown-item {
+        padding: 0.75rem 1rem;
+    }
+} 
