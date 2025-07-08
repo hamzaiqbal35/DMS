@@ -1,4 +1,4 @@
-# DMS (Dealer Management System)
+# DMS (Distribution Management System)
 
 ## Overview
 DMS is a comprehensive Dealer Management System designed for hybrid business operations, supporting both direct sales (admin-driven) and customer orders (e-commerce). It is built for steel and industrial product management, providing robust inventory, sales, purchase, and customer management features.
