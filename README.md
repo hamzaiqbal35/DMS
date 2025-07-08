@@ -1,7 +1,7 @@
-# DMS (Dealer Management System)
+# DMS (Distribution Management System)
 
 ## Overview
-DMS is a comprehensive Dealer Management System designed for hybrid business operations, supporting both direct sales (admin-driven) and customer orders (e-commerce). It is built for steel and industrial product management, providing robust inventory, sales, purchase, and customer management features.
+DMS is a comprehensive Distribution Management System designed for hybrid business operations, supporting both direct sales (admin-driven) and customer orders (e-commerce). It is built for steel and industrial product management, providing robust inventory, sales, purchase, and customer management features.
 
 ## Features
 - **User Management:** Admin, Manager, Salesperson, Inventory Manager, and Customer roles.
@@ -19,7 +19,7 @@ DMS is a comprehensive Dealer Management System designed for hybrid business ope
 - **Backend:** PHP (PDO, MySQL)
 - **Frontend:** HTML, CSS (Bootstrap), JavaScript (jQuery, Chart.js)
 - **Database:** MySQL (InnoDB)
-- **PDF/Export:** mPDF, dompdf
+- **PDF/Export:** dompdf
 
 ## Folder Structure
 - `api/` — RESTful endpoints for admin, customer, sales, reports, etc.
