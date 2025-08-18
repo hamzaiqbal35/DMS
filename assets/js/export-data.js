@@ -184,24 +184,31 @@ $(document).ready(function () {
         e.preventDefault();
         const form = this;
         const formData = new FormData(form);
-        // Only send the selected export_type, not 'all' unless explicitly selected
+        // Get form values
+        const dateRange = $('#dateRange').val();
         const exportType = formData.get('export_type');
+        const exportFormat = formData.get('export_format');
+
+        // Validate and set form data
+        formData.set('dateRange', dateRange);
+
         if (!exportType) {
             toastr.warning('Please select an export type.');
             return;
         }
         formData.set('report_type', exportType); // Ensure report_type is set for backend
+
         // Remove any 'all' value if not selected
         if (exportType !== 'all') {
             formData.delete('export_type');
         }
-        const exportFormat = formData.get('export_format');
+
         if (!exportFormat) {
             toastr.warning('Please select an export format.');
             return;
         }
+
         // Set a human-readable date range label
-        const dateRange = $('#dateRange').val();
         let dateRangeLabel = '';
         if (dateRange === 'custom') {
             dateRangeLabel = $('#startDate').val() + ' to ' + $('#endDate').val();

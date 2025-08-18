@@ -1,8 +1,23 @@
 <?php
+// Prevent any output before JSON response
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+
+// Start output buffering
+while (ob_get_level()) {
+    ob_end_clean();
+}
+ob_start();
+
 require_once '../../inc/config/database.php';
 require_once '../../inc/helpers.php';
 
+// Set JSON headers
 header('Content-Type: application/json');
+header('Cache-Control: no-cache, must-revalidate');
+
+// Debug log
+error_log("Update Order Status Request Started");
 // Start session and restore from JWT if needed
 if (session_status() === PHP_SESSION_NONE) {
     session_name('admin_session');
@@ -31,8 +46,20 @@ try {
 
     $input = json_decode(file_get_contents('php://input'), true);
     
-    $order_id = intval($input['order_id'] ?? 0);
-    $new_status = trim($input['status'] ?? '');
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        throw new Exception("Invalid JSON data provided: " . json_last_error_msg());
+    }
+    
+    if (!isset($input['order_id'])) {
+        throw new Exception("Order ID is required");
+    }
+    
+    if (!isset($input['status'])) {
+        throw new Exception("Status is required");
+    }
+    
+    $order_id = intval($input['order_id']);
+    $new_status = trim($input['status']);
     $notes = trim($input['notes'] ?? '');
     $admin_id = $_SESSION['user_id'];
 
@@ -42,8 +69,8 @@ try {
 
     // Validate status
     $valid_statuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
-    if (!in_array($new_status, $valid_statuses)) {
-        throw new Exception("Invalid order status.");
+    if (empty($new_status) || !in_array(strtolower($new_status), $valid_statuses)) {
+        throw new Exception("Invalid order status. Valid statuses are: " . implode(', ', $valid_statuses));
     }
 
     // Get order details
@@ -53,7 +80,11 @@ try {
         JOIN customer_users cu ON co.customer_user_id = cu.customer_user_id
         WHERE co.order_id = ?
     ");
-    $stmt->execute([$order_id]);
+    
+    if (!$stmt->execute([$order_id])) {
+        throw new Exception("Failed to execute order details query");
+    }
+    
     $order = $stmt->fetch();
 
     if (!$order) {
@@ -133,17 +164,43 @@ try {
         ]);
 
     } catch (Exception $e) {
-        $pdo->rollBack();
-        throw $e;
+        // Roll back transaction
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        
+        // Log the error
+        error_log("Transaction Error in Order Status Update: " . $e->getMessage());
+        error_log("Stack trace: " . $e->getTraceAsString());
+        
+        throw new Exception("Failed to update order status: " . $e->getMessage());
     }
 
 } catch (Exception $e) {
-    error_log("Order Status Update Error: " . $e->getMessage());
-    echo json_encode([
+    // Set error response code
+    http_response_code(500);
+    
+    // Log the error with stack trace
+    error_log("Order Status Update Error: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+    
+    // Clean any output buffer
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+    
+    // Send error response
+    $response = [
         'status' => 'error',
-        'message' => $e->getMessage()
-    ]);
+        'message' => $e->getMessage(),
+        'code' => $e->getCode()
+    ];
+    
+    echo json_encode($response);
+    exit();
 }
+
+// Ensure we end here
+exit();
 
 /**
  * Create or update sales record for all valid order statuses

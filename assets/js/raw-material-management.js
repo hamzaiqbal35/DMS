@@ -2,7 +2,7 @@ $(document).ready(function () {
     // Load material data
     function loadMaterials() {
         $.ajax({
-            url: '/DMS/model/rawMaterial/showMaterial.php',
+            url: '../model/rawMaterial/showMaterial.php',
             method: 'GET',
             dataType: 'json',
             success: function (data) {
@@ -153,7 +153,7 @@ $(document).ready(function () {
     $('#addMaterialForm').on('submit', function (e) {
         e.preventDefault();
         $.ajax({
-            url: '/DMS/model/rawMaterial/insertMaterial.php',
+            url: '../model/rawMaterial/insertMaterial.php',
             method: 'POST',
             data: $(this).serialize(),
             dataType: 'json',
@@ -188,7 +188,7 @@ $(document).ready(function () {
     $('#editMaterialForm').on('submit', function (e) {
         e.preventDefault();
         $.ajax({
-            url: '/DMS/model/rawMaterial/updateMaterial.php',
+            url: '../model/rawMaterial/updateMaterial.php',
             method: 'POST',
             data: $(this).serialize(),
             dataType: 'json',
@@ -214,7 +214,7 @@ $(document).ready(function () {
     $('#confirmDeleteBtn').on('click', function () {
         const id = $('#delete_material_id').val();
         $.ajax({
-            url: '/DMS/model/rawMaterial/deleteMaterial.php',
+            url: '../model/rawMaterial/deleteMaterial.php',
             method: 'POST',
             data: { material_id: id },
             dataType: 'json',
@@ -262,7 +262,7 @@ $(document).ready(function () {
         $('#stockHistoryMaterialName').text(materialName);
         
         $.ajax({
-            url: '/DMS/model/rawMaterial/getStockHistory.php',
+            url: '../model/rawMaterial/getStockHistory.php',
             method: 'GET',
             data: { material_id: materialId },
             dataType: 'json',
@@ -334,7 +334,7 @@ $(document).ready(function () {
         submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Reducing...');
 
         $.ajax({
-            url: '/DMS/model/rawMaterial/reduceStock.php',
+            url: '../model/rawMaterial/reduceStock.php',
             method: 'POST',
             data: formData,
             dataType: 'json',

@@ -135,23 +135,19 @@ try {
                 $item['unit_price'], $item['total_price']
             ]);
             
-            // Update inventory stock
+            // Only verify stock availability here, don't reduce yet
             $stmt = $pdo->prepare("
-                UPDATE inventory 
-                SET current_stock = current_stock - ? 
-                WHERE item_id = ?
+                SELECT current_stock 
+                FROM inventory 
+                WHERE item_id = ? 
+                FOR UPDATE
             ");
-            $stmt->execute([$item['quantity'], $item['item_id']]);
+            $stmt->execute([$item['item_id']]);
+            $current_stock = $stmt->fetchColumn();
             
-            // Log stock change
-            $stmt = $pdo->prepare("
-                INSERT INTO stock_logs 
-                (item_id, quantity, type, reason, created_at)
-                VALUES (?, ?, 'reduction', 'Customer order', NOW())
-            ");
-            $stmt->execute([
-                $item['item_id'], $item['quantity']
-            ]);
+            if ($current_stock < $item['quantity']) {
+                throw new Exception("Insufficient stock for item: " . $item['item_name']);
+            }
         }
         
         // Clear cart

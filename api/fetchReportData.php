@@ -88,11 +88,13 @@ try {
 
     // Get and validate parameters for main report types
     $reportType = $_GET['type'] ?? '';
-    $dateFrom = $_GET['date_from'] ?? '';
-    $dateTo = $_GET['date_to'] ?? '';
+    $dateFrom = $_GET['date_from'] ?? null;
+    $dateTo = $_GET['date_to'] ?? null;
     $categoryId = $_GET['category_id'] ?? '';
     $status = $_GET['status'] ?? '';
     $paymentStatus = $_GET['payment_status'] ?? '';
+    
+    // Don't set default dates if they're not provided - this allows for 'all' date range
 
     if (empty($reportType)) {
         throw new Exception('Report type is required');

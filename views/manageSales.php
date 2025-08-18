@@ -390,7 +390,7 @@ require_once "../inc/navigation.php"; // Include sidebar navigation
 
 <!-- Payment Modal -->
 <div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable custom-scrollable-modal custom-modal-position">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable custom-modal-position">
     <div class="modal-content">
       <div class="modal-header bg-success text-white">
         <h5 class="modal-title"><i class="fas fa-credit-card me-2"></i>Record Payment</h5>

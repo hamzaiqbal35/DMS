@@ -56,9 +56,10 @@ html.auth-page {
 
 /* Content Area */
 .content {
-    margin-left: 0px;
+    margin-left: 265px;
     padding: 1.5rem;
     margin-top: 70px;
+    transition: margin-left 0.3s ease;
 }
 
 /* Header/Navbar */
@@ -116,6 +117,76 @@ html.auth-page {
     box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
     scrollbar-width: thin;
     scrollbar-color: #6c757d transparent;
+}
+
+/* Sidebar Toggle Button */
+#sidebarToggle {
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1025;
+    position: relative;
+    min-width: 40px;
+    min-height: 40px;
+    background-color: #f8f9fa;
+    border: 1px solid #ced4da;
+}
+
+#sidebarToggle:hover {
+    background-color: #e9ecef;
+}
+
+#sidebarToggle i {
+    font-size: 1.5rem;
+}
+
+/* Collapsed Sidebar State */
+.sidebar-collapsed {
+    transform: translateX(-680px);
+}
+
+/* Expanded Content when Sidebar is Collapsed */
+.content-expanded {
+    margin-left: 0 !important;
+}
+
+/* Media Queries for Responsive Design */
+@media (max-width: 991.98px) {
+    .main-content,
+    .content {
+        margin-left: 0;
+        margin-top: 70px;
+    }
+    
+    #sidebar {
+        transform: translateX(-680px);
+        top: 67px;
+        height: calc(100vh - 67px);
+    }
+    
+    #sidebar.show-sidebar {
+        transform: translateX(0);
+    }
+    
+    /* Overlay for mobile sidebar */
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1025;
+        display: none;
+    }
+    
+    .sidebar-overlay.show {
+        display: block;
+    }
 }
 
 /* Sidebar scrollbar styling */
@@ -1701,3 +1772,33 @@ label {
 .stock-restored i {
     color: #0c5460;
 }
+
+/* Payment Modal Specific Scrolling */
+#paymentModal.modal .modal-dialog {
+    max-height: 80vh;
+}
+
+#paymentModal.modal .modal-content {
+    max-height: 80vh;
+}
+
+#paymentModal.modal .modal-body {
+    max-height: calc(80vh - 120px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+#paymentModal.modal .modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+#paymentModal.modal .modal-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#paymentModal.modal .modal-body::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+

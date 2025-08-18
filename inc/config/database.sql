@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Insert default admin user (password: admin3535)
 INSERT INTO users (username, password, email, full_name, role_id) VALUES 
-('Hamza Iqbal', '$2y$10$bKs0cfd5mbV/tMjbvJP6cObn4p6Nz/3QrhnSX0QfcGKtxEWF8H0Ey', 'hamzaiqbalrajpoot35@gmail.com', 'System Administrator', 1);
+('Admin35', '$2y$10$bKs0cfd5mbV/tMjbvJP6cObn4p6Nz/3QrhnSX0QfcGKtxEWF8H0Ey', 'admin35@gmail.com', 'System Administrator', 1);
 
 -- Customers table
 CREATE TABLE IF NOT EXISTS customers (
@@ -117,6 +117,7 @@ CREATE TABLE IF NOT EXISTS stock_logs (
     quantity DECIMAL(10,2) NOT NULL,
     type ENUM('addition', 'reduction') NOT NULL,
     reason VARCHAR(255) NOT NULL,
+    reference_id INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (item_id) REFERENCES inventory(item_id)
 );
@@ -463,34 +464,6 @@ END //
 
 DELIMITER ;
 
--- MIGRATION: Unified sales/order structure
--- Run these SQL commands to update your schema:
---
--- ALTER TABLE sales 
---     ADD COLUMN sale_type ENUM('direct', 'customer_order') NOT NULL DEFAULT 'direct' AFTER order_status,
---     ADD COLUMN customer_user_id INT DEFAULT NULL AFTER customer_id,
---     ADD CONSTRAINT fk_sales_customer_user_id FOREIGN KEY (customer_user_id) REFERENCES customer_users(customer_user_id);
---
--- ALTER TABLE sales 
---     MODIFY COLUMN customer_order_id INT DEFAULT NULL,
---     ADD CONSTRAINT fk_sales_customer_order_id FOREIGN KEY (customer_order_id) REFERENCES customer_orders(order_id) ON DELETE SET NULL;
---
--- (If you have existing data, you may need to backfill sale_type and customer_user_id for historical records)
+-- Add reference_id column to existing stock_logs table (migration)
+ALTER TABLE stock_logs ADD COLUMN IF NOT EXISTS reference_id INT NULL AFTER reason;
 
--- Updated ENUMs for payment_method and payment_status (COD only, 3 statuses)
-ALTER TABLE customer_orders 
-  MODIFY payment_method ENUM('cod') NOT NULL DEFAULT 'cod',
-  MODIFY payment_status ENUM('pending', 'partial', 'paid') DEFAULT 'pending';
-
-ALTER TABLE customer_payments 
-  MODIFY payment_method ENUM('cod') NOT NULL DEFAULT 'cod',
-  MODIFY payment_status ENUM('pending', 'partial', 'paid') DEFAULT 'pending';
-
--- To reverse this change, use:
--- ALTER TABLE customer_orders 
---   MODIFY payment_method ENUM('cod', 'bank_transfer', 'online') NOT NULL DEFAULT 'cod',
---   MODIFY payment_status ENUM('pending', 'processing', 'paid', 'failed', 'refunded') DEFAULT 'pending';
--- 
--- ALTER TABLE customer_payments 
---   MODIFY payment_method ENUM('cod', 'bank_transfer', 'online') NOT NULL DEFAULT 'cod',
---   MODIFY payment_status ENUM('pending', 'processing', 'paid', 'failed', 'refunded') DEFAULT 'pending';

@@ -31,10 +31,14 @@ $min_amount = $_POST['min_amount'] ?? '';
 $max_amount = $_POST['max_amount'] ?? '';
 $max_export_rows = 1000; // Hard row limit for export
 
-// If no date range is provided, default to last 30 days
-if (empty($date_from) && empty($date_to)) {
-    $date_from = date('Y-m-d', strtotime('-30 days'));
-    $date_to = date('Y-m-d');
+// Only set default date range if a specific range is selected but dates are empty
+if (!empty($_POST['dateRange']) && $_POST['dateRange'] !== 'all' && empty($date_from) && empty($date_to)) {
+    // Set date range based on selection
+    $range = intval($_POST['dateRange']);
+    if ($range > 0) {
+        $date_from = date('Y-m-d', strtotime("-{$range} days"));
+        $date_to = date('Y-m-d');
+    }
 }
 
 // Get specific filters

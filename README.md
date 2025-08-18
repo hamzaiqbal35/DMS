@@ -49,7 +49,7 @@ DMS is a comprehensive Distribution Management System designed for hybrid busine
    - Ensure PHP and MySQL are running.
 5. **Access the App:**
    - Open `http://localhost/DMS/` in your browser.
-   - Default admin login: `Hamza Iqbal` / `admin3535` (change after first login).
+   - Default admin login: `admin35@gmail.com` / `admin3535` (change after first login).
 
 ## Usage
 - **Admin Panel:** Manage inventory, sales, purchases, users, and view analytics.

@@ -421,25 +421,34 @@ $(document).ready(function() {
             url: '../api/admin/update-order-status.php',
             method: 'POST',
             contentType: 'application/json',
+            dataType: 'json',
             data: JSON.stringify({
                 order_id: orderId,
                 status: newStatus,
-                notes: notes
+                notes: notes || ''
             }),
             success: function(response) {
                 hideLoading($('#confirmStatusUpdate'));
-                if (response.status === 'success') {
+                if (response && response.status === 'success') {
                     toastr.success('Order status updated successfully!');
                     $('#updateStatusModal').modal('hide');
                     $('#updateStatusForm')[0].reset();
                     loadOrders(); // Refresh the list
                 } else {
-                    toastr.error('Error updating status: ' + response.message);
+                    toastr.error('Error updating status: ' + (response?.message || 'Unknown error occurred'));
                 }
             },
             error: function(xhr, status, error) {
                 hideLoading($('#confirmStatusUpdate'));
-                toastr.error('Error updating status: ' + error);
+                let errorMessage = 'Error updating status: ';
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    errorMessage += response.message || error;
+                } catch (e) {
+                    console.error('Raw response:', xhr.responseText);
+                    errorMessage += error || 'Unknown error occurred';
+                }
+                toastr.error(errorMessage);
             }
         });
     }

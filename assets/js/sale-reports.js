@@ -286,6 +286,14 @@ $(document).ready(function() {
         exportReport(format);
     });
 
+    // Set default date range (last 30 days)
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    
+    $("#date_from").val(thirtyDaysAgo.toISOString().split('T')[0]);
+    $("#date_to").val(today.toISOString().split('T')[0]);
+
     // Initialize
     loadCustomers();
     fetchReportData();

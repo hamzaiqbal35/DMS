@@ -390,3 +390,61 @@ document.addEventListener("DOMContentLoaded", () => {
           $('body').removeClass('modal-open').css({ 'overflow': '', 'padding-right': '' });
       }, 100);
   });
+
+  // Global function for sidebar toggle to ensure it's available immediately
+  function toggleSidebar(show) {
+      const sidebar = document.getElementById('sidebar');
+      const content = document.querySelector('.content');
+      const mainContent = document.querySelector('.main-content');
+      
+      if (!sidebar) {
+          console.error('Sidebar element not found');
+          return;
+      }
+      
+      // Create or get overlay
+      let sidebarOverlay = document.querySelector('.sidebar-overlay');
+      if (!sidebarOverlay) {
+          sidebarOverlay = document.createElement('div');
+          sidebarOverlay.className = 'sidebar-overlay';
+          document.body.appendChild(sidebarOverlay);
+          
+          sidebarOverlay.addEventListener('click', function() {
+              toggleSidebar(false);
+          });
+      }
+      
+      console.log('toggleSidebar called with show:', show, 'window width:', window.innerWidth);
+      
+      if (show === undefined) {
+          // Toggle mode
+          if (window.innerWidth < 992) {
+              sidebar.classList.toggle('show-sidebar');
+              sidebarOverlay.classList.toggle('show');
+          } else {
+              sidebar.classList.toggle('sidebar-collapsed');
+              if (content) content.classList.toggle('content-expanded');
+              if (mainContent) mainContent.classList.toggle('content-expanded');
+          }
+      } else if (show) {
+          // Show mode
+          if (window.innerWidth < 992) {
+              sidebar.classList.add('show-sidebar');
+              sidebarOverlay.classList.add('show');
+          } else {
+              sidebar.classList.remove('sidebar-collapsed');
+              if (content) content.classList.remove('content-expanded');
+              if (mainContent) mainContent.classList.remove('content-expanded');
+          }
+      } else {
+          // Hide mode
+          if (window.innerWidth < 992) {
+              sidebar.classList.remove('show-sidebar');
+              sidebarOverlay.classList.remove('show');
+          } else {
+              sidebar.classList.add('sidebar-collapsed');
+              if (content) content.classList.add('content-expanded');
+              if (mainContent) mainContent.classList.add('content-expanded');
+          }
+      }
+  }

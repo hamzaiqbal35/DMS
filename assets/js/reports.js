@@ -133,6 +133,10 @@ $(document).ready(function () {
             if (dateRange === 'custom') {
                 filters.date_from = $("#startDate").val();
                 filters.date_to = $("#endDate").val();
+            } else if (dateRange === 'all') {
+                // Don't set date filters for 'all' to get all records
+                delete filters.date_from;
+                delete filters.date_to;
             } else {
                 const today = new Date();
                 const startDate = new Date(today);

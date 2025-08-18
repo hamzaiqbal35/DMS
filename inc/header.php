@@ -76,6 +76,11 @@ function generate_csrf_token() {
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-3">
     <div class="container-fluid">
+        <!-- Sidebar Toggle Button (visible only on small screens) -->
+        <button id="sidebarToggle" class="btn btn-outline-secondary d-lg-none me-2" type="button" aria-label="Toggle Sidebar" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+        
         <!-- Navbar Brand -->
         <a class="navbar-brand" href="<?= $base_url ?>views/dashboard.php">
             <img src="<?= $base_url ?>assets/images/logo.png" alt="Logo" class="logo-img">

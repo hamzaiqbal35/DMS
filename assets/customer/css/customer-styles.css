@@ -96,7 +96,7 @@ body {
 .hero-overlay {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(135deg, rgba(67,97,238,0.7) 0%, rgba(76,201,240,0.5) 100%);
+    background: linear-gradient(135deg, rgb(127 148 245 / 70%) 0%, rgb(99 204 237 / 50%) 100%);
     z-index: 1;
 }
 
@@ -112,12 +112,16 @@ body {
     font-weight: 700;
     margin-bottom: 1rem;
     letter-spacing: 1px;
+    color: rgb(255, 255, 255);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
 }
 
 .hero-content p.lead {
     font-size: 1.25rem;
     margin-bottom: 2rem;
     opacity: 0.95;
+    color: rgb(255, 255, 255);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
 }
 
 .hero-buttons .btn {

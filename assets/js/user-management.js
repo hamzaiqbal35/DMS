@@ -5,7 +5,7 @@ $(document).ready(function () {
 
     function fetchUsers() {
         $.ajax({
-            url: '/DMS/model/user/fetchUserList.php',
+            url: '../model/user/fetchUserList.php',
             method: 'GET',
             dataType: 'json',
             success: function (response) {
