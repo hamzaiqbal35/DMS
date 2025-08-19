@@ -30,9 +30,9 @@ $email = $_SESSION['email'] ?? '';
                         <div class="card-body text-center p-4">
                             <div class="position-relative d-inline-block mb-3">
                                 <img src="../assets/images/logo.png" alt="Profile Picture" class="rounded-circle border border-3 border-primary shadow profile-avatar" id="profilePicture" style="width: 130px; height: 130px; object-fit: cover;">
-                                <form id="profilePictureForm" enctype="multipart/form-data" class="mt-2">
+                                <form id="profilePictureForm" enctype="multipart/form-data" class="mt-2" autocomplete="off">
                                     <label for="profile_picture" class="btn btn-outline-primary btn-sm rounded-pill px-3"><i class="fas fa-camera"></i> Change</label>
-                                    <input type="file" name="profile_picture" id="profile_picture" accept="image/*" class="d-none">
+                                    <input type="file" name="profile_picture" id="profile_picture" accept="image/*" class="d-none" autocomplete="photo">
                                     <button type="submit" class="btn btn-primary btn-sm rounded-pill mt-2 w-100">Upload</button>
                                 </form>
                             </div>
@@ -64,15 +64,15 @@ $email = $_SESSION['email'] ?? '';
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <label for="full_name" class="form-label">Full Name</label>
-                                        <input type="text" class="form-control" id="full_name" name="full_name" required placeholder="<?= htmlspecialchars($profile['full_name'] ?? 'Enter your full name') ?>" value="">
+                                        <input type="text" class="form-control" id="full_name" name="full_name" required placeholder="<?= htmlspecialchars($profile['full_name'] ?? 'Enter your full name') ?>" value="" autocomplete="name">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="email" class="form-label">Email</label>
-                                        <input type="email" class="form-control" id="email" name="email" required placeholder="<?= htmlspecialchars($profile['email'] ?? 'Enter your email') ?>" value="">
+                                        <input type="email" class="form-control" id="email" name="email" required placeholder="<?= htmlspecialchars($profile['email'] ?? 'Enter your email') ?>" value="" autocomplete="email">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="phone" class="form-label">Phone</label>
-                                        <input type="text" class="form-control" id="phone" name="phone" placeholder="<?= htmlspecialchars($profile['phone'] ?? 'Enter your phone') ?>" value="">
+                                        <input type="text" class="form-control" id="phone" name="phone" placeholder="<?= htmlspecialchars($profile['phone'] ?? 'Enter your phone') ?>" value="" autocomplete="tel">
                                     </div>
                                 </div>
                                 <div class="mt-4 text-end">
@@ -91,15 +91,15 @@ $email = $_SESSION['email'] ?? '';
                                 <div class="row g-3">
                                     <div class="col-md-4">
                                         <label for="current_password" class="form-label">Current Password</label>
-                                        <input type="password" class="form-control" id="current_password" name="current_password" required placeholder="Current password" value="">
+                                        <input type="password" class="form-control" id="current_password" name="current_password" required placeholder="Current password" value="" autocomplete="current-password">
                                     </div>
                                     <div class="col-md-4">
                                         <label for="new_password" class="form-label">New Password</label>
-                                        <input type="password" class="form-control" id="new_password" name="new_password" required placeholder="New password" value="">
+                                        <input type="password" class="form-control" id="new_password" name="new_password" required placeholder="New password" value="" autocomplete="new-password">
                                     </div>
                                     <div class="col-md-4">
                                         <label for="confirm_password" class="form-label">Confirm Password</label>
-                                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required placeholder="Confirm new password" value="">
+                                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required placeholder="Confirm new password" value="" autocomplete="new-password">
                                     </div>
                                 </div>
                                 <div class="mt-4 text-end">
