@@ -23,12 +23,6 @@ $sale_type = $_REQUEST['sale_type'] ?? '';
 $export_format = $_REQUEST['format'] ?? 'csv';
 $max_export_rows = 1000; 
 
-// If no date range is provided, default to last 30 days
-if (empty($date_from) && empty($date_to)) {
-    $date_from = date('Y-m-d', strtotime('-30 days'));
-    $date_to = date('Y-m-d');
-}
-
 try {
     $query = "
         SELECT 
@@ -224,26 +218,29 @@ try {
             'Customer User Phone', 'Items Details', 'Items Count'
         ];
         fputcsv($output, $headers);
-        $record_count = 0;
+        $record_count = count($sales);
         $total_amount = 0;
         $total_paid = 0;
         $total_pending = 0;
-        while ($sale = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $record_count++;
-            // Format/clean values as before
+        
+        foreach ($sales as $sale) {
+            // Format/clean values
             foreach ($sale as $k => $v) {
                 if ($v === 'N/A') $sale[$k] = '-';
             }
-            $sale['total_amount'] = number_format(floatval($sale['total_amount']), 2, '.', '');
-            $sale['paid_amount'] = number_format(floatval($sale['paid_amount']), 2, '.', '');
-            $sale['pending_amount'] = number_format(floatval($sale['pending_amount']), 2, '.', '');
+            
+            // Calculate totals from the processed data
             $total_amount += floatval($sale['total_amount']);
             $total_paid += floatval($sale['paid_amount']);
             $total_pending += floatval($sale['pending_amount']);
+            // Format the row data
             $row = [
                 $sale['invoice_number'], $sale['customer_name'], $sale['customer_phone'], $sale['customer_email'], $sale['customer_address'],
                 $sale['customer_city'], $sale['customer_state'], $sale['customer_zip_code'], $sale['sale_date'], $sale['sale_type'],
-                $sale['total_amount'], $sale['paid_amount'], $sale['pending_amount'], $sale['payment_status'], $sale['order_status'],
+                number_format(floatval($sale['total_amount']), 2, '.', ''),
+                number_format(floatval($sale['paid_amount']), 2, '.', ''),
+                number_format(floatval($sale['pending_amount']), 2, '.', ''),
+                $sale['payment_status'], $sale['order_status'],
                 $sale['tracking_number'], $sale['completion_date'], $sale['cancellation_date'], $sale['cancellation_reason'], $sale['notes'],
                 $sale['created_by_name'], $sale['created_at'], $sale['order_number'], $sale['order_date'], $sale['order_total_amount'],
                 $sale['order_tax_amount'], $sale['order_shipping_amount'], $sale['order_discount_amount'], $sale['order_final_amount'],
